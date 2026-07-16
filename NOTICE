@@ -1,0 +1,7 @@
+Wyss Home Panel
+Copyright 2026 Santiago Wyss
+
+Yo incorporo un archivo de configuración de placa y un puerto LVGL derivados del firmware
+esp32-smart-light-panel y de ejemplos Apache-2.0 de Espressif/Waveshare. Yo conservo sus
+encabezados y atribuciones en los archivos correspondientes.
+

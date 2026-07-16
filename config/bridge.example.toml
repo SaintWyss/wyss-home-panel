@@ -1,0 +1,30 @@
+[bridge]
+host = "0.0.0.0"
+port = 8443
+certfile = "config/private/server.crt"
+keyfile = "config/private/server.key"
+
+[panel]
+id = "wyss-REEMPLAZAR"
+token_sha256 = "REEMPLAZAR_CON_SHA256"
+primary_entity = "light.living"
+allowed_entities = ["light.living"]
+
+[devices]
+provider = "tuya"
+
+[tuya]
+name = "Luz del living"
+device_id_env = "WYSS_TUYA_DEVICE_ID"
+address = "192.168.1.50"
+local_key_env = "WYSS_TUYA_LOCAL_KEY"
+version = 3.3
+
+[home_assistant]
+url = "http://homeassistant.local:8123"
+token_env = "WYSS_HA_TOKEN"
+
+[wyss]
+url = "http://127.0.0.1:8000"
+token_env = "WYSS_API_TOKEN"
+
