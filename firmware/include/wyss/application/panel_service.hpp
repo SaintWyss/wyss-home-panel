@@ -1,0 +1,52 @@
+#pragma once
+
+#include <deque>
+#include <optional>
+#include <string>
+#include <unordered_map>
+#include <vector>
+
+#include "wyss/domain/policy.hpp"
+#include "wyss/ports/ports.hpp"
+
+namespace wyss::application {
+
+class PanelService final {
+   public:
+    PanelService(ports::Clock& clock, ports::CommandPort& commands, ports::ViewPort& view);
+
+    void set_connection(domain::ConnectionState state);
+    void replace_devices(std::vector<domain::DeviceState> devices);
+    void reconcile_device(const domain::DeviceState& state);
+    void fast_action(std::string entity_id, std::string action,
+                     std::optional<std::uint8_t> brightness = std::nullopt);
+    void submit_intent(std::string text);
+    void receive_plan(domain::Plan plan);
+    void answer_plan(bool accepted);
+    void receive_execution(domain::ExecutionUpdate update);
+    void tick();
+
+    [[nodiscard]] const std::vector<domain::DeviceState>& devices() const noexcept;
+
+   private:
+    struct OptimisticState {
+        domain::DeviceState before;
+        std::uint64_t expires_at_ms;
+    };
+
+    [[nodiscard]] std::string next_request_id();
+    void apply_optimistic(const domain::FastCommand& command);
+    void rollback(std::string_view entity_id, std::string_view message);
+    void rollback_expired();
+
+    ports::Clock& clock_;
+    ports::CommandPort& commands_;
+    ports::ViewPort& view_;
+    domain::ConnectionState connection_{domain::ConnectionState::Offline};
+    std::vector<domain::DeviceState> devices_;
+    std::unordered_map<std::string, OptimisticState> optimistic_;
+    std::optional<domain::Plan> pending_plan_;
+    std::uint32_t sequence_{0};
+};
+
+}  // namespace wyss::application
