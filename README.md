@@ -81,7 +81,7 @@ mypy bridge/src
 pytest bridge/tests
 ```
 
-Yo verifiqué la compilación completa de producción con PlatformIO: uso 96.048 bytes de RAM (29,3 %) y 1.574.665 bytes de Flash (24,0 %). Yo también verifiqué el dominio C++ con advertencias tratadas como errores y las tres pruebas asíncronas del puente.
+Yo verifiqué la compilación completa de producción con PlatformIO: uso 96.048 bytes de RAM (29,3 %) y 1.574.693 bytes de Flash (24,0 %). Yo también verifiqué el dominio C++ con advertencias tratadas como errores y las tres pruebas asíncronas del puente.
 
 ## Fuentes y procedencia
 

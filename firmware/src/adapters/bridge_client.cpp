@@ -1,5 +1,6 @@
 #include "wyss/adapters/bridge_client.hpp"
 
+#include <Arduino.h>
 #include <ArduinoJson.h>
 #include <WiFi.h>
 
@@ -221,7 +222,9 @@ void BridgeClient::dispatch(application::PanelService& service, const char* json
         plan.plan_id = document["plan_id"] | "";
         plan.summary = document["summary"] | "";
         plan.risk = static_cast<domain::RiskLevel>(std::clamp(document["risk"] | 0, 0, 3));
-        plan.expires_at_ms = document["expires_at_ms"] | 0ULL;
+        const std::uint64_t expires_in_ms =
+            std::clamp<std::uint64_t>(document["expires_in_ms"] | 120000ULL, 0, 300000);
+        plan.expires_at_ms = millis() + expires_in_ms;
         for (JsonObject item : document["steps"].as<JsonArray>()) {
             plan.steps.push_back({item["description"] | "", item["target"] | ""});
         }

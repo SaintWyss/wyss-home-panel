@@ -30,3 +30,4 @@ Yo envío `state.snapshot`, `state.changed`, `plan.proposed`, `execution.update`
 
 Yo mantengo los identificadores idempotentes por sesión y rechazo versiones, tipos y tamaños desconocidos.
 
+Yo envío `expires_in_ms` dentro de `plan.proposed`. Yo convierto esa duración al reloj monotónico del ESP32 y evito mezclar el reloj de la netbook, el del panel y las zonas horarias. Yo limito la confirmación a cinco minutos como máximo.

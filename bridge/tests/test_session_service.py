@@ -75,10 +75,16 @@ async def test_policy_rejects_an_unlisted_entity() -> None:
 
 @pytest.mark.asyncio
 async def test_intent_becomes_a_confirmable_plan() -> None:
-    service = SessionService(FakeDevices(), FakeWyss(), frozenset({"light.living"}))
+    service = SessionService(
+        FakeDevices(),
+        FakeWyss(),
+        frozenset({"light.living"}),
+        now_ms=lambda: 1000,
+    )
     responses = await service.handle(
         {"v": 1, "type": "intent.submit", "id": "intent-1", "text": "Apagá el living"}
     )
     assert responses[0]["type"] == "plan.proposed"
     assert responses[0]["risk"] == 1
     assert responses[0]["steps"][0]["target"] == "light.living"
+    assert responses[0]["expires_in_ms"] == 4000

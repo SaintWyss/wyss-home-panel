@@ -82,6 +82,7 @@ class SessionService:
             return [self._execution(request_id, "failed", str(error), 0)]
         if plan is None:
             return [self._execution(request_id, "executing", "Yo inicié la ejecución segura", 0)]
+        expires_in_ms = max(0, min(300_000, plan.expires_at_ms - self._now_ms()))
         return [
             {
                 "v": 1,
@@ -92,7 +93,7 @@ class SessionService:
                 "steps": [
                     {"description": step.description, "target": step.target} for step in plan.steps
                 ],
-                "expires_at_ms": plan.expires_at_ms,
+                "expires_in_ms": expires_in_ms,
             }
         ]
 
