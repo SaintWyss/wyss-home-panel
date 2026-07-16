@@ -1,8 +1,6 @@
 from wyss_panel_bridge.domain.models import FastCommand, PolicyError
 
-ALLOWED_ACTIONS = frozenset(
-    {"turn_on", "turn_off", "toggle", "set_brightness", "activate_scene"}
-)
+ALLOWED_ACTIONS = frozenset({"turn_on", "turn_off", "toggle", "set_brightness", "activate_scene"})
 
 
 def validate_fast_command(command: FastCommand, allowed_entities: frozenset[str]) -> None:
@@ -14,4 +12,3 @@ def validate_fast_command(command: FastCommand, allowed_entities: frozenset[str]
         command.brightness is not None and 0 <= command.brightness <= 100
     ):
         raise PolicyError("El brillo debe estar entre 0 y 100")
-

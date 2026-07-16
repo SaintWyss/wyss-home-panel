@@ -38,9 +38,7 @@ class WyssGateway:
             for item in raw_steps
             if isinstance(item, dict)
         )
-        expires_at_ms = int(
-            raw.get("expires_at_ms") or time.monotonic_ns() // 1_000_000 + 120_000
-        )
+        expires_at_ms = int(raw.get("expires_at_ms") or time.monotonic_ns() // 1_000_000 + 120_000)
         return Plan(
             plan_id=str(pending_id),
             summary=str(raw.get("summary") or raw.get("message") or "Plan preparado por Wyss"),

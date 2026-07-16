@@ -19,4 +19,3 @@ class OrchestratorGateway(Protocol):
 
 class MonotonicClock(Protocol):
     def milliseconds(self) -> int: ...
-

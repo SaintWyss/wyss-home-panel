@@ -50,4 +50,3 @@ class HomeAssistantGateway:
             brightness=round(raw_brightness * 100 / 255),
             revision=time.monotonic_ns(),
         )
-

@@ -90,8 +90,7 @@ class SessionService:
                 "summary": plan.summary,
                 "risk": int(plan.risk),
                 "steps": [
-                    {"description": step.description, "target": step.target}
-                    for step in plan.steps
+                    {"description": step.description, "target": step.target} for step in plan.steps
                 ],
                 "expires_at_ms": plan.expires_at_ms,
             }
@@ -152,4 +151,3 @@ class SessionService:
     @staticmethod
     def _error(code: str, message: str) -> dict[str, Any]:
         return {"v": 1, "type": "error", "code": code, "message": message}
-

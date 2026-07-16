@@ -57,9 +57,7 @@ class TuyaGateway:
     async def _read(self) -> DeviceState:
         response = await asyncio.to_thread(self._device.status)
         if not isinstance(response, dict) or response.get("Error"):
-            return DeviceState(
-                self._entity_id, self._name, False, False, 0, time.monotonic_ns()
-            )
+            return DeviceState(self._entity_id, self._name, False, False, 0, time.monotonic_ns())
         dps = response.get("dps", {})
         power = bool(dps.get("20", False))
         brightness = max(0, min(100, round(int(dps.get("22", 0)) / 10)))

@@ -57,4 +57,3 @@ class Settings:
             wyss_url=str(wyss["url"]).rstrip("/"),
             wyss_token=_env(str(wyss["token_env"])),
         )
-

@@ -61,4 +61,3 @@ class Plan:
 
 class PolicyError(ValueError):
     """Yo indico que una acción no cumple la política del borde."""
-
