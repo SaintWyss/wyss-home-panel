@@ -19,7 +19,8 @@ from wyss_panel_bridge.domain.events import EventDraft
 from wyss_panel_bridge.domain.media import MediaAction, MediaCommand, MediaDevice, MediaState
 from wyss_panel_bridge.domain.models import DeviceState, FastCommand, Plan, PlanStep, RiskLevel
 from wyss_panel_bridge.domain.protocol_v2 import parse_envelope
-from wyss_panel_bridge.ports_v2 import MediaPort, SpeechPort
+from wyss_panel_bridge.domain.weather import ForecastDay, WeatherForecast
+from wyss_panel_bridge.ports_v2 import MediaPort, SpeechPort, WeatherPort
 
 
 class FakeLights:
@@ -128,14 +129,39 @@ class FakeMedia:
         return self.state_value
 
 
+class FakeWeather:
+    def __init__(self) -> None:
+        self.calls = 0
+
+    async def forecast(self, location: str, days: int) -> WeatherForecast:
+        assert location == "Resistencia, Chaco" and days == 7
+        self.calls += 1
+        daily = ForecastDay("2026-07-17", 0, "despejado", 15, 28, 0, 0, 12)
+        return WeatherForecast(
+            location=location,
+            timezone="America/Argentina/Cordoba",
+            provider="open-meteo",
+            observed_at="2026-07-17T20:45",
+            temperature=28.5,
+            apparent_temperature=29.1,
+            code=0,
+            condition="despejado",
+            wind_kmh=8.2,
+            is_day=True,
+            days=(daily,) * 7,
+            fetched_at=1000,
+        )
+
+
 def _app(
     settings: Settings,
     lights: FakeLights | None = None,
     orchestrator: FakeConversationWyss | None = None,
     speech: SpeechPort | None = None,
     media: MediaPort | None = None,
+    weather: WeatherPort | None = None,
 ) -> FastAPI:
-    return create_app(settings, lights or FakeLights(), orchestrator, speech, media)
+    return create_app(settings, lights or FakeLights(), orchestrator, speech, media, weather)
 
 
 def _settings(tmp_path: Path, *, enabled: bool) -> Settings:
@@ -161,6 +187,7 @@ def _settings(tmp_path: Path, *, enabled: bool) -> Settings:
         v2_event_db=tmp_path / "events.sqlite3",
         v2_projection_db=tmp_path / "projections.sqlite3",
         v2_light_audit_db=tmp_path / "light-audit.sqlite3",
+        v2_weather_cache_db=tmp_path / "weather-cache.sqlite3",
         v2_lights_enabled=enabled,
         v2_conversation_enabled=enabled,
     )
@@ -570,6 +597,54 @@ def test_pc_android_and_panel_converge_on_spotify_without_provider_tokens(
     assert "service-token" not in serialized
 
 
+def test_pc_android_and_panel_receive_same_seven_day_weather_projection(
+    tmp_path: Path,
+) -> None:
+    settings = replace(_settings(tmp_path, enabled=True), v2_weather_enabled=True)
+    weather = FakeWeather()
+    clients = {
+        client_id: _pair(settings)[0]
+        if client_id == "panel:living"
+        else _pair_as(settings, client_id, "panel.read_projection")
+        for client_id in ("panel:living", "pc:desk", "android:phone")
+    }
+
+    with TestClient(_app(settings, weather=weather)) as client:
+        with (
+            client.websocket_connect(
+                "/v2/client",
+                headers=_headers_as("pc:desk", clients["pc:desk"]),
+                subprotocols=["wyss-v2"],
+            ) as pc,
+            client.websocket_connect(
+                "/v2/client",
+                headers=_headers_as("android:phone", clients["android:phone"]),
+                subprotocols=["wyss-v2"],
+            ) as android,
+            client.websocket_connect(
+                "/v2/client",
+                headers=_headers_as("panel:living", clients["panel:living"]),
+                subprotocols=["wyss-v2"],
+            ) as panel,
+        ):
+            snapshots = []
+            for client_id, websocket in {
+                "pc:desk": pc,
+                "android:phone": android,
+                "panel:living": panel,
+            }.items():
+                websocket.send_json(_hello_as(client_id))
+                assert websocket.receive_json()["type"] == "session.welcome"
+                snapshots.append(websocket.receive_json())
+
+    projections = [message["payload"]["weather"] for message in snapshots]
+    assert all(projection["location"] == "Resistencia, Chaco" for projection in projections)
+    assert all(projection["timezone"] == "America/Argentina/Cordoba" for projection in projections)
+    assert all(len(projection["days"]) == 7 for projection in projections)
+    assert all(projection["current"]["condition"] == "despejado" for projection in projections)
+    assert weather.calls == 1
+
+
 def test_spotify_flag_rolls_back_to_shell_without_calling_provider(tmp_path: Path) -> None:
     settings = _settings(tmp_path, enabled=True)
     token = _pair_as(settings, "panel:living", "panel.spotify.control")
@@ -592,6 +667,7 @@ def test_spotify_flag_rolls_back_to_shell_without_calling_provider(tmp_path: Pat
     assert rejected["type"] == "error"
     assert rejected["payload"]["code"] == "policy_rejected"
     assert media.calls == 0
+    assert not settings.v2_weather_cache_db.exists()
 
 
 def test_light_migration_flag_rolls_back_to_read_only_v2_without_deleting_state(

@@ -62,6 +62,13 @@ class Settings:
     v2_voice_timeout_seconds: float = 30.0
     v2_spotify_enabled: bool = False
     v2_spotify_approved_scopes: frozenset[str] = frozenset()
+    v2_weather_enabled: bool = False
+    v2_weather_cache_db: Path = Path("bridge/data/weather-cache.sqlite3")
+    v2_weather_latitude: float = -27.4514
+    v2_weather_longitude: float = -58.9867
+    v2_weather_timezone: str = "America/Argentina/Cordoba"
+    v2_weather_refresh_seconds: float = 30 * 60
+    v2_weather_max_stale_seconds: float = 6 * 60 * 60
 
     @classmethod
     def load(cls, path: Path) -> Settings:
@@ -88,6 +95,13 @@ class Settings:
         spotify_enabled = bool(v2.get("spotify_enabled", False))
         if spotify_enabled and spotify_scopes != allowed_spotify_scopes:
             raise RuntimeError("Yo no habilito Spotify sin scopes mínimos aprobados")
+        weather_refresh = float(v2.get("weather_refresh_seconds", 30 * 60))
+        weather_max_stale = float(v2.get("weather_max_stale_seconds", 6 * 60 * 60))
+        if weather_refresh <= 0 or weather_max_stale < weather_refresh:
+            raise RuntimeError("Yo recibí ventanas meteorológicas inválidas")
+        weather_timezone = str(v2.get("weather_timezone", "America/Argentina/Cordoba"))
+        if weather_timezone != "America/Argentina/Cordoba":
+            raise RuntimeError("Yo rechacé otra zona horaria para Resistencia")
         return cls(
             host=str(bridge.get("host", "0.0.0.0")),
             port=int(bridge.get("port", 8443)),
@@ -117,4 +131,13 @@ class Settings:
             v2_voice_timeout_seconds=float(v2.get("voice_timeout_seconds", 30.0)),
             v2_spotify_enabled=spotify_enabled,
             v2_spotify_approved_scopes=spotify_scopes,
+            v2_weather_enabled=bool(v2.get("weather_enabled", False)),
+            v2_weather_cache_db=Path(
+                v2.get("weather_cache_db", "bridge/data/weather-cache.sqlite3")
+            ),
+            v2_weather_latitude=float(v2.get("weather_latitude", -27.4514)),
+            v2_weather_longitude=float(v2.get("weather_longitude", -58.9867)),
+            v2_weather_timezone=weather_timezone,
+            v2_weather_refresh_seconds=weather_refresh,
+            v2_weather_max_stale_seconds=weather_max_stale,
         )

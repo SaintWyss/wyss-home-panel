@@ -232,6 +232,7 @@ def create_v2_router(settings: Settings, runtime: V2Runtime) -> APIRouter:
     runtime.lights.set_event_sink(hub.broadcast)
     runtime.conversation.set_event_sink(hub.broadcast)
     runtime.media.set_event_sink(hub.broadcast)
+    runtime.weather.set_event_sink(hub.broadcast)
 
     @router.get("/v2/voice/config")
     async def voice_config() -> JSONResponse:
@@ -387,6 +388,8 @@ def create_v2_router(settings: Settings, runtime: V2Runtime) -> APIRouter:
             await runtime.lights.ensure_snapshot()
             if settings.v2_spotify_enabled:
                 await runtime.media.ensure_snapshot()
+            if settings.v2_weather_enabled:
+                await runtime.weather.ensure_snapshot()
             delivery = runtime.projections.delivery(client_id, last_event_id)
             messages = [
                 _message(

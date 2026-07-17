@@ -53,6 +53,13 @@ spotify_approved_scopes = [
   "user-library-read",
   "user-library-modify",
 ]
+weather_enabled = true
+weather_cache_db = "private/weather-cache.sqlite3"
+weather_latitude = -27.4514
+weather_longitude = -58.9867
+weather_timezone = "America/Argentina/Cordoba"
+weather_refresh_seconds = 900
+weather_max_stale_seconds = 21600
 """.strip(),
         encoding="utf-8",
     )
@@ -83,6 +90,13 @@ spotify_approved_scopes = [
             "user-library-modify",
         }
     )
+    assert settings.v2_weather_enabled is True
+    assert settings.v2_weather_cache_db == Path("private/weather-cache.sqlite3")
+    assert settings.v2_weather_latitude == -27.4514
+    assert settings.v2_weather_longitude == -58.9867
+    assert settings.v2_weather_timezone == "America/Argentina/Cordoba"
+    assert settings.v2_weather_refresh_seconds == 900
+    assert settings.v2_weather_max_stale_seconds == 21_600
     assert settings.wyss_url == "http://127.0.0.1:8000"
 
 

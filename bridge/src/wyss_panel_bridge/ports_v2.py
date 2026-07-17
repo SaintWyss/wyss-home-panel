@@ -17,6 +17,7 @@ from wyss_panel_bridge.domain.v2_types import (
     ProjectionEvent,
     Snapshot,
 )
+from wyss_panel_bridge.domain.weather import WeatherForecast
 
 
 class HomePort(Protocol):
@@ -73,7 +74,13 @@ class MediaPort(Protocol):
 
 
 class WeatherPort(Protocol):
-    async def forecast(self, location: str, days: int) -> Snapshot: ...
+    async def forecast(self, location: str, days: int) -> WeatherForecast: ...
+
+
+class WeatherCachePort(Protocol):
+    def load(self) -> WeatherForecast | None: ...
+
+    def save(self, forecast: WeatherForecast) -> None: ...
 
 
 class CalendarPort(Protocol):
