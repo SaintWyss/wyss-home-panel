@@ -44,6 +44,13 @@ inline constexpr std::array<Rect, 5> navigation = {
 inline constexpr Rect manual_button{310, 382, 180, 58};
 inline constexpr Rect power_button{20, 119, 150, 112};
 inline constexpr Rect brightness_slider{210, 164, 380, 48};
+inline constexpr std::array<Rect, 3> light_selectors = {
+    Rect{40, 116, 210, 54}, Rect{40, 178, 210, 54}, Rect{40, 240, 210, 54},
+};
+inline constexpr std::array<Rect, 4> color_presets = {
+    Rect{500, 222, 54, 48}, Rect{562, 222, 54, 48}, Rect{624, 222, 54, 48},
+    Rect{686, 222, 54, 48},
+};
 inline constexpr std::array<Rect, 3> quick_actions = {
     Rect{20, 324, 232, 66}, Rect{284, 324, 232, 66}, Rect{548, 324, 232, 66},
 };

@@ -19,7 +19,8 @@ class PanelService final {
     void replace_devices(std::vector<domain::DeviceState> devices);
     void reconcile_device(const domain::DeviceState& state);
     void fast_action(std::string entity_id, std::string action,
-                     std::optional<std::uint8_t> brightness = std::nullopt);
+                     std::optional<std::uint8_t> brightness = std::nullopt,
+                     std::optional<std::uint32_t> rgb = std::nullopt);
     void submit_intent(std::string text);
     void receive_plan(domain::Plan plan);
     void answer_plan(bool accepted);

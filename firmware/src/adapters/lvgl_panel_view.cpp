@@ -127,6 +127,7 @@ void LvglPanelView::style_button(lv_obj_t* object, std::uint32_t background) {
 void LvglPanelView::begin(application::PanelService& service, std::string primary_entity) {
     service_ = &service;
     primary_entity_ = std::move(primary_entity);
+    selected_entity_ = primary_entity_;
     g_view = this;
 
     lv_obj_t* screen = lv_scr_act();
@@ -220,30 +221,46 @@ void LvglPanelView::begin(application::PanelService& service, std::string primar
         lv_obj_center(button_label);
     }
 
-    lv_obj_t* card = panel(pages_[1], 20, 18, 760, 250);
+    lv_obj_t* card = panel(pages_[1], 20, 18, 760, 270);
 
-    label(card, "LUZ PRINCIPAL", &lv_font_montserrat_12, kCyan);
+    label(card, "LUCES AUTORIZADAS", &lv_font_montserrat_12, kCyan);
+    for (unsigned index = 0; index < device_buttons_.size(); ++index) {
+        device_buttons_[index] = lv_btn_create(card);
+        lv_obj_set_size(device_buttons_[index], 210, 54);
+        lv_obj_set_pos(device_buttons_[index], 0, 34 + static_cast<int>(index) * 62);
+        style_button(device_buttons_[index], kSurfaceRaised);
+        lv_obj_add_event_cb(device_buttons_[index], on_device, LV_EVENT_CLICKED,
+                            reinterpret_cast<void*>(static_cast<std::uintptr_t>(index)));
+        device_labels_[index] =
+            label(device_buttons_[index], "SIN LUZ", &lv_font_montserrat_12, kMuted);
+        lv_obj_set_width(device_labels_[index], 180);
+        lv_obj_set_style_text_align(device_labels_[index], LV_TEXT_ALIGN_LEFT, 0);
+        lv_obj_center(device_labels_[index]);
+        lv_obj_add_state(device_buttons_[index], LV_STATE_DISABLED);
+    }
+
+    selected_name_ = label(card, "NINGUNA LUZ", &lv_font_montserrat_12, kCyan);
+    lv_obj_set_pos(selected_name_, 244, 0);
+    availability_ = label(card, "NO DISPONIBLE", &lv_font_montserrat_12, kRed);
+    lv_obj_set_pos(availability_, 566, 0);
     state_label_ = label(card, "Esperando estado...", &lv_font_montserrat_20, kText);
-    lv_obj_set_pos(state_label_, 0, 34);
-    lv_obj_t* response = label(card, "Respuesta local optimista", &lv_font_montserrat_12, kMuted);
-    lv_obj_set_pos(response, 0, 70);
+    lv_obj_set_pos(state_label_, 244, 32);
 
     power_ = lv_btn_create(card);
-    lv_obj_set_size(power_, ui::tokens::power_button.width, ui::tokens::power_button.height);
-    lv_obj_set_pos(power_, 0, 105);
+    lv_obj_set_size(power_, 132, 58);
+    lv_obj_set_pos(power_, 244, 72);
     style_button(power_, kSurfaceRaised);
     lv_obj_add_event_cb(power_, on_power, LV_EVENT_CLICKED, this);
-    power_label_ = label(power_, "ENCENDER", &lv_font_montserrat_16, kText);
+    power_label_ = label(power_, "ENCENDER", &lv_font_montserrat_14, kText);
     lv_obj_center(power_label_);
 
     lv_obj_t* brightness_title = label(card, "BRILLO", &lv_font_montserrat_12, kMuted);
-    lv_obj_set_pos(brightness_title, 190, 110);
+    lv_obj_set_pos(brightness_title, 398, 72);
     brightness_label_ = label(card, "0 %", &lv_font_montserrat_20, kText);
-    lv_obj_set_pos(brightness_label_, 530, 103);
+    lv_obj_set_pos(brightness_label_, 640, 64);
     brightness_ = lv_slider_create(card);
-    lv_obj_set_size(brightness_, ui::tokens::brightness_slider.width,
-                    ui::tokens::brightness_slider.height);
-    lv_obj_set_pos(brightness_, 190, 150);
+    lv_obj_set_size(brightness_, 302, ui::tokens::brightness_slider.height);
+    lv_obj_set_pos(brightness_, 398, 103);
     lv_slider_set_range(brightness_, 0, 100);
     lv_obj_set_style_bg_color(brightness_, color(kBorder), LV_PART_MAIN);
     lv_obj_set_style_bg_color(brightness_, color(kCyan), LV_PART_INDICATOR);
@@ -253,18 +270,39 @@ void LvglPanelView::begin(application::PanelService& service, std::string primar
     lv_obj_add_event_cb(brightness_, on_brightness_release, LV_EVENT_RELEASED, this);
     lv_obj_add_event_cb(brightness_, on_brightness_release, LV_EVENT_PRESS_LOST, this);
 
+    lv_obj_t* color_title = label(card, "COLOR DIRECTO", &lv_font_montserrat_12, kMuted);
+    lv_obj_set_pos(color_title, 244, 166);
+    constexpr std::array<std::uint32_t, 4> color_values = {
+        0xF8F3E8, 0xFFB45C, 0x3366CC, 0xD83A3A};
+    constexpr const char* color_labels[] = {"FRIA", "CAL", "AZUL", "ROJO"};
+    for (unsigned index = 0; index < color_values.size(); ++index) {
+        lv_obj_t* preset = lv_btn_create(card);
+        color_buttons_[index] = preset;
+        lv_obj_set_size(preset, 76, 48);
+        lv_obj_set_pos(preset, 398 + static_cast<int>(index) * 82, 164);
+        style_button(preset, color_values[index]);
+        lv_obj_add_event_cb(preset, on_color, LV_EVENT_CLICKED,
+                            reinterpret_cast<void*>(static_cast<std::uintptr_t>(color_values[index])));
+        lv_obj_t* preset_label =
+            label(preset, color_labels[index], &lv_font_montserrat_12,
+                  index < 2 ? kCanvas : kText);
+        lv_obj_center(preset_label);
+    }
+
     lv_obj_t* quick_title = label(pages_[1], "ESCENAS DEL HOGAR", &lv_font_montserrat_12, kMuted);
-    lv_obj_set_pos(quick_title, 18, 292);
-    for (unsigned index = 0; index < 3; ++index) {
+    lv_obj_set_pos(quick_title, 18, 300);
+    for (unsigned index = 0; index < scene_buttons_.size(); ++index) {
         const auto bounds = ui::tokens::quick_actions[index];
-        lv_obj_t* button = lv_btn_create(pages_[1]);
-        lv_obj_set_size(button, bounds.width, bounds.height);
-        lv_obj_set_pos(button, bounds.x, bounds.y);
-        style_button(button, kSurface);
-        lv_obj_add_event_cb(button, on_quick_intent, LV_EVENT_CLICKED,
-                            const_cast<char*>(quick_intents[index]));
-        lv_obj_t* button_label = label(button, quick_labels[index], &lv_font_montserrat_14, kText);
-        lv_obj_center(button_label);
+        scene_buttons_[index] = lv_btn_create(pages_[1]);
+        lv_obj_set_size(scene_buttons_[index], bounds.width, bounds.height);
+        lv_obj_set_pos(scene_buttons_[index], bounds.x, bounds.y);
+        style_button(scene_buttons_[index], kSurface);
+        lv_obj_add_event_cb(scene_buttons_[index], on_scene, LV_EVENT_CLICKED,
+                            reinterpret_cast<void*>(static_cast<std::uintptr_t>(index)));
+        scene_labels_[index] =
+            label(scene_buttons_[index], "SIN ESCENA", &lv_font_montserrat_14, kMuted);
+        lv_obj_center(scene_labels_[index]);
+        lv_obj_add_state(scene_buttons_[index], LV_STATE_DISABLED);
     }
 
     lv_obj_t* media = panel(pages_[2], 20, 18, 760, 370);
@@ -452,6 +490,16 @@ void LvglPanelView::show_page(ui::ManualPage page) {
     set_mode(ui::ShellMode::Manual);
 }
 
+bool LvglPanelView::select_entity(std::string_view entity_id) {
+    const auto found = std::find_if(devices_.begin(), devices_.end(), [&](const auto& device) {
+        return device.entity_id == entity_id && device.entity_id.starts_with("light.");
+    });
+    if (found == devices_.end()) return false;
+    selected_entity_ = found->entity_id;
+    refresh_home_controls();
+    return true;
+}
+
 void LvglPanelView::render_connection(domain::ConnectionState state) {
     const char* text = "SIN CONEXION";
     std::uint32_t text_color = kRed;
@@ -474,21 +522,107 @@ void LvglPanelView::render_connection(domain::ConnectionState state) {
 }
 
 void LvglPanelView::render_devices(std::span<const domain::DeviceState> devices) {
-    const auto found = std::find_if(devices.begin(), devices.end(), [&](const auto& device) {
-        return device.entity_id == primary_entity_;
+    devices_.assign(devices.begin(), devices.end());
+    refresh_home_controls();
+}
+
+void LvglPanelView::refresh_home_controls() {
+    unsigned light_count = 0;
+    unsigned available_count = 0;
+    unsigned on_count = 0;
+    for (auto& entity : device_entities_) entity.clear();
+    for (unsigned index = 0; index < device_buttons_.size(); ++index) {
+        lv_label_set_text(device_labels_[index], "SIN LUZ");
+        lv_obj_add_state(device_buttons_[index], LV_STATE_DISABLED);
+        lv_obj_set_style_border_width(device_buttons_[index], 0, 0);
+    }
+    for (const auto& device : devices_) {
+        if (!device.entity_id.starts_with("light.")) continue;
+        ++light_count;
+        if (device.available) ++available_count;
+        if (device.available && device.on) ++on_count;
+        const unsigned slot = light_count - 1;
+        if (slot >= device_buttons_.size()) continue;
+        device_entities_[slot] = device.entity_id;
+        const auto name = ascii_safe(device.friendly_name);
+        std::snprintf(device_text_[slot], sizeof(device_text_[slot]), "%s  [%s]", name.c_str(),
+                      device.available ? (device.on ? "ON" : "OFF") : "NO DISP");
+        lv_label_set_text_static(device_labels_[slot], device_text_[slot]);
+        lv_obj_clear_state(device_buttons_[slot], LV_STATE_DISABLED);
+    }
+
+    const auto selected = std::find_if(devices_.begin(), devices_.end(), [&](const auto& device) {
+        return device.entity_id == selected_entity_ && device.entity_id.starts_with("light.");
     });
-    if (found == devices.end()) {
+    auto active = selected;
+    if (active == devices_.end()) {
+        active = std::find_if(devices_.begin(), devices_.end(), [](const auto& device) {
+            return device.entity_id.starts_with("light.");
+        });
+    }
+    has_device_ = active != devices_.end();
+    if (has_device_) {
+        current_ = *active;
+        selected_entity_ = current_.entity_id;
+    }
+
+    for (unsigned index = 0; index < device_entities_.size(); ++index) {
+        if (device_entities_[index] == selected_entity_) {
+            lv_obj_set_style_border_width(device_buttons_[index], 2, 0);
+            lv_obj_set_style_border_color(device_buttons_[index], color(kCyan), 0);
+        }
+    }
+
+    for (auto& entity : scene_entities_) entity.clear();
+    for (unsigned index = 0; index < scene_buttons_.size(); ++index) {
+        lv_label_set_text(scene_labels_[index], "SIN ESCENA");
+        lv_obj_add_state(scene_buttons_[index], LV_STATE_DISABLED);
+    }
+    unsigned scene_count = 0;
+    for (const auto& device : devices_) {
+        if (!device.entity_id.starts_with("scene.") || scene_count >= scene_buttons_.size()) {
+            continue;
+        }
+        scene_entities_[scene_count] = device.entity_id;
+        const auto name = ascii_safe(device.friendly_name);
+        std::snprintf(scene_text_[scene_count], sizeof(scene_text_[scene_count]), "%s%s",
+                      name.c_str(), device.available ? "" : " [NO DISP]");
+        lv_label_set_text_static(scene_labels_[scene_count], scene_text_[scene_count]);
+        if (device.available) lv_obj_clear_state(scene_buttons_[scene_count], LV_STATE_DISABLED);
+        ++scene_count;
+    }
+
+    std::snprintf(home_text_, sizeof(home_text_), "Hogar - %u/%u disponibles - %u encendidas",
+                  available_count, light_count, on_count);
+    lv_label_set_text_static(home_summary_, home_text_);
+    if (!has_device_) {
+        lv_label_set_text(selected_name_, "NINGUNA LUZ");
+        lv_label_set_text(availability_, "NO DISPONIBLE");
+        lv_label_set_text(state_label_, "Sin luces proyectadas");
+        lv_obj_add_state(power_, LV_STATE_DISABLED);
+        lv_obj_add_state(brightness_, LV_STATE_DISABLED);
+        for (auto* button : color_buttons_) lv_obj_add_state(button, LV_STATE_DISABLED);
         return;
     }
-    current_ = *found;
-    has_device_ = true;
+
+    const auto selected_name = ascii_safe(current_.friendly_name);
+    std::snprintf(selected_text_, sizeof(selected_text_), "%s", selected_name.c_str());
+    lv_label_set_text_static(selected_name_, selected_text_);
+    lv_label_set_text(availability_, current_.available ? "DISPONIBLE" : "NO DISPONIBLE");
+    lv_obj_set_style_text_color(availability_, color(current_.available ? kGreen : kRed), 0);
     lv_label_set_text(state_label_, current_.on ? "Encendida" : "Apagada");
-    std::snprintf(execution_text_, sizeof(execution_text_), "Hogar - %s - %u %%",
-                  current_.on ? "luz encendida" : "luz apagada", current_.brightness);
-    lv_label_set_text(home_summary_, execution_text_);
     lv_label_set_text(power_label_, current_.on ? "APAGAR" : "ENCENDER");
     lv_obj_set_style_bg_color(power_, color(current_.on ? kCyan : kSurfaceRaised), 0);
     lv_obj_set_style_text_color(power_label_, color(current_.on ? kCanvas : kText), 0);
+    if (current_.available) {
+        lv_obj_clear_state(power_, LV_STATE_DISABLED);
+        lv_obj_clear_state(brightness_, LV_STATE_DISABLED);
+        for (auto* button : color_buttons_) lv_obj_clear_state(button, LV_STATE_DISABLED);
+    } else {
+        lv_obj_add_state(power_, LV_STATE_DISABLED);
+        lv_obj_add_state(brightness_, LV_STATE_DISABLED);
+        for (auto* button : color_buttons_) lv_obj_add_state(button, LV_STATE_DISABLED);
+    }
     if (!slider_active_ && lv_slider_get_value(brightness_) != current_.brightness) {
         suppress_slider_ = true;
         lv_slider_set_value(brightness_, current_.brightness, LV_ANIM_OFF);
@@ -569,7 +703,7 @@ void LvglPanelView::render_toast(std::string_view message, bool error) {
 
 void LvglPanelView::on_power(lv_event_t*) {
     if (g_view == nullptr || !g_view->has_device_) return;
-    g_view->service_->fast_action(g_view->primary_entity_,
+    g_view->service_->fast_action(g_view->selected_entity_,
                                   g_view->current_.on ? "turn_off" : "turn_on");
 }
 
@@ -584,8 +718,29 @@ void LvglPanelView::on_brightness(lv_event_t* event) {
 void LvglPanelView::on_brightness_release(lv_event_t* event) {
     auto* view = static_cast<LvglPanelView*>(lv_event_get_user_data(event));
     view->slider_active_ = false;
-    view->service_->fast_action(view->primary_entity_, "set_brightness",
+    view->service_->fast_action(view->selected_entity_, "set_brightness",
                                 static_cast<std::uint8_t>(lv_slider_get_value(view->brightness_)));
+}
+
+void LvglPanelView::on_device(lv_event_t* event) {
+    if (g_view == nullptr) return;
+    const auto index = reinterpret_cast<std::uintptr_t>(lv_event_get_user_data(event));
+    if (index >= g_view->device_entities_.size() || g_view->device_entities_[index].empty()) return;
+    g_view->select_entity(g_view->device_entities_[index]);
+}
+
+void LvglPanelView::on_color(lv_event_t* event) {
+    if (g_view == nullptr || !g_view->has_device_ || !g_view->current_.available) return;
+    const auto rgb = static_cast<std::uint32_t>(
+        reinterpret_cast<std::uintptr_t>(lv_event_get_user_data(event)));
+    g_view->service_->fast_action(g_view->selected_entity_, "set_color", std::nullopt, rgb);
+}
+
+void LvglPanelView::on_scene(lv_event_t* event) {
+    if (g_view == nullptr) return;
+    const auto index = reinterpret_cast<std::uintptr_t>(lv_event_get_user_data(event));
+    if (index >= g_view->scene_entities_.size() || g_view->scene_entities_[index].empty()) return;
+    g_view->service_->fast_action(g_view->scene_entities_[index], "activate_scene");
 }
 
 void LvglPanelView::on_tab(lv_event_t* event) {

@@ -108,6 +108,34 @@ void policy_rejects_unknown_edge_actions() {
     assert(commands.last_action.empty());
     assert(view.toast_error);
 }
+
+void color_targets_only_the_selected_light() {
+    Clock clock;
+    Commands commands;
+    View view;
+    wyss::application::PanelService service(clock, commands, view);
+    service.set_connection(wyss::domain::ConnectionState::Online);
+    service.replace_devices(
+        {light(), {"light.desk", "Desk", true, false, 30, std::nullopt, 1}});
+    service.fast_action("light.desk", "set_color", std::nullopt, 0x3366CCU);
+    assert(!view.devices.front().on);
+    assert(view.devices[1].on);
+    assert(view.devices[1].rgb == 0x3366CCU);
+    assert(commands.last_action == "set_color");
+}
+
+void policy_accepts_only_well_formed_scene_and_color_commands() {
+    using wyss::domain::EdgePolicy;
+    using wyss::domain::FastCommand;
+    assert(EdgePolicy::allows_fast_path(
+        FastCommand{"one", "scene.movie", "activate_scene", std::nullopt, std::nullopt, 1}));
+    assert(EdgePolicy::allows_fast_path(
+        FastCommand{"two", "light.desk", "set_color", std::nullopt, 0x3366CCU, 1}));
+    assert(!EdgePolicy::allows_fast_path(
+        FastCommand{"three", "scene.movie", "toggle", std::nullopt, std::nullopt, 1}));
+    assert(!EdgePolicy::allows_fast_path(
+        FastCommand{"four", "light.desk", "turn_on", 20, std::nullopt, 1}));
+}
 }  // namespace
 
 int main() {
@@ -115,6 +143,7 @@ int main() {
     failed_send_rolls_back_immediately();
     timeout_rolls_back_without_idle_redraws();
     policy_rejects_unknown_edge_actions();
+    color_targets_only_the_selected_light();
+    policy_accepts_only_well_formed_scene_and_color_commands();
     return 0;
 }
-

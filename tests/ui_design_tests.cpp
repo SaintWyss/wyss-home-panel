@@ -61,6 +61,18 @@ void targets_are_large_and_inside_the_display() {
         require(target.x + target.width <= screen_width);
         require(target.y + target.height <= screen_height);
     }
+    for (const auto& target : light_selectors) {
+        require(target.width >= min_touch_target);
+        require(target.height >= min_touch_target);
+        require(target.x + target.width <= screen_width);
+        require(target.y + target.height <= screen_height);
+    }
+    for (const auto& target : color_presets) {
+        require(target.width >= min_touch_target);
+        require(target.height >= min_touch_target);
+        require(target.x + target.width <= screen_width);
+        require(target.y + target.height <= screen_height);
+    }
 }
 
 void refresh_and_brightness_budgets_are_explicit() {

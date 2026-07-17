@@ -38,9 +38,10 @@ void PanelService::reconcile_device(const domain::DeviceState& state) {
 }
 
 void PanelService::fast_action(std::string entity_id, std::string action,
-                               std::optional<std::uint8_t> brightness) {
+                               std::optional<std::uint8_t> brightness,
+                               std::optional<std::uint32_t> rgb) {
     domain::FastCommand command{next_request_id(), std::move(entity_id), std::move(action),
-                                brightness, clock_.now_ms()};
+                                brightness, rgb, clock_.now_ms()};
     if (!domain::EdgePolicy::allows_fast_path(command)) {
         view_.render_toast("La política local bloqueó esa acción", true);
         return;
@@ -135,6 +136,9 @@ void PanelService::apply_optimistic(const domain::FastCommand& command) {
     } else if (command.action == "set_brightness" && command.brightness) {
         found->on = *command.brightness > 0;
         found->brightness = *command.brightness;
+    } else if (command.action == "set_color" && command.rgb) {
+        found->on = true;
+        found->rgb = command.rgb;
     }
 }
 

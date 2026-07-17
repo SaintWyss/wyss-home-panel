@@ -149,6 +149,7 @@ bool BridgeClient::send_fast(const domain::FastCommand& command) {
     document["entity_id"] = command.entity_id;
     document["action"] = command.action;
     if (command.brightness) document["brightness"] = *command.brightness;
+    if (command.rgb) document["rgb"] = *command.rgb;
     char json[512]{};
     return enqueue_json(json, serializeJson(document, json, sizeof(json)));
 }
@@ -215,6 +216,7 @@ void BridgeClient::dispatch(application::PanelService& service, const char* json
         device.available = item["available"] | false;
         device.on = item["on"] | false;
         device.brightness = static_cast<std::uint8_t>(std::clamp(item["brightness"] | 0, 0, 100));
+        if (item["rgb"].is<unsigned>()) device.rgb = item["rgb"].as<unsigned>();
         device.revision = item["revision"] | 0ULL;
         service.reconcile_device(device);
     } else if (std::strcmp(type, "plan.proposed") == 0) {

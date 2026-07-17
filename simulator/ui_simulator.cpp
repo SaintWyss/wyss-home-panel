@@ -215,11 +215,20 @@ int main(int argc, char** argv) {
         recorder.capture("inicio_offline");
 
         service.set_connection(wyss::domain::ConnectionState::Online);
-        service.replace_devices({{"light.living", "Living", true, true, 68, std::nullopt, 4}});
+        service.replace_devices(
+            {{"light.living", "Living", true, true, 68, 0xF8F3E8U, 4},
+             {"light.desk", "Escritorio", false, false, 35, 0xFFB45CU, 2},
+             {"light.ambient", "Ambiente", true, true, 24, 0x3366CCU, 7},
+             {"scene.movie", "Cine", true, false, 0, std::nullopt, 3},
+             {"scene.night", "Noche", false, false, 0, std::nullopt, 1}});
         recorder.capture("inicio_online");
 
         view.show_page(ManualPage::Hogar);
         recorder.capture("hogar");
+        if (!view.select_entity("light.desk") || view.selected_entity() != "light.desk") {
+            throw std::runtime_error("no se pudo seleccionar una segunda luz");
+        }
+        recorder.capture("hogar_indisponible");
         view.show_page(ManualPage::Media);
         recorder.capture("media");
         view.show_page(ManualPage::Agenda);

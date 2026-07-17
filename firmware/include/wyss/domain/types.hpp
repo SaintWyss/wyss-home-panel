@@ -40,6 +40,7 @@ struct FastCommand {
     std::string entity_id;
     std::string action;
     std::optional<std::uint8_t> brightness;
+    std::optional<std::uint32_t> rgb;
     std::uint64_t issued_at_ms{0};
 };
 
@@ -80,4 +81,3 @@ struct Telemetry {
 };
 
 }  // namespace wyss::domain
-
