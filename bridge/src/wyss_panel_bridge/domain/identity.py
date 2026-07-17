@@ -20,6 +20,9 @@ ALLOWED_CAPABILITIES = frozenset(
         "pc.submit_intent",
         "pc.answer_plan",
         "pc.voice",
+        "panel.spotify.control",
+        "android.spotify.control",
+        "pc.spotify.control",
         "edge.device.execute",
         "edge.publish_state",
     }

@@ -21,6 +21,7 @@ from wyss_panel_bridge.adapters.wyss import WyssGateway
 from wyss_panel_bridge.application.session_service import SessionService
 from wyss_panel_bridge.composition import (
     LightPort,
+    MediaPort,
     SpeechPort,
     build_light_gateway,
     build_v2_runtime,
@@ -48,6 +49,7 @@ def create_app(
     light_gateway: LightPort | None = None,
     orchestrator_gateway: WyssGatewayPort | None = None,
     speech_gateway: SpeechPort | None = None,
+    media_gateway: MediaPort | None = None,
 ) -> FastAPI:
     app = FastAPI(
         title="Wyss Home Panel Bridge",
@@ -59,7 +61,7 @@ def create_app(
     light_gateway = light_gateway or build_light_gateway(settings)
     orchestrator = orchestrator_gateway or WyssGateway(settings.wyss_url, settings.wyss_token)
     runtime = (
-        build_v2_runtime(settings, light_gateway, orchestrator, speech_gateway)
+        build_v2_runtime(settings, light_gateway, orchestrator, speech_gateway, media_gateway)
         if settings.v2_enabled
         else None
     )

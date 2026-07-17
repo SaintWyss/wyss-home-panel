@@ -19,6 +19,7 @@ from wyss_panel_bridge.config import Settings
 from wyss_panel_bridge.domain.conversation import ConversationError
 from wyss_panel_bridge.domain.events import RateLimitExceeded
 from wyss_panel_bridge.domain.lights import LightError
+from wyss_panel_bridge.domain.media import MediaAction, MediaCommand, MediaError
 from wyss_panel_bridge.domain.models import FastCommand
 from wyss_panel_bridge.domain.protocol_v2 import ProtocolV2Error, ValidationCode, parse_envelope
 from wyss_panel_bridge.domain.v2_types import ProjectionEvent
@@ -189,6 +190,23 @@ def _voice_capability(client_id: str) -> str | None:
     return f"{prefix}.voice" if prefix in {"android", "pc"} else None
 
 
+def _media_capability(client_id: str) -> str | None:
+    prefix = client_id.partition(":")[0]
+    return f"{prefix}.spotify.control" if prefix in {"panel", "android", "pc"} else None
+
+
+def _media_error_code(code: str) -> str:
+    return {
+        "reauthorization_required": "unauthenticated",
+        "premium_or_scope_required": "forbidden",
+        "device_inactive": "entity_unavailable",
+        "invalid_message": "invalid_message",
+        "conflict": "conflict",
+        "rate_limited": "rate_limited",
+        "policy_rejected": "policy_rejected",
+    }.get(code, "provider_unavailable")
+
+
 def _bearer(request: Request) -> tuple[str, str]:
     client_id = request.headers.get("x-wyss-client", "")
     authorization = request.headers.get("authorization", "")
@@ -213,6 +231,7 @@ def create_v2_router(settings: Settings, runtime: V2Runtime) -> APIRouter:
     hub = _ClientHub()
     runtime.lights.set_event_sink(hub.broadcast)
     runtime.conversation.set_event_sink(hub.broadcast)
+    runtime.media.set_event_sink(hub.broadcast)
 
     @router.get("/v2/voice/config")
     async def voice_config() -> JSONResponse:
@@ -366,6 +385,8 @@ def create_v2_router(settings: Settings, runtime: V2Runtime) -> APIRouter:
             last_event_id = int(hello.payload["last_event_id"])
             connection = await hub.register(client_id, websocket, last_event_id)
             await runtime.lights.ensure_snapshot()
+            if settings.v2_spotify_enabled:
+                await runtime.media.ensure_snapshot()
             delivery = runtime.projections.delivery(client_id, last_event_id)
             messages = [
                 _message(
@@ -480,6 +501,76 @@ def create_v2_router(settings: Settings, runtime: V2Runtime) -> APIRouter:
                                 "state": "verified",
                                 "event_id": result.event.event_id,
                                 "replayed": result.replayed,
+                            },
+                            correlation_id=envelope.message_id,
+                            causation_id=envelope.message_id,
+                        ),
+                    )
+                    continue
+                if envelope.message_type == "capability.command":
+                    if not settings.v2_spotify_enabled:
+                        await hub.send(
+                            connection,
+                            _message(
+                                "error",
+                                {
+                                    "code": "policy_rejected",
+                                    "message": "Spotify está desactivado",
+                                },
+                                correlation_id=envelope.message_id,
+                                causation_id=envelope.message_id,
+                            ),
+                        )
+                        continue
+                    capability = _media_capability(client_id)
+                    if capability is None or not identity_service.authenticate(
+                        client_id, token, capability
+                    ):
+                        await hub.send(
+                            connection,
+                            _message(
+                                "error",
+                                {"code": "forbidden", "message": "Falta permiso de Spotify"},
+                                correlation_id=envelope.message_id,
+                                causation_id=envelope.message_id,
+                            ),
+                        )
+                        continue
+                    payload = envelope.payload
+                    media_command = MediaCommand(
+                        request_id=envelope.message_id,
+                        idempotency_key=str(payload["idempotency_key"]),
+                        action=MediaAction(str(payload["action"])),
+                        value=int(payload["value"]) if "value" in payload else None,
+                        device_id=(str(payload["device_id"]) if "device_id" in payload else None),
+                        expected_revision=(
+                            int(payload["expected_revision"])
+                            if "expected_revision" in payload
+                            else None
+                        ),
+                    )
+                    try:
+                        media_result = await runtime.media.execute(client_id, media_command)
+                    except MediaError as error:
+                        await hub.send(
+                            connection,
+                            _message(
+                                "error",
+                                {"code": _media_error_code(error.code), "message": str(error)},
+                                correlation_id=envelope.message_id,
+                                causation_id=envelope.message_id,
+                            ),
+                        )
+                        continue
+                    await hub.send(
+                        connection,
+                        _message(
+                            "execution.updated",
+                            {
+                                "request_id": media_command.request_id,
+                                "state": "verified",
+                                "event_id": media_result.event.event_id,
+                                "replayed": media_result.replayed,
                             },
                             correlation_id=envelope.message_id,
                             causation_id=envelope.message_id,

@@ -187,6 +187,36 @@ def _validate_payload(message_type: str, payload: dict[str, Any]) -> None:
         text = _required_string(payload["text"], 1000)
         if not text.strip() or payload["input"] not in {"text", "voice"}:
             raise ProtocolV2Error(ValidationCode.INVALID_MESSAGE)
+    elif message_type == "capability.command":
+        required = {"capability", "action", "idempotency_key"}
+        allowed = required | {"value", "device_id", "expected_revision"}
+        if not required <= set(payload) or not set(payload) <= allowed:
+            raise ProtocolV2Error(ValidationCode.INVALID_MESSAGE)
+        capability = _required_string(payload["capability"], 64, identifier=True)
+        action = _required_string(payload["action"], 32)
+        _required_string(payload["idempotency_key"], MAX_ID_CHARS, identifier=True)
+        expected_revision = payload.get("expected_revision")
+        if expected_revision is not None and not _non_negative_int(expected_revision):
+            raise ProtocolV2Error(ValidationCode.INVALID_MESSAGE)
+        if capability != "spotify":
+            raise ProtocolV2Error(ValidationCode.INVALID_MESSAGE)
+        if action == "set_volume":
+            valid = _bounded_int(payload.get("value"), 100) and "device_id" not in payload
+        elif action == "transfer_device":
+            device_id = payload.get("device_id")
+            valid = (
+                isinstance(device_id, str)
+                and 0 < len(device_id) <= MAX_ID_CHARS
+                and "value" not in payload
+            )
+        else:
+            valid = (
+                action in {"play", "pause", "previous", "next", "toggle_favorite"}
+                and "value" not in payload
+                and "device_id" not in payload
+            )
+        if not valid:
+            raise ProtocolV2Error(ValidationCode.INVALID_MESSAGE)
     elif message_type == "plan.answer":
         if set(payload) != {
             "plan_id",

@@ -8,6 +8,7 @@ from typing import Any, Protocol
 from wyss_panel_bridge.domain.events import EventDraft
 from wyss_panel_bridge.domain.identity import ClientIdentity
 from wyss_panel_bridge.domain.lights import LightAuditRecord
+from wyss_panel_bridge.domain.media import MediaCommand, MediaState
 from wyss_panel_bridge.domain.models import DeviceState, FastCommand
 from wyss_panel_bridge.domain.projection import ProjectionDelivery
 from wyss_panel_bridge.domain.v2_types import (
@@ -66,9 +67,9 @@ class ClientEventPort(Protocol):
 
 
 class MediaPort(Protocol):
-    async def state(self) -> Snapshot: ...
+    async def state(self) -> MediaState: ...
 
-    async def execute(self, command: CapabilityCommand) -> ProjectionEvent: ...
+    async def execute(self, command: MediaCommand) -> MediaState: ...
 
 
 class WeatherPort(Protocol):

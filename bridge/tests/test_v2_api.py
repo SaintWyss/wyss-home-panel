@@ -16,9 +16,10 @@ from wyss_panel_bridge.application.identity_service import IdentityService
 from wyss_panel_bridge.config import Settings
 from wyss_panel_bridge.domain.conversation import ConfirmationResult, ConversationTurn
 from wyss_panel_bridge.domain.events import EventDraft
+from wyss_panel_bridge.domain.media import MediaAction, MediaCommand, MediaDevice, MediaState
 from wyss_panel_bridge.domain.models import DeviceState, FastCommand, Plan, PlanStep, RiskLevel
 from wyss_panel_bridge.domain.protocol_v2 import parse_envelope
-from wyss_panel_bridge.ports_v2 import SpeechPort
+from wyss_panel_bridge.ports_v2 import MediaPort, SpeechPort
 
 
 class FakeLights:
@@ -100,13 +101,41 @@ class FakeSpeech:
         return self.transcript
 
 
+class FakeMedia:
+    def __init__(self) -> None:
+        self.calls = 0
+        self.state_value = MediaState(
+            linked=True,
+            available=True,
+            playing=False,
+            track_uri="spotify:track:test",
+            title="Tema seguro",
+            artist="Artista",
+            progress_ms=2_000,
+            duration_ms=120_000,
+            device=MediaDevice("desk", "Escritorio", "Computer", True, False, True, 25),
+        )
+
+    async def state(self) -> MediaState:
+        return self.state_value
+
+    async def execute(self, command: MediaCommand) -> MediaState:
+        self.calls += 1
+        self.state_value = replace(
+            self.state_value,
+            playing=command.action is MediaAction.PLAY,
+        )
+        return self.state_value
+
+
 def _app(
     settings: Settings,
     lights: FakeLights | None = None,
     orchestrator: FakeConversationWyss | None = None,
     speech: SpeechPort | None = None,
+    media: MediaPort | None = None,
 ) -> FastAPI:
-    return create_app(settings, lights or FakeLights(), orchestrator, speech)
+    return create_app(settings, lights or FakeLights(), orchestrator, speech, media)
 
 
 def _settings(tmp_path: Path, *, enabled: bool) -> Settings:
@@ -213,6 +242,20 @@ def _command(
         "message_id": f"message:{source}:{number}",
         "source": source,
         "payload": payload,
+    }
+
+
+def _spotify_command(source: str, number: int, action: str = "play") -> dict[str, object]:
+    return {
+        "v": 2,
+        "type": "capability.command",
+        "message_id": f"message:{source}:spotify:{number}",
+        "source": source,
+        "payload": {
+            "capability": "spotify",
+            "action": action,
+            "idempotency_key": f"{source}:spotify:{number}",
+        },
     }
 
 
@@ -460,6 +503,95 @@ def test_pc_android_and_panel_receive_each_verified_light_change_live(tmp_path: 
     assert replay_result["type"] == "execution.updated"
     assert replay_result["payload"]["replayed"] is True
     assert lights.calls == 3
+
+
+def test_pc_android_and_panel_converge_on_spotify_without_provider_tokens(
+    tmp_path: Path,
+) -> None:
+    settings = replace(
+        _settings(tmp_path, enabled=True),
+        v2_spotify_enabled=True,
+        v2_spotify_approved_scopes=frozenset(
+            {
+                "user-read-playback-state",
+                "user-modify-playback-state",
+                "user-library-read",
+                "user-library-modify",
+            }
+        ),
+    )
+    media = FakeMedia()
+    clients = {
+        "pc:desk": _pair_as(settings, "pc:desk", "pc.spotify.control"),
+        "android:phone": _pair_as(settings, "android:phone", "android.spotify.control"),
+        "panel:living": _pair_as(settings, "panel:living", "panel.spotify.control"),
+    }
+
+    with TestClient(_app(settings, media=media)) as client:
+        with (
+            client.websocket_connect(
+                "/v2/client",
+                headers=_headers_as("pc:desk", clients["pc:desk"]),
+                subprotocols=["wyss-v2"],
+            ) as pc,
+            client.websocket_connect(
+                "/v2/client",
+                headers=_headers_as("android:phone", clients["android:phone"]),
+                subprotocols=["wyss-v2"],
+            ) as android,
+            client.websocket_connect(
+                "/v2/client",
+                headers=_headers_as("panel:living", clients["panel:living"]),
+                subprotocols=["wyss-v2"],
+            ) as panel,
+        ):
+            sockets = {"pc:desk": pc, "android:phone": android, "panel:living": panel}
+            snapshots = []
+            for client_id, websocket in sockets.items():
+                websocket.send_json(_hello_as(client_id))
+                assert websocket.receive_json()["type"] == "session.welcome"
+                snapshot = websocket.receive_json()
+                assert snapshot["type"] == "projection.snapshot"
+                snapshots.append(snapshot)
+
+            pc.send_json(_spotify_command("pc:desk", 1))
+            deltas = [websocket.receive_json() for websocket in sockets.values()]
+            execution = pc.receive_json()
+
+    assert all(message["payload"]["spotify"]["title"] == "Tema seguro" for message in snapshots)
+    assert {message["payload"]["event_id"] for message in deltas} == {3}
+    assert all(message["payload"]["aggregate"] == "spotify" for message in deltas)
+    assert all(message["payload"]["changes"]["playing"] is True for message in deltas)
+    assert execution["type"] == "execution.updated"
+    assert media.calls == 1
+    serialized = json.dumps([snapshots, deltas, execution])
+    assert "access_token" not in serialized
+    assert "refresh_token" not in serialized
+    assert "service-token" not in serialized
+
+
+def test_spotify_flag_rolls_back_to_shell_without_calling_provider(tmp_path: Path) -> None:
+    settings = _settings(tmp_path, enabled=True)
+    token = _pair_as(settings, "panel:living", "panel.spotify.control")
+    media = FakeMedia()
+
+    with TestClient(_app(settings, media=media)) as client:
+        assert client.get("/health").status_code == 200
+        with client.websocket_connect(
+            "/v2/client",
+            headers=_headers_as("panel:living", token),
+            subprotocols=["wyss-v2"],
+        ) as websocket:
+            websocket.send_json(_hello_as("panel:living"))
+            websocket.receive_json()
+            snapshot = websocket.receive_json()
+            websocket.send_json(_spotify_command("panel:living", 1))
+            rejected = websocket.receive_json()
+
+    assert snapshot["payload"]["spotify"] == {}
+    assert rejected["type"] == "error"
+    assert rejected["payload"]["code"] == "policy_rejected"
+    assert media.calls == 0
 
 
 def test_light_migration_flag_rolls_back_to_read_only_v2_without_deleting_state(

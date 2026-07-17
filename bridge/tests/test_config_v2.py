@@ -46,6 +46,13 @@ conversation_streaming = false
 voice_enabled = true
 voice_max_bytes = 2097152
 voice_timeout_seconds = 12.5
+spotify_enabled = true
+spotify_approved_scopes = [
+  "user-read-playback-state",
+  "user-modify-playback-state",
+  "user-library-read",
+  "user-library-modify",
+]
 """.strip(),
         encoding="utf-8",
     )
@@ -67,7 +74,52 @@ voice_timeout_seconds = 12.5
     assert settings.v2_voice_enabled is True
     assert settings.v2_voice_max_bytes == 2_097_152
     assert settings.v2_voice_timeout_seconds == 12.5
+    assert settings.v2_spotify_enabled is True
+    assert settings.v2_spotify_approved_scopes == frozenset(
+        {
+            "user-read-playback-state",
+            "user-modify-playback-state",
+            "user-library-read",
+            "user-library-modify",
+        }
+    )
     assert settings.wyss_url == "http://127.0.0.1:8000"
+
+
+def test_settings_reject_spotify_enable_without_exact_approved_scopes(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    config = tmp_path / "bridge.toml"
+    config.write_text(
+        """
+[bridge]
+certfile = "server.crt"
+keyfile = "server.key"
+[panel]
+id = "panel-v1"
+token_sha256 = "hash"
+allowed_entities = ["light.living"]
+primary_entity = "light.living"
+[devices]
+provider = "tuya"
+[tuya]
+device_id = "fake"
+address = "127.0.0.1"
+local_key = "fake"
+[wyss]
+url = "http://127.0.0.1:8000"
+token_env = "TEST_WYSS_TOKEN"
+[protocol_v2]
+enabled = true
+spotify_enabled = true
+spotify_approved_scopes = ["user-read-playback-state", "playlist-modify-public"]
+""".strip(),
+        encoding="utf-8",
+    )
+    monkeypatch.setenv("TEST_WYSS_TOKEN", "fake")
+
+    with pytest.raises(RuntimeError, match="scopes Spotify no requeridos"):
+        Settings.load(config)
 
 
 def test_settings_resolve_nested_multilight_secrets(

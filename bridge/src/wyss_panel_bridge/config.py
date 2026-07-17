@@ -60,6 +60,8 @@ class Settings:
     v2_voice_enabled: bool = False
     v2_voice_max_bytes: int = 4_194_304
     v2_voice_timeout_seconds: float = 30.0
+    v2_spotify_enabled: bool = False
+    v2_spotify_approved_scopes: frozenset[str] = frozenset()
 
     @classmethod
     def load(cls, path: Path) -> Settings:
@@ -74,6 +76,18 @@ class Settings:
         provider_config = _resolve_env(dict(raw[provider]))
         if not isinstance(provider_config, dict):
             raise RuntimeError("Yo recibí una configuración de proveedor inválida")
+        spotify_scopes = frozenset(str(item) for item in v2.get("spotify_approved_scopes", []))
+        allowed_spotify_scopes = {
+            "user-read-playback-state",
+            "user-modify-playback-state",
+            "user-library-read",
+            "user-library-modify",
+        }
+        if not spotify_scopes <= allowed_spotify_scopes:
+            raise RuntimeError("Yo rechacé scopes Spotify no requeridos")
+        spotify_enabled = bool(v2.get("spotify_enabled", False))
+        if spotify_enabled and spotify_scopes != allowed_spotify_scopes:
+            raise RuntimeError("Yo no habilito Spotify sin scopes mínimos aprobados")
         return cls(
             host=str(bridge.get("host", "0.0.0.0")),
             port=int(bridge.get("port", 8443)),
@@ -101,4 +115,6 @@ class Settings:
             v2_voice_enabled=bool(v2.get("voice_enabled", False)),
             v2_voice_max_bytes=int(v2.get("voice_max_bytes", 4_194_304)),
             v2_voice_timeout_seconds=float(v2.get("voice_timeout_seconds", 30.0)),
+            v2_spotify_enabled=spotify_enabled,
+            v2_spotify_approved_scopes=spotify_scopes,
         )
