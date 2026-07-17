@@ -6,6 +6,7 @@ import pytest
 
 from wyss_panel_bridge.adapters.sqlite_events import SqliteEventStore
 from wyss_panel_bridge.adapters.sqlite_projection import SqliteProjectionStore
+from wyss_panel_bridge.application.event_backbone import ClientRateLimiter, EventBackbone
 from wyss_panel_bridge.application.projection_service import ProjectionCoordinator
 from wyss_panel_bridge.domain.events import EventDraft
 from wyss_panel_bridge.domain.projection import ProjectionError, ProjectionGap
@@ -41,6 +42,32 @@ def test_clients_converge_on_same_materialized_snapshot(tmp_path: Path) -> None:
     assert views[0].snapshot is not None
     assert views[0].snapshot.revision == 3
     assert views[0].snapshot.payload == {"home": {"value": 2}, "timers": {"value": 1}}
+
+
+def test_changes_from_each_client_origin_converge_without_parallel_authority(
+    tmp_path: Path,
+) -> None:
+    event_store = SqliteEventStore(tmp_path / "events.sqlite3")
+    backbone = EventBackbone(event_store, ClientRateLimiter(12, 1.0))
+    coordinator = ProjectionCoordinator(
+        event_store,
+        SqliteProjectionStore(tmp_path / "projections.sqlite3"),
+    )
+    for number, source in enumerate(("pc:desk", "android:phone", "panel:living"), start=1):
+        backbone.publish(
+            source,
+            f"{source}:{number}",
+            EventDraft("home.entity.changed", "home", {"value": number}),
+        )
+
+    views = [
+        coordinator.delivery(client_id, 0).snapshot
+        for client_id in ("pc:desk", "android:phone", "panel:living")
+    ]
+
+    assert views[0] is not None
+    assert views == [views[0]] * 3
+    assert views[0].payload == {"home": {"value": 3}}
 
 
 def test_reducer_is_deterministic_across_rebuilds(tmp_path: Path) -> None:
