@@ -114,9 +114,9 @@
 La trazabilidad de cada requisito se completa en `ROADMAP.md` y se actualiza al cerrar cada fase.
 
 **Coverage:**
-- v2.0.0 requirements: 52 total
+- v2.0.0 requirements: 51 total
 - Mapped to phases: pendiente de roadmap
-- Unmapped: 52
+- Unmapped: 51
 
 ---
 *Requirements defined: 2026-07-17*
