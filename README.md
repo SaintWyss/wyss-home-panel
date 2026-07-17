@@ -107,9 +107,9 @@ El baseline también compila un simulador headless con el mismo LVGL 8.4.0 del f
 diez frames 800×480 contra `tests/fixtures/ui_visual_manifest.txt`. Las capturas quedan bajo el
 directorio CMake en `ui-snapshots/`; una diferencia no aprobada falla `ui_visual_tests`.
 
-Yo verifiqué la compilación completa de producción con PlatformIO: usa 145.936 bytes de RAM
-(44,5 %) y 1.588.893 bytes de Flash (24,2 %), incluido el heap LVGL de 96 KiB requerido por el
-shell v2. Yo también verifiqué cinco pruebas C++ —incluida la regresión visual— y las 99 pruebas
+Yo verifiqué la compilación completa de producción con PlatformIO: usa 145.992 bytes de RAM
+(44,6 %) y 1.599.445 bytes de Flash (24,4 %), incluido el heap LVGL de 96 KiB requerido por el
+shell v2. Yo también verifiqué cinco pruebas C++ —incluida la regresión visual— y las 108 pruebas
 del puente.
 
 ## Fuentes y procedencia

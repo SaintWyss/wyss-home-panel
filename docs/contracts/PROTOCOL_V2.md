@@ -86,6 +86,13 @@ Yo envío texto revisable, no audio. Yo trato el contenido como no confiable has
 
 Yo hago que Wyss reevalúe la política antes de ejecutar. Yo respondo `already_resolved` si otro cliente cerró el plan.
 
+`assistant.intent` admite exactamente `request_id`, `text` (1–1.000 caracteres no blancos) e
+`input` (`text` o `voice`). `plan.answer` admite exactamente `plan_id`, `decision`,
+`confirmation` y `expected_revision`; aprobar exige la cadena exacta `CONFIRMAR`. Home Edge
+serializa una sola sesión visible, deja ganar a la primera respuesta válida y exige que Wyss
+devuelva `policy_reevaluated = true`. B/C no se ejecutan sin ese circuito y D nunca crea un pending
+confirmable.
+
 ### Control de media y temporizadores
 
 ```json

@@ -106,7 +106,7 @@ Este milestone lleva el baseline v1 hasta un sistema doméstico v2.0.0 coherente
   1. **[Automatizada + física]** Texto enviado desde PC, Android o panel comparte sesión y proyecta `idle`, `thinking`, confirmación, ejecución, verificación y fallo en las tres superficies.
   2. **[Automatizada]** Acciones A, B, C y D prueban TTL, primera confirmación válida, carrera concurrente y reevaluación de política; B/C no ejecutan sin confirmación válida y D no admite bypass.
   3. **[Automatizada]** Desactivar streaming conserva respuestas completas, historial autoritativo en Wyss y la misma política de confirmación.
-**Plans**: TBD
+**Plans**: 3
 **UI hint**: yes
 
 ### Phase 8: PR-07 — Push-to-talk PC y Android
@@ -269,9 +269,9 @@ Este milestone lleva el baseline v1 hasta un sistema doméstico v2.0.0 coherente
 | 2. PR-01 — Contratos y arquitectura v2 | 3/3 | Complete | 2026-07-17 |
 | 3. PR-02 — Identidad, pairing y event backbone | 3/3 | Automated complete; physical pending | - |
 | 4. PR-03 — Projection Store y sincronización multicliente | 3/3 | Automated complete; physical pending | - |
-| 5. PR-04 — Shell visual Wyss Core y modo dormido | 0/TBD | Not started | - |
-| 6. PR-05 — Luces completas y migración del baseline | 0/TBD | Not started | - |
-| 7. PR-06 — Conversación visual y confirmaciones | 0/TBD | Not started | - |
+| 5. PR-04 — Shell visual Wyss Core y modo dormido | 2/2 | Automated complete; physical pending | - |
+| 6. PR-05 — Luces completas y migración del baseline | 4/4 | Automated complete; physical pending | - |
+| 7. PR-06 — Conversación visual y confirmaciones | 3/3 | Automated complete; physical E2E pending | - |
 | 8. PR-07 — Push-to-talk PC y Android | 0/TBD | Not started | - |
 | 9. PR-08 — Spotify Premium | 0/TBD | Not started | - |
 | 10. PR-09 — Clima semanal | 0/TBD | Not started | - |

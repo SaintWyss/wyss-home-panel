@@ -55,6 +55,18 @@ Antes de habilitarlo, cada identidad recibe únicamente su capacidad correspondi
 `panel.light.fast`, `android.light.fast` o `pc.light.fast`. Una identidad sin esa capacidad puede
 leer su proyección pero no ejecutar luces.
 
+La conversación tiene un gate separado: `conversation_enabled = true`. Cada superficie recibe
+capacidad mínima para enviar (`panel|android|pc.submit_intent`) y responder
+(`panel|android|pc.answer_plan`). El bridge serializa la sesión compartida, pero Wyss sigue siendo
+la única autoridad de plan, política, ejecución e historial completo. Si una aprobación no incluye
+`CONFIRMAR`, venció, perdió la revisión CAS o Wyss no acredita `policy_reevaluated = true`, falla
+cerrada.
+
+Para rollback perceptual pongo `conversation_streaming = false`: se siguen enviando respuestas
+completas y se mantiene exactamente la misma confirmación. Para rollback del funnel pongo
+`conversation_enabled = false`; para volver además al transporte v1 recompilo con
+`WYSS_PROTOCOL_V2_CLIENT=0`. Ninguno de esos pasos escribe NVS ni elimina las bases existentes.
+
 La proyección materializada vive en `projection_db`. Si un cliente no puede aplicar deltas de forma confiable, activo temporalmente `snapshot_fallback = true`; el Edge continúa derivando la vista desde el event log y el cliente nunca escribe estado autoritativo.
 
 ## Recuperación
