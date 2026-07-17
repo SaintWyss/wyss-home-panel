@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import sqlite3
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
@@ -63,6 +64,33 @@ def test_reused_key_with_changed_payload_fails_closed(tmp_path: Path) -> None:
 
     with pytest.raises(EventConflict, match="contenido diferente"):
         backbone.publish("panel:living", "panel:1", _draft(40))
+
+
+def test_idempotency_claim_expires_without_deleting_event_history(tmp_path: Path) -> None:
+    clock = Clock()
+    store = SqliteEventStore(
+        tmp_path / "events.sqlite3",
+        idempotency_ttl_seconds=10,
+        now=clock.now,
+    )
+    first = store.append(_draft(72), "panel:1")
+    clock.value += 10.01
+
+    after_expiry = store.append(_draft(72), "panel:1")
+
+    assert (first.event_id, after_expiry.event_id) == (1, 2)
+    assert [event.event_id for event in store.after(0, 10)] == [1, 2]
+
+
+def test_idempotency_cache_has_a_hard_entry_limit(tmp_path: Path) -> None:
+    store = SqliteEventStore(tmp_path / "events.sqlite3", max_idempotency_keys=2)
+    for number in range(1, 4):
+        store.append(_draft(number), f"panel:{number}")
+
+    replay_after_eviction = store.append(_draft(1), "panel:1")
+
+    assert replay_after_eviction.event_id == 4
+    assert replay_after_eviction.revision == 4
 
 
 def test_revisions_are_monotonic_per_aggregate(tmp_path: Path) -> None:
@@ -153,3 +181,48 @@ def test_event_database_is_private(tmp_path: Path) -> None:
     SqliteEventStore(database)
 
     assert database.stat().st_mode & 0o777 == 0o600
+
+
+def test_legacy_event_schema_migrates_without_losing_replay(tmp_path: Path) -> None:
+    database = tmp_path / "events.sqlite3"
+    payload_json, fingerprint = SqliteEventStore._encode(_draft(72), "panel:1")
+    with sqlite3.connect(database) as connection:
+        connection.execute(
+            """
+            CREATE TABLE projection_events (
+                event_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                idempotency_key TEXT NOT NULL UNIQUE,
+                fingerprint TEXT NOT NULL,
+                event_type TEXT NOT NULL,
+                aggregate_name TEXT NOT NULL,
+                revision INTEGER NOT NULL,
+                payload_json TEXT NOT NULL,
+                correlation_id TEXT,
+                causation_id TEXT,
+                UNIQUE (aggregate_name, revision)
+            )
+            """
+        )
+        connection.execute(
+            """
+            INSERT INTO projection_events (
+                idempotency_key, fingerprint, event_type, aggregate_name, revision,
+                payload_json, correlation_id, causation_id
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                "panel:1",
+                fingerprint,
+                "home.entity.changed",
+                "home",
+                1,
+                payload_json,
+                "corr:1",
+                "cmd:1",
+            ),
+        )
+
+    migrated = SqliteEventStore(database)
+
+    assert migrated.append(_draft(72), "panel:1").event_id == 1
+    assert migrated.latest_event_id() == 1
