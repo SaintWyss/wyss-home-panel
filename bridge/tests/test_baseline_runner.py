@@ -23,7 +23,7 @@ if [[ "$tool" == pio && "${1:-}" == --version ]]; then
 fi
 if [[ "$tool" == uv && " ${*} " == *' sync '* && "$step" == dependency ]]; then exit 1; fi
 if [[ "$tool" == uv && " ${*} " == *' ruff check '* && "$step" == code ]]; then exit 1; fi
-if [[ "$tool" == uv && " ${*} " == *' check_baseline_evidence.py'* \
+if [[ "$tool" == uv && " ${*} " == *'check_baseline_evidence.py'* \
   && "$step" == evidence ]]; then exit 1; fi
 if [[ "$tool" == uvx && " ${*} " == *'cmake --version'* ]]; then echo 'cmake version 4.1.2'; fi
 exit 0
