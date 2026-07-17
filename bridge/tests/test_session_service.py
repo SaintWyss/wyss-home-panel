@@ -24,6 +24,7 @@ class FakeDevices:
             self.state,
             on=on,
             brightness=brightness,
+            rgb=command.rgb if command.rgb is not None else self.state.rgb,
             revision=self.state.revision + 1,
         )
         return self.state
@@ -71,6 +72,26 @@ async def test_policy_rejects_an_unlisted_entity() -> None:
     )
     assert responses[0]["state"] == "failed"
     assert "autorizada" in responses[0]["message"]
+
+
+@pytest.mark.asyncio
+async def test_v1_compatibility_path_accepts_verified_rgb_color() -> None:
+    devices = FakeDevices()
+    service = SessionService(devices, FakeWyss(), frozenset({"light.living"}))
+
+    responses = await service.handle(
+        {
+            "v": 1,
+            "type": "command.fast",
+            "id": "color-one",
+            "entity_id": "light.living",
+            "action": "set_color",
+            "rgb": 0x3366CC,
+        }
+    )
+
+    assert responses[0]["device"]["rgb"] == 0x3366CC
+    assert responses[1]["state"] == "verified"
 
 
 @pytest.mark.asyncio

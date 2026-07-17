@@ -76,6 +76,7 @@ def _settings(tmp_path: Path, *, enabled: bool) -> Settings:
         v2_event_db=tmp_path / "events.sqlite3",
         v2_projection_db=tmp_path / "projections.sqlite3",
         v2_light_audit_db=tmp_path / "light-audit.sqlite3",
+        v2_lights_enabled=enabled,
     )
 
 
@@ -348,3 +349,31 @@ def test_pc_android_and_panel_receive_each_verified_light_change_live(tmp_path: 
     assert replay_result["type"] == "execution.updated"
     assert replay_result["payload"]["replayed"] is True
     assert lights.calls == 3
+
+
+def test_light_migration_flag_rolls_back_to_read_only_v2_without_deleting_state(
+    tmp_path: Path,
+) -> None:
+    enabled = _settings(tmp_path, enabled=True)
+    settings = replace(enabled, v2_lights_enabled=False)
+    token = _pair_as(settings, "panel:living", "panel.light.fast")
+    lights = FakeLights()
+
+    with TestClient(_app(settings, lights)) as client:
+        with client.websocket_connect(
+            "/v2/client",
+            headers=_headers_as("panel:living", token),
+            subprotocols=["wyss-v2"],
+        ) as websocket:
+            websocket.send_json(_hello_as("panel:living"))
+            websocket.receive_json()
+            websocket.receive_json()
+            websocket.send_json(_command("panel:living", 1, "turn_on"))
+            rejected = websocket.receive_json()
+
+    assert rejected["type"] == "error"
+    assert rejected["payload"]["code"] == "policy_rejected"
+    assert lights.calls == 0
+    assert settings.v2_identity_db.exists()
+    assert settings.v2_event_db.exists()
+    assert settings.v2_light_audit_db.exists()

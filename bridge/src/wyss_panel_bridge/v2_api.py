@@ -246,6 +246,20 @@ def create_v2_router(settings: Settings, runtime: V2Runtime) -> APIRouter:
                     )
                     continue
                 if envelope.message_type == "home.command":
+                    if not settings.v2_lights_enabled:
+                        await hub.send(
+                            connection,
+                            _message(
+                                "error",
+                                {
+                                    "code": "policy_rejected",
+                                    "message": "La migración de luces v2 está desactivada",
+                                },
+                                correlation_id=envelope.message_id,
+                                causation_id=envelope.message_id,
+                            ),
+                        )
+                        continue
                     capability = _light_capability(client_id)
                     if capability is None or not identity_service.authenticate(
                         client_id, token, capability

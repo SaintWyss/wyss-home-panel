@@ -50,7 +50,7 @@ def create_app(settings: Settings, light_gateway: LightPort | None = None) -> Fa
     runtime = build_v2_runtime(settings, light_gateway) if settings.v2_enabled else None
     devices: DeviceGateway = (
         ProjectedLegacyDeviceGateway(runtime.lights)
-        if runtime is not None
+        if runtime is not None and settings.v2_lights_enabled
         else LegacyDeviceGateway(light_gateway)
     )
     orchestrator = WyssGateway(settings.wyss_url, settings.wyss_token)

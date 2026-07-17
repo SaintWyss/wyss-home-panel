@@ -40,6 +40,7 @@ light_audit_db = "private/light-audit.sqlite3"
 rate_limit = 8
 heartbeat_seconds = 9.5
 snapshot_fallback = true
+lights_enabled = true
 """.strip(),
         encoding="utf-8",
     )
@@ -55,6 +56,7 @@ snapshot_fallback = true
     assert settings.v2_rate_limit == 8
     assert settings.v2_heartbeat_seconds == 9.5
     assert settings.v2_snapshot_fallback is True
+    assert settings.v2_lights_enabled is True
     assert settings.wyss_url == "http://127.0.0.1:8000"
 
 
