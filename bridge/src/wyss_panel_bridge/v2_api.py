@@ -9,8 +9,10 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
 from wyss_panel_bridge.adapters.sqlite_events import SqliteEventStore
 from wyss_panel_bridge.adapters.sqlite_identity import SqliteIdentityStore
-from wyss_panel_bridge.application.event_backbone import ClientRateLimiter, EventBackbone
+from wyss_panel_bridge.adapters.sqlite_projection import SqliteProjectionStore
+from wyss_panel_bridge.application.event_backbone import ClientRateLimiter
 from wyss_panel_bridge.application.identity_service import IdentityService
+from wyss_panel_bridge.application.projection_service import ProjectionCoordinator
 from wyss_panel_bridge.config import Settings
 from wyss_panel_bridge.domain.events import RateLimitExceeded
 from wyss_panel_bridge.domain.protocol_v2 import ProtocolV2Error, parse_envelope
@@ -47,9 +49,11 @@ def create_v2_router(settings: Settings) -> APIRouter:
     router = APIRouter()
     identities = SqliteIdentityStore(settings.v2_identity_db)
     identity_service = IdentityService(identities)
-    events = EventBackbone(
-        SqliteEventStore(settings.v2_event_db),
-        ClientRateLimiter(settings.v2_rate_limit, 1.0),
+    event_store = SqliteEventStore(settings.v2_event_db)
+    projections = ProjectionCoordinator(
+        event_store,
+        SqliteProjectionStore(settings.v2_projection_db),
+        snapshot_fallback=settings.v2_snapshot_fallback,
     )
     ingress_limit = ClientRateLimiter(settings.v2_rate_limit, 1.0)
 
@@ -73,7 +77,7 @@ def create_v2_router(settings: Settings) -> APIRouter:
             if hello.message_type != "session.hello" or hello.source != client_id:
                 await websocket.close(code=4400, reason="invalid_message")
                 return
-            resumed = events.resume(int(hello.payload["last_event_id"]))
+            delivery = projections.delivery(client_id, int(hello.payload["last_event_id"]))
             await websocket.send_json(
                 _message(
                     "session.welcome",
@@ -81,30 +85,36 @@ def create_v2_router(settings: Settings) -> APIRouter:
                         "session_id": f"session:{secrets.token_hex(12)}",
                         "heartbeat_ms": int(settings.v2_heartbeat_seconds * 1000),
                         "max_message_bytes": 8192,
-                        "snapshot_required": resumed.snapshot_required,
+                        "snapshot_required": delivery.snapshot is not None,
                     },
                     correlation_id=hello.correlation_id or hello.message_id,
                     causation_id=hello.message_id,
                 )
             )
-            if resumed.snapshot_required:
+            if delivery.snapshot is not None:
+                projection_payload: dict[str, Any] = {
+                    "assistant": {"state": "idle"},
+                    "home": {"entities": []},
+                    "spotify": {},
+                    "weather": {"days": []},
+                    "agenda": {"next": []},
+                    "timers": [],
+                    "cameras": [],
+                }
+                for aggregate, value in delivery.snapshot.payload.items():
+                    if aggregate in projection_payload:
+                        projection_payload[aggregate] = value
                 await websocket.send_json(
                     _message(
                         "projection.snapshot",
                         {
-                            "projection_version": resumed.latest_event_id,
-                            "assistant": {"state": "idle"},
-                            "home": {"entities": []},
-                            "spotify": {},
-                            "weather": {"days": []},
-                            "agenda": {"next": []},
-                            "timers": [],
-                            "cameras": [],
+                            "projection_version": delivery.snapshot.revision,
+                            **projection_payload,
                         },
                     )
                 )
             else:
-                for event in resumed.events:
+                for event in delivery.events:
                     await websocket.send_json(_delta(event))
 
             while True:

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from dataclasses import replace
 from pathlib import Path
 
@@ -13,6 +14,7 @@ from wyss_panel_bridge.api import create_app
 from wyss_panel_bridge.application.identity_service import IdentityService
 from wyss_panel_bridge.config import Settings
 from wyss_panel_bridge.domain.events import EventDraft
+from wyss_panel_bridge.domain.protocol_v2 import parse_envelope
 
 
 def _settings(tmp_path: Path, *, enabled: bool) -> Settings:
@@ -36,6 +38,7 @@ def _settings(tmp_path: Path, *, enabled: bool) -> Settings:
         v2_enabled=enabled,
         v2_identity_db=tmp_path / "identities.sqlite3",
         v2_event_db=tmp_path / "events.sqlite3",
+        v2_projection_db=tmp_path / "projections.sqlite3",
     )
 
 
@@ -72,6 +75,7 @@ def test_feature_flag_keeps_v1_and_avoids_v2_state_when_disabled(tmp_path: Path)
     assert "/v2/client" not in paths
     assert not settings.v2_identity_db.exists()
     assert not settings.v2_event_db.exists()
+    assert not settings.v2_projection_db.exists()
 
 
 def test_disabling_v2_preserves_existing_identity_state(tmp_path: Path) -> None:
@@ -90,6 +94,10 @@ def test_disabling_v2_preserves_existing_identity_state(tmp_path: Path) -> None:
 def test_enabled_listener_authenticates_and_sends_welcome_snapshot(tmp_path: Path) -> None:
     settings = _settings(tmp_path, enabled=True)
     token, _ = _pair(settings)
+    SqliteEventStore(settings.v2_event_db).append(
+        EventDraft("system.internal", "internal", {"private": "not-projected"}),
+        "internal:1",
+    )
 
     with TestClient(create_app(settings)) as client:
         with client.websocket_connect(
@@ -102,7 +110,9 @@ def test_enabled_listener_authenticates_and_sends_welcome_snapshot(tmp_path: Pat
     assert welcome["type"] == "session.welcome"
     assert welcome["payload"]["snapshot_required"] is True
     assert snapshot["type"] == "projection.snapshot"
-    assert snapshot["payload"]["projection_version"] == 0
+    assert snapshot["payload"]["projection_version"] == 1
+    assert "internal" not in snapshot["payload"]
+    assert parse_envelope(json.dumps(snapshot)).message_type == "projection.snapshot"
 
 
 def test_resume_sends_only_events_after_cursor(tmp_path: Path) -> None:
