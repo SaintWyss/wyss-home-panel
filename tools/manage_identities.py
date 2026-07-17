@@ -14,14 +14,20 @@ from wyss_panel_bridge.domain.identity import IdentityError
 
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--db", required=True, type=Path, help="SQLite privado de identidades")
+    parser.add_argument(
+        "--db", required=True, type=Path, help="SQLite privado de identidades"
+    )
     commands = parser.add_subparsers(dest="command", required=True)
 
-    pair = commands.add_parser("pair", help="Crear una identidad y mostrar el token una vez")
+    pair = commands.add_parser(
+        "pair", help="Crear una identidad y mostrar el token una vez"
+    )
     pair.add_argument("--client-id", required=True)
     pair.add_argument("--capability", action="append", required=True)
 
-    rotate = commands.add_parser("rotate", help="Invalidar el token anterior y emitir uno nuevo")
+    rotate = commands.add_parser(
+        "rotate", help="Invalidar el token anterior y emitir uno nuevo"
+    )
     rotate.add_argument("--client-id", required=True)
 
     revoke = commands.add_parser("revoke", help="Revocar inmediatamente una identidad")
@@ -57,7 +63,9 @@ def main(argv: list[str] | None = None) -> int:
                 service.pair(args.client_id, args.capability),
             )
         elif args.command == "rotate":
-            result = _token_result(store, args.client_id, service.rotate(args.client_id))
+            result = _token_result(
+                store, args.client_id, service.rotate(args.client_id)
+            )
         elif args.command == "revoke":
             service.revoke(args.client_id)
             result = {"client_id": args.client_id, "revoked": True}
