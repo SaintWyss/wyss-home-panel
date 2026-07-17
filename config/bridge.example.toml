@@ -28,3 +28,9 @@ token_env = "WYSS_HA_TOKEN"
 url = "http://127.0.0.1:8000"
 token_env = "WYSS_API_TOKEN"
 
+[protocol_v2]
+enabled = false
+identity_db = "bridge/data/identities.sqlite3"
+event_db = "bridge/data/events.sqlite3"
+rate_limit = 12
+heartbeat_seconds = 12.0

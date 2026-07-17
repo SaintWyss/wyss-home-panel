@@ -58,6 +58,11 @@ def create_app(settings: Settings) -> FastAPI:
     devices = _device_gateway(settings)
     orchestrator = WyssGateway(settings.wyss_url, settings.wyss_token)
 
+    if settings.v2_enabled:
+        from wyss_panel_bridge.v2_api import create_v2_router
+
+        app.include_router(create_v2_router(settings))
+
     @app.get("/health")
     async def health() -> dict[str, str]:
         return {"status": "ok", "version": __version__}

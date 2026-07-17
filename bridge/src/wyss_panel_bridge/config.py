@@ -28,6 +28,11 @@ class Settings:
     provider_config: dict[str, Any]
     wyss_url: str
     wyss_token: str
+    v2_enabled: bool = False
+    v2_identity_db: Path = Path("bridge/data/identities.sqlite3")
+    v2_event_db: Path = Path("bridge/data/events.sqlite3")
+    v2_rate_limit: int = 12
+    v2_heartbeat_seconds: float = 12.0
 
     @classmethod
     def load(cls, path: Path) -> Settings:
@@ -37,6 +42,7 @@ class Settings:
         panel = raw["panel"]
         devices = raw["devices"]
         wyss = raw["wyss"]
+        v2 = raw.get("protocol_v2", {})
         provider = str(devices["provider"])
         provider_config = dict(raw[provider])
         for key, value in tuple(provider_config.items()):
@@ -56,4 +62,9 @@ class Settings:
             provider_config=provider_config,
             wyss_url=str(wyss["url"]).rstrip("/"),
             wyss_token=_env(str(wyss["token_env"])),
+            v2_enabled=bool(v2.get("enabled", False)),
+            v2_identity_db=Path(v2.get("identity_db", "bridge/data/identities.sqlite3")),
+            v2_event_db=Path(v2.get("event_db", "bridge/data/events.sqlite3")),
+            v2_rate_limit=int(v2.get("rate_limit", 12)),
+            v2_heartbeat_seconds=float(v2.get("heartbeat_seconds", 12.0)),
         )
