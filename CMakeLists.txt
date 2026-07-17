@@ -29,3 +29,8 @@ target_compile_definitions(protocol_v2_fixture_tests PRIVATE WYSS_SOURCE_DIR="${
 target_compile_options(protocol_v2_fixture_tests PRIVATE -Wall -Wextra -Wpedantic -Werror)
 target_link_libraries(protocol_v2_fixture_tests PRIVATE wyss_panel_domain)
 add_test(NAME protocol_v2_fixture_tests COMMAND protocol_v2_fixture_tests)
+
+add_executable(ui_design_tests tests/ui_design_tests.cpp)
+target_include_directories(ui_design_tests PRIVATE firmware/include)
+target_compile_options(ui_design_tests PRIVATE -Wall -Wextra -Wpedantic -Werror)
+add_test(NAME ui_design_tests COMMAND ui_design_tests)
