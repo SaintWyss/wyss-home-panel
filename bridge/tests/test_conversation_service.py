@@ -180,6 +180,22 @@ async def test_expired_or_unconfirmed_plan_never_reaches_wyss_execution(tmp_path
 
 
 @pytest.mark.asyncio
+async def test_rejection_is_reevaluated_and_returns_shared_session_to_idle(tmp_path: Path) -> None:
+    clock = Clock()
+    gateway = FakeWyss(RiskLevel.B)
+    service, store = _service(tmp_path / "events.sqlite3", gateway, clock)
+    await service.submit("pc:desk", "request:reject", "No ejecutar", "text")
+
+    await service.answer("android:phone", "plan:study", "reject", "", 1)
+
+    events = store.after(0, 30)
+    assert gateway.confirmations == 1
+    assert events[-2].event_type == "plan.resolved"
+    assert events[-2].payload["policy_reevaluated"] is True
+    assert events[-1].payload["state"] == "idle"
+
+
+@pytest.mark.asyncio
 async def test_risk_d_and_missing_policy_reevaluation_fail_closed(tmp_path: Path) -> None:
     clock = Clock()
     risk_d, _ = _service(tmp_path / "d.sqlite3", FakeWyss(RiskLevel.D), clock)
