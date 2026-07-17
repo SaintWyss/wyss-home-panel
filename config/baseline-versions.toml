@@ -1,0 +1,21 @@
+schema_version = 1
+recorded_at = "2026-07-17"
+
+[toolchain]
+python_min = "3.12"
+cmake_min = "3.20"
+cxx_standard = 20
+platformio = "6.1.19"
+uv = "0.11.18"
+
+[protocol]
+fixture_version = 1
+fixture_path = "tests/fixtures/protocol/v1/cases.json"
+
+[firmware_baseline]
+environment = "waveshare_esp32_s3_touch_lcd_7"
+platform_release = "51.03.07"
+ram_bytes = 96048
+ram_percent = 29.3
+flash_bytes = 1574789
+flash_percent = 24.0

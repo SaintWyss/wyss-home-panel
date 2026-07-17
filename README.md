@@ -74,14 +74,24 @@ Yo documento el modelo exacto, su pinout validado y los límites eléctricos en 
 Yo valido el dominio C++ y el puente Python con:
 
 ```bash
+python tools/doctor.py
 cmake -S . -B build && cmake --build build && ctest --test-dir build
-python -m pip install -e 'bridge[dev]'
-ruff check bridge
-mypy bridge/src
-pytest bridge/tests
+python -m pip install uv==0.11.18
+uv sync --project bridge --locked --extra dev
+uv run --project bridge --locked --extra dev ruff check bridge tools/check_docs.py tools/doctor.py
+uv run --project bridge --locked --extra dev mypy bridge/src
+uv run --project bridge --locked --extra dev pytest bridge/tests
+python tools/check_docs.py
+pio run -e waveshare_esp32_s3_touch_lcd_7
 ```
 
-Yo verifiqué la compilación completa de producción con PlatformIO: uso 96.048 bytes de RAM (29,3 %) y 1.574.693 bytes de Flash (24,0 %). Yo también verifiqué el dominio C++ con advertencias tratadas como errores y las tres pruebas asíncronas del puente.
+Las versiones mínimas y exactas que forman la línea base están registradas en
+`config/baseline-versions.toml`; `bridge/uv.lock` congela el entorno Python. Los fixtures dorados
+de protocolo v1 son compartidos por las pruebas Python y C++.
+
+Yo verifiqué la compilación completa de producción con PlatformIO: usa 96.048 bytes de RAM
+(29,3 %) y 1.574.789 bytes de Flash (24,0 %). Yo también verifiqué el dominio C++ con
+advertencias tratadas como errores y las pruebas asíncronas del puente.
 
 ## Fuentes y procedencia
 

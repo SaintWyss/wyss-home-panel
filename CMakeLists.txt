@@ -13,3 +13,8 @@ enable_testing()
 add_executable(domain_tests tests/domain_tests.cpp)
 target_link_libraries(domain_tests PRIVATE wyss_panel_domain)
 add_test(NAME domain_tests COMMAND domain_tests)
+
+add_executable(protocol_fixture_tests tests/protocol_fixture_tests.cpp)
+target_compile_definitions(protocol_fixture_tests PRIVATE WYSS_SOURCE_DIR="${CMAKE_SOURCE_DIR}")
+target_compile_options(protocol_fixture_tests PRIVATE -Wall -Wextra -Wpedantic -Werror)
+add_test(NAME protocol_fixture_tests COMMAND protocol_fixture_tests)

@@ -1,0 +1,45 @@
+{
+  "protocol_version": 1,
+  "cases": [
+    {
+      "id": "hello_snapshot",
+      "message": {"v": 1, "type": "hello"},
+      "expected_types": ["state.snapshot"]
+    },
+    {
+      "id": "fast_command",
+      "message": {
+        "v": 1,
+        "type": "command.fast",
+        "id": "fixture-command",
+        "entity_id": "light.fixture",
+        "action": "set_brightness",
+        "brightness": 72
+      },
+      "expected_types": ["state.changed", "execution.update"],
+      "idempotent": true
+    },
+    {
+      "id": "intent_submit",
+      "message": {"v": 1, "type": "intent.submit", "id": "fixture-intent", "text": "Apagá la luz"},
+      "expected_types": ["plan.proposed"]
+    },
+    {
+      "id": "plan_accept",
+      "message": {"v": 1, "type": "plan.answer", "plan_id": "fixture-plan", "accepted": true},
+      "expected_types": ["execution.update"]
+    },
+    {
+      "id": "unsupported_version",
+      "message": {"v": 0, "type": "hello"},
+      "expected_types": ["error"],
+      "expected_code": "unsupported_version"
+    },
+    {
+      "id": "unknown_message",
+      "message": {"v": 1, "type": "fixture.unknown"},
+      "expected_types": ["error"],
+      "expected_code": "unknown_message"
+    }
+  ]
+}
