@@ -95,7 +95,7 @@ Este milestone lleva el baseline v1 hasta un sistema doméstico v2.0.0 coherente
   2. **[Física]** El feedback optimista revierte al fallar y reconcilia estado LAN en ≤150 ms p95 bajo condiciones saludables, medido sobre el commit exacto.
   3. **[Automatizada + física]** Tras 500 cambios, caída y recuperación de Wi-Fi, clave inválida o foco offline no hay carreras ni estado fantasma, y las luces manuales autorizadas siguen disponibles cuando fallan servicios no críticos.
   4. **[Automatizada]** Volver al adapter/binario estable conserva credenciales y NVS y deja el audit trail consistente.
-**Plans**: TBD
+**Plans**: 4
 **UI hint**: yes
 
 ### Phase 7: PR-06 — Conversación visual y confirmaciones

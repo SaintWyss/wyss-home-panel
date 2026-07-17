@@ -12,7 +12,11 @@ Yo implemento cada capacidad detrás de un port pequeño y un adapter reemplazab
 
 **Port:** `LightPort.snapshot()` y `LightPort.execute(command)`.
 
-Yo conservo encendido, brillo, color, escenas y estado real. Yo serializo acciones por foco, reintento sólo operaciones idempotentes y hago rollback visual en 2,5 s. Yo preparo un adapter Home Assistant sin hacer que el dominio dependa de él.
+Yo conservo encendido, brillo, color, escenas y estado real. Yo serializo acciones por foco,
+reintento sólo operaciones idempotentes y hago rollback visual en 2,5 s. Tuya acepta varias luces
+y escenas declarativas con DPS configurables; Home Assistant implementa el mismo port sin hacer que
+el dominio dependa de ninguno. Cada comando se registra en un journal SQLite privado antes de
+publicar su proyección verificada.
 
 ## Spotify Premium
 

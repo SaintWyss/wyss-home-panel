@@ -64,6 +64,12 @@ Yo rechazo versiones incompatibles con un error explícito y conservo compatibil
 
 Yo permito este path sólo a entidades allowlisted y acciones A. Yo rechazo valores fuera de dominio, revisiones imposibles y keys repetidas con payload distinto.
 
+`turn_on`, `turn_off` y `toggle` no admiten parámetros. `set_brightness` usa `value` entre 0 y
+100; `set_color` usa `rgb` entre `0x000000` y `0xFFFFFF`; `activate_scene` exige una entidad
+`scene.*`. Python y firmware validan exactamente las mismas combinaciones y rechazan campos
+sobrantes. El resultado verificado publica la lista completa de entidades de hogar para que todos
+los clientes converjan sobre la misma revisión.
+
 ### Intención
 
 ```json

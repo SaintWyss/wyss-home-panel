@@ -104,12 +104,12 @@ Las versiones mínimas y exactas que forman la línea base están registradas en
 de protocolo v1 son compartidos por las pruebas Python y C++.
 
 El baseline también compila un simulador headless con el mismo LVGL 8.4.0 del firmware y compara
-nueve frames 800×480 contra `tests/fixtures/ui_visual_manifest.txt`. Las capturas quedan bajo el
+diez frames 800×480 contra `tests/fixtures/ui_visual_manifest.txt`. Las capturas quedan bajo el
 directorio CMake en `ui-snapshots/`; una diferencia no aprobada falla `ui_visual_tests`.
 
-Yo verifiqué la compilación completa de producción con PlatformIO: usa 145.248 bytes de RAM
-(44,3 %) y 1.581.081 bytes de Flash (24,1 %), incluido el heap LVGL de 96 KiB requerido por el
-shell v2. Yo también verifiqué cinco pruebas C++ —incluida la regresión visual— y las 85 pruebas
+Yo verifiqué la compilación completa de producción con PlatformIO: usa 145.936 bytes de RAM
+(44,5 %) y 1.588.893 bytes de Flash (24,2 %), incluido el heap LVGL de 96 KiB requerido por el
+shell v2. Yo también verifiqué cinco pruebas C++ —incluida la regresión visual— y las 99 pruebas
 del puente.
 
 ## Fuentes y procedencia

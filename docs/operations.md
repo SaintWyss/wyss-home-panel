@@ -45,6 +45,16 @@ Yo habilito el listener sólo con `[protocol_v2] enabled = true`. El cliente usa
 
 Para rollback pongo `enabled = false` y reinicio el bridge. `/v1/panel` permanece registrado y las bases de identidad/eventos no se borran ni migran durante este rollback.
 
+La migración de luces tiene un gate independiente. Yo habilito `lights_enabled = true` sólo después
+del smoke de las entidades configuradas. Para volver al camino estable sin apagar el listener v2,
+pongo `lights_enabled = false` y reinicio: `home.command` queda rechazado, `/v1/panel` vuelve al
+gateway compatible y las bases de identidad, eventos, proyecciones y `light_audit_db` permanecen
+intactas. Este rollback no escribe NVS, no modifica claves Tuya y no toca el firmware estable.
+
+Antes de habilitarlo, cada identidad recibe únicamente su capacidad correspondiente:
+`panel.light.fast`, `android.light.fast` o `pc.light.fast`. Una identidad sin esa capacidad puede
+leer su proyección pero no ejecutar luces.
+
 La proyección materializada vive en `projection_db`. Si un cliente no puede aplicar deltas de forma confiable, activo temporalmente `snapshot_fallback = true`; el Edge continúa derivando la vista desde el event log y el cliente nunca escribe estado autoritativo.
 
 ## Recuperación

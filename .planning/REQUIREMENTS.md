@@ -135,9 +135,9 @@ La trazabilidad de cada requisito v2.0.0 se define en `ROADMAP.md` y se actualiz
 | UI-01 | Phase 5 — PR-04 | Complete (automated) |
 | UI-02 | Phase 5 — PR-04 | Automated configuration complete; physical performance and O-05 pending |
 | UI-03 | Phase 5 — PR-04 | Complete |
-| LIGHT-01 | Phase 6 — PR-05 | Pending |
-| LIGHT-02 | Phase 6 — PR-05 | Pending |
-| LIGHT-03 | Phase 6 — PR-05 | Pending |
+| LIGHT-01 | Phase 6 — PR-05 | Automated complete; LEDVANCE and physical surfaces pending |
+| LIGHT-02 | Phase 6 — PR-05 | Automated rollback/reconcile complete; physical p95 pending |
+| LIGHT-03 | Phase 6 — PR-05 | Automated stress/failure/rollback complete; physical fault matrix pending |
 | CONV-01 | Phase 7 — PR-06 | Pending |
 | CONV-02 | Phase 7 — PR-06 | Pending |
 | VOICE-01 | Phase 8 — PR-07 | Pending |
@@ -175,4 +175,4 @@ La trazabilidad de cada requisito v2.0.0 se define en `ROADMAP.md` y se actualiz
 
 ---
 *Requirements defined: 2026-07-17*
-*Last updated: 2026-07-17 after Phase 5 automated verification*
+*Last updated: 2026-07-17 after Phase 6 automated verification*
