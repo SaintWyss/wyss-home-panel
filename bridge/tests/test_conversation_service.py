@@ -120,9 +120,7 @@ async def test_intent_replay_is_idempotent_and_changed_text_conflicts(tmp_path: 
 
 @pytest.mark.asyncio
 async def test_streaming_rollback_keeps_complete_response_and_policy(tmp_path: Path) -> None:
-    service, store = _service(
-        tmp_path / "events.sqlite3", FakeWyss(), Clock(), streaming=False
-    )
+    service, store = _service(tmp_path / "events.sqlite3", FakeWyss(), Clock(), streaming=False)
 
     await service.submit("panel:living", "request:fallback", "Respondé completo", "text")
 

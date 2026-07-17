@@ -147,9 +147,7 @@ class ConversationService:
         expected_revision: int,
     ) -> None:
         async with self._session_lock:
-            await self._answer_once(
-                source, plan_id, decision, confirmation, expected_revision
-            )
+            await self._answer_once(source, plan_id, decision, confirmation, expected_revision)
 
     async def _answer_once(
         self,
@@ -230,9 +228,7 @@ class ConversationService:
             request_id,
         )
 
-    async def _resolve_event(
-        self, pending: _PendingPlan, decision: str, source: str
-    ) -> None:
+    async def _resolve_event(self, pending: _PendingPlan, decision: str, source: str) -> None:
         await self._publish(
             "plan.resolved",
             {

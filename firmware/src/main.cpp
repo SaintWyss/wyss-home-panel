@@ -57,7 +57,7 @@ void start_network() {
 void setup() {
     Serial.begin(115200);
     delay(250);
-    Serial.println("Wyss Home Panel 1.0.0");
+    Serial.println("Wyss Home Panel 2.0.0");
 
     configured = config.load();
     bridge = std::make_unique<wyss::adapters::BridgeClient>(config);

@@ -482,9 +482,7 @@ def test_conversation_and_confirmation_converge_live_on_all_three_clients(
     settings = _settings(tmp_path, enabled=True)
     wyss = FakeConversationWyss()
     clients = {
-        "pc:desk": _pair_with(
-            settings, "pc:desk", {"pc.submit_intent", "pc.answer_plan"}
-        ),
+        "pc:desk": _pair_with(settings, "pc:desk", {"pc.submit_intent", "pc.answer_plan"}),
         "android:phone": _pair_with(
             settings,
             "android:phone",
@@ -527,10 +525,7 @@ def test_conversation_and_confirmation_converge_live_on_all_three_clients(
                 for client_id, websocket in sockets.items()
             }
             assert all(
-                [
-                    str(message["payload"]["changes"]["event_type"])
-                    for message in messages
-                ]
+                [str(message["payload"]["changes"]["event_type"]) for message in messages]
                 == [
                     "assistant.state.changed",
                     "assistant.response.delta",
@@ -557,10 +552,7 @@ def test_conversation_and_confirmation_converge_live_on_all_three_clients(
                 "assistant.state.changed",
             ]
             assert all(
-                [
-                    str(message["payload"]["changes"]["event_type"])
-                    for message in messages
-                ]
+                [str(message["payload"]["changes"]["event_type"]) for message in messages]
                 == expected
                 for messages in resolved.values()
             )
