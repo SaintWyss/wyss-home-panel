@@ -119,6 +119,8 @@ Ejemplo:
 
 Yo envío `projection.snapshot` al conectar, al detectar hueco o al cambiar una versión de schema. Yo limito el snapshot a datos de presentación actuales; yo no envío historial completo, secretos ni audit log al ESP32.
 
+El Home Edge materializa esta vista sólo desde el event log ordenado. Un reducer rechaza huecos globales y revisiones obsoletas; un replay exacto no vuelve a aplicar estado. Los cursores por cliente y las claims de idempotencia están acotados, mientras los eventos durables no se eliminan junto con su cache temporal. `snapshot_fallback = true` fuerza snapshots periódicos sin convertir a los clientes en autoridad.
+
 ```json
 {
   "v":2,

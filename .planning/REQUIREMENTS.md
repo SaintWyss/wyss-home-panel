@@ -31,8 +31,8 @@
 ### Proyección multicliente
 
 - [ ] **SYNC-01**: Un cambio iniciado desde PC, Android o panel converge en las tres superficies sin duplicación ni polling agresivo.
-- [ ] **SYNC-02**: Cada agregado aplica reducers, revisión monotónica, snapshot, delta y resolución determinista de conflictos.
-- [ ] **SYNC-03**: Los clientes conservan únicamente proyecciones o caches acotados y nunca se convierten en autoridades mutables paralelas.
+- [x] **SYNC-02**: Cada agregado aplica reducers, revisión monotónica, snapshot, delta y resolución determinista de conflictos.
+- [x] **SYNC-03**: Los clientes conservan únicamente proyecciones o caches acotados y nunca se convierten en autoridades mutables paralelas.
 
 ### Experiencia Wyss Core
 
@@ -129,9 +129,9 @@ La trazabilidad de cada requisito v2.0.0 se define en `ROADMAP.md` y se actualiz
 | EVENT-01 | Phase 3 — PR-02 | Complete |
 | EVENT-02 | Phase 3 — PR-02 | Complete |
 | EVENT-03 | Phase 3 — PR-02 | Complete |
-| SYNC-01 | Phase 4 — PR-03 | Pending |
-| SYNC-02 | Phase 4 — PR-03 | Pending |
-| SYNC-03 | Phase 4 — PR-03 | Pending |
+| SYNC-01 | Phase 4 — PR-03 | Automated complete; three physical clients pending |
+| SYNC-02 | Phase 4 — PR-03 | Complete |
+| SYNC-03 | Phase 4 — PR-03 | Complete |
 | UI-01 | Phase 5 — PR-04 | Pending |
 | UI-02 | Phase 5 — PR-04 | Pending |
 | UI-03 | Phase 5 — PR-04 | Pending |

@@ -45,6 +45,8 @@ Yo habilito el listener sólo con `[protocol_v2] enabled = true`. El cliente usa
 
 Para rollback pongo `enabled = false` y reinicio el bridge. `/v1/panel` permanece registrado y las bases de identidad/eventos no se borran ni migran durante este rollback.
 
+La proyección materializada vive en `projection_db`. Si un cliente no puede aplicar deltas de forma confiable, activo temporalmente `snapshot_fallback = true`; el Edge continúa derivando la vista desde el event log y el cliente nunca escribe estado autoritativo.
+
 ## Recuperación
 
 Yo conservo el respaldo original ya verificado con SHA-256 `842e75471b532f343886b6cf597e1ea57e8e807d55d48242157a53737628a7da`. Yo no lo publico porque puede contener datos específicos de la placa.

@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0.0
 milestone_name: final
 status: executing
-stopped_at: Phase 01 external authorization and Phase 03 physical identity proof pending
-last_updated: "2026-07-17T20:46:35Z"
-last_activity: 2026-07-17 -- Phase 03 automated identity and event backbone verified
+stopped_at: Phase 01 external authorization; Phase 03/04 physical proofs pending
+last_updated: "2026-07-17T20:56:14Z"
+last_activity: 2026-07-17 -- Phase 04 automated projection convergence verified
 progress:
   total_phases: 20
   completed_phases: 1
-  total_plans: 10
-  completed_plans: 8
+  total_plans: 13
+  completed_plans: 11
   percent: 5
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-17)
 
 **Core value:** Toda acción doméstica debe pasar por una única autoridad de política y ejecución de Wyss, conservar coherencia observable entre clientes y fallar de forma segura.
-**Current focus:** Phase 01/03 external and physical gates; Phase 04 automation next
+**Current focus:** Phase 01/03/04 external and physical gates; Phase 05 automation next
 
 ## Current Position
 
-Phase: 01 and 03 physical gates pending; 02 complete
-Plan: Continue automated roadmap work from PR-03
+Phase: 01, 03 and 04 physical gates pending; 02 complete
+Plan: Continue automated roadmap work from PR-04
 Status: Continuing autonomous roadmap work
-Last activity: 2026-07-17 -- Phase 03 automated identity and event backbone verified
+Last activity: 2026-07-17 -- Phase 04 automated projection convergence verified
 
 Progress: [█░░░░░░░░░] 5% of roadmap phases complete
 
@@ -71,6 +71,7 @@ None yet.
 
 - Phase 1 requires the exact panel, real light and verified factory backup for physical baseline evidence.
 - Phase 3 requires a real panel/Android/PC client to close the physical revocation criterion.
+- Phase 4 requires PC, Android and panel reales sobre el mismo commit para cerrar convergencia.
 - Gates O-01..O-07 require explicit operator decisions at Phases 5, 8, 9/11, 12, 14, 15 and 20.
 - Android, Spotify, Google Calendar, camera hardware and private remote network are external dependencies; simulations cannot close their physical criteria.
 - Secure Boot, Flash Encryption and eFuses remain untouched without separate explicit authorization.
