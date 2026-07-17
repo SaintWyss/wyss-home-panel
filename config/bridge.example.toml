@@ -55,6 +55,7 @@ enabled = false
 identity_db = "bridge/data/identities.sqlite3"
 event_db = "bridge/data/events.sqlite3"
 projection_db = "bridge/data/projections.sqlite3"
+light_audit_db = "bridge/data/light-audit.sqlite3"
 rate_limit = 12
 heartbeat_seconds = 12.0
 snapshot_fallback = false

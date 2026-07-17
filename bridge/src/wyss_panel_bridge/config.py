@@ -50,6 +50,7 @@ class Settings:
     v2_identity_db: Path = Path("bridge/data/identities.sqlite3")
     v2_event_db: Path = Path("bridge/data/events.sqlite3")
     v2_projection_db: Path = Path("bridge/data/projections.sqlite3")
+    v2_light_audit_db: Path = Path("bridge/data/light-audit.sqlite3")
     v2_rate_limit: int = 12
     v2_heartbeat_seconds: float = 12.0
     v2_snapshot_fallback: bool = False
@@ -84,6 +85,9 @@ class Settings:
             v2_identity_db=Path(v2.get("identity_db", "bridge/data/identities.sqlite3")),
             v2_event_db=Path(v2.get("event_db", "bridge/data/events.sqlite3")),
             v2_projection_db=Path(v2.get("projection_db", "bridge/data/projections.sqlite3")),
+            v2_light_audit_db=Path(
+                v2.get("light_audit_db", "bridge/data/light-audit.sqlite3")
+            ),
             v2_rate_limit=int(v2.get("rate_limit", 12)),
             v2_heartbeat_seconds=float(v2.get("heartbeat_seconds", 12.0)),
             v2_snapshot_fallback=bool(v2.get("snapshot_fallback", False)),

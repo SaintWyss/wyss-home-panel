@@ -7,6 +7,7 @@ from typing import Any, Protocol
 
 from wyss_panel_bridge.domain.events import EventDraft
 from wyss_panel_bridge.domain.identity import ClientIdentity
+from wyss_panel_bridge.domain.lights import LightAuditRecord
 from wyss_panel_bridge.domain.models import DeviceState, FastCommand
 from wyss_panel_bridge.domain.projection import ProjectionDelivery
 from wyss_panel_bridge.domain.v2_types import (
@@ -27,6 +28,28 @@ class LightPort(Protocol):
     async def snapshot(self, entity_ids: Sequence[str]) -> Sequence[DeviceState]: ...
 
     async def execute(self, command: FastCommand) -> Sequence[DeviceState]: ...
+
+
+class LightAuditPort(Protocol):
+    def claim(
+        self,
+        request_id: str,
+        fingerprint: str,
+        source: str,
+        entity_id: str,
+        action: str,
+    ) -> LightAuditRecord: ...
+
+    def verified(self, request_id: str, result: Mapping[str, Any]) -> LightAuditRecord: ...
+
+    def failed(
+        self,
+        request_id: str,
+        code: str,
+        message: str,
+        *,
+        ambiguous: bool = False,
+    ) -> LightAuditRecord: ...
 
 
 class ProjectionPort(Protocol):
