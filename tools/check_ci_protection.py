@@ -131,6 +131,7 @@ def validate_local(workflow: Path, contract_path: Path) -> dict[str, Any]:
         (bridge, "ruff check"),
         (bridge, "mypy bridge/src"),
         (bridge, "pytest bridge/tests --quiet"),
+        (bridge, "python tools/check_architecture.py --format json"),
         (firmware, "platformio==6.1.19"),
         (firmware, "pio run -e waveshare_esp32_s3_touch_lcd_7"),
         (docs, "python tools/check_docs.py --format json"),

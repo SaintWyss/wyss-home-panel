@@ -44,3 +44,4 @@ def test_ci_has_all_blocking_jobs() -> None:
         assert f"  {job}:" in workflow
     assert "continue-on-error: true" not in workflow
     assert "python tools/check_docs.py --format json" in workflow
+    assert "python tools/check_architecture.py --format json" in workflow

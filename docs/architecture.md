@@ -156,3 +156,18 @@ flowchart TB
   Bridge <-->|Tuya 3.3 o HA API| LAN
 ```
 
+## Contratos v2 preparados
+
+Yo mantengo el runtime v1 anterior como composition root activo. V2 todavía no tiene adapters ni
+consumidores de producción: se puede retirar sin migrar configuración ni alterar el listener v1.
+El parser C++ se prueba con `WYSS_ENABLE_PROTOCOL_V2=1` en host, pero el build de producción no
+define ese flag; por eso conserva exactamente 96.048 bytes de RAM y 1.574.853 bytes de Flash.
+
+Yo definí ports pequeños para hogar, luces, proyecciones, eventos de clientes, media, clima,
+Calendar, recordatorios, timers, notificaciones, voz y cámaras en `bridge/.../ports_v2.py`. Los DTOs
+permanecen en dominio y ningún port importa adapters. `tools/check_architecture.py` bloquea en Python
+y C++ cualquier dependencia que apunte desde dominio, protocolo, ports o aplicación hacia afuera.
+
+El envelope, límites y compatibilidad están documentados en [Protocol v2](contracts/PROTOCOL_V2.md)
+y fijados por el [schema versionado](../schemas/protocol-v2-envelope.schema.json). Python y C++
+consumen los mismos fixtures de replay, revisión, snapshots, errores, duplicados y límites.

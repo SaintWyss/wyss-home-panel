@@ -31,3 +31,9 @@ Yo envío `state.snapshot`, `state.changed`, `plan.proposed`, `execution.update`
 Yo mantengo los identificadores idempotentes por sesión y rechazo versiones, tipos y tamaños desconocidos.
 
 Yo envío `expires_in_ms` dentro de `plan.proposed`. Yo convierto esa duración al reloj monotónico del ESP32 y evito mezclar el reloj de la netbook, el del panel y las zonas horarias. Yo limito la confirmación a cinco minutos como máximo.
+
+## Compatibilidad v2
+
+El runtime v1 de esta página continúa activo y no importa contratos v2. El contrato futuro está
+aislado en [Wyss Home Protocol v2](contracts/PROTOCOL_V2.md), con schema cerrado y fixtures dorados
+compartidos por Python y C++. Desactivar o retirar esos archivos no modifica el listener `/v1/panel`.
