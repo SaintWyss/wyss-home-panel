@@ -22,6 +22,7 @@ class LightConflict(LightError):
 
 @dataclass(frozen=True, slots=True)
 class LightAuditRecord:
+    idempotency_key: str
     request_id: str
     fingerprint: str
     source: str

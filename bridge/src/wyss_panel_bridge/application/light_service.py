@@ -7,7 +7,7 @@ import hashlib
 import json
 import secrets
 from collections import OrderedDict
-from collections.abc import Sequence
+from collections.abc import Awaitable, Callable, Sequence
 from dataclasses import dataclass
 from typing import Any
 
@@ -51,6 +51,13 @@ class LightService:
         self._projection_lock = asyncio.Lock()
         self._bootstrap_lock = asyncio.Lock()
         self._bootstrapped = False
+        self._event_sink: Callable[[ProjectionEvent], Awaitable[None]] | None = None
+
+    def set_event_sink(
+        self,
+        sink: Callable[[ProjectionEvent], Awaitable[None]] | None,
+    ) -> None:
+        self._event_sink = sink
 
     async def ensure_snapshot(self) -> ProjectionEvent | None:
         if self._bootstrapped:
@@ -58,16 +65,26 @@ class LightService:
         async with self._bootstrap_lock:
             if self._bootstrapped:
                 return None
-            states = await self._lights.snapshot(sorted(self._allowed))
-            async with self._projection_lock:
-                self._merge(states)
-                payload = self._projection_payload()
-                event = self._events.append(
-                    EventDraft("home.entity.changed", "home", payload),
-                    f"home:bootstrap:{self._instance_id}",
-                )
-                self._bootstrapped = True
-                return event
+            return await self.refresh(force=True)
+
+    async def refresh(self, *, force: bool = False) -> ProjectionEvent | None:
+        states = await self._lights.snapshot(sorted(self._allowed))
+        async with self._projection_lock:
+            changed = force or self._projection_changed(states)
+            self._merge(states)
+            self._bootstrapped = True
+            if not changed:
+                return None
+            payload = self._projection_payload()
+            fingerprint = hashlib.sha256(
+                json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()
+            ).hexdigest()
+            event = self._events.append(
+                EventDraft("home.entity.changed", "home", payload),
+                f"home:snapshot:{fingerprint}",
+            )
+        await self._emit(event)
+        return event
 
     async def execute(
         self,
@@ -80,11 +97,13 @@ class LightService:
             validate_fast_command(command, self._allowed)
         except PolicyError as error:
             raise LightError("policy_rejected", str(error)) from error
-        lock = await self._request_lock(command.request_id)
+        idempotency_key = command.idempotency_key or command.request_id
+        lock = await self._request_lock(idempotency_key)
         async with lock:
             fingerprint = self._fingerprint(source, command, expected_revision)
             try:
                 record = self._audit.claim(
+                    idempotency_key,
                     command.request_id,
                     fingerprint,
                     source,
@@ -103,7 +122,7 @@ class LightService:
                 )
             if record.status == "accepted" and record.replayed and command.action == "toggle":
                 self._audit.failed(
-                    command.request_id,
+                    idempotency_key,
                     "conflict",
                     "No repito un toggle cuya ejecución anterior quedó ambigua",
                     ambiguous=True,
@@ -121,7 +140,7 @@ class LightService:
                     current is None or current.revision != expected_revision
                 ):
                     return self._fail(
-                        command.request_id,
+                        idempotency_key,
                         "conflict",
                         "La revisión esperada de la luz ya cambió",
                     )
@@ -129,14 +148,14 @@ class LightService:
                     states = await self._lights.execute(command)
                 except (RuntimeError, ValueError) as error:
                     return self._fail(
-                        command.request_id,
+                        idempotency_key,
                         "provider_unavailable",
                         str(error),
                     )
             async with self._projection_lock:
                 self._merge(states)
                 payload = self._projection_payload(command.request_id)
-                self._audit.verified(command.request_id, payload)
+                self._audit.verified(idempotency_key, payload)
                 event = self._events.append(
                     EventDraft(
                         "home.entity.changed",
@@ -145,15 +164,16 @@ class LightService:
                         correlation_id=command.request_id,
                         causation_id=command.request_id,
                     ),
-                    f"light:{command.request_id}:verified",
+                    f"light:{idempotency_key}:verified",
                 )
+            await self._emit(event)
             return LightCommandResult(event, False)
 
     def cached_states(self) -> tuple[DeviceState, ...]:
         return tuple(self._cache[key] for key in sorted(self._cache))
 
-    def _fail(self, request_id: str, code: str, message: str) -> LightCommandResult:
-        self._audit.failed(request_id, code, message)
+    def _fail(self, idempotency_key: str, code: str, message: str) -> LightCommandResult:
+        self._audit.failed(idempotency_key, code, message)
         raise LightError(code, message)
 
     def _event_from_record(self, record: LightAuditRecord) -> ProjectionEvent:
@@ -167,7 +187,7 @@ class LightService:
                 correlation_id=record.request_id,
                 causation_id=record.request_id,
             ),
-            f"light:{record.request_id}:verified",
+            f"light:{record.idempotency_key}:verified",
         )
 
     async def _request_lock(self, request_id: str) -> asyncio.Lock:
@@ -193,6 +213,15 @@ class LightService:
             if current is None or state.revision > current.revision:
                 self._cache[state.entity_id] = state
 
+    def _projection_changed(self, states: Sequence[DeviceState]) -> bool:
+        incoming = {state.entity_id: state.as_wire() for state in states}
+        current = {entity_id: state.as_wire() for entity_id, state in self._cache.items()}
+        return incoming != current
+
+    async def _emit(self, event: ProjectionEvent) -> None:
+        if self._event_sink is not None:
+            await self._event_sink(event)
+
     def _projection_payload(self, request_id: str | None = None) -> dict[str, Any]:
         payload: dict[str, Any] = {
             "entities": [state.as_wire() for state in self.cached_states()],
@@ -214,6 +243,7 @@ class LightService:
                 "brightness": command.brightness,
                 "entity_id": command.entity_id,
                 "expected_revision": expected_revision,
+                "request_id": command.request_id,
                 "rgb": command.rgb,
                 "source": source,
             },

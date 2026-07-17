@@ -43,6 +43,7 @@ class FastCommand:
     action: str
     brightness: int | None = None
     rgb: int | None = None
+    idempotency_key: str | None = None
 
 
 @dataclass(frozen=True, slots=True)

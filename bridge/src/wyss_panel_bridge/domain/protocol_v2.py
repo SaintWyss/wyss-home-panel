@@ -119,6 +119,10 @@ def _non_negative_int(value: Any) -> bool:
     return isinstance(value, int) and not isinstance(value, bool) and value >= 0
 
 
+def _bounded_int(value: Any, maximum: int) -> bool:
+    return _non_negative_int(value) and isinstance(value, int) and value <= maximum
+
+
 def _validate_payload(message_type: str, payload: dict[str, Any]) -> None:
     if message_type == "session.hello":
         if set(payload) != {"firmware", "capabilities", "last_event_id"}:
@@ -131,6 +135,50 @@ def _validate_payload(message_type: str, payload: dict[str, Any]) -> None:
             or not all(isinstance(item, str) and 0 < len(item) <= 64 for item in capabilities)
             or not _non_negative_int(payload["last_event_id"])
         ):
+            raise ProtocolV2Error(ValidationCode.INVALID_MESSAGE)
+    elif message_type == "home.command":
+        required = {"request_id", "idempotency_key", "entity_id", "action"}
+        allowed = required | {"value", "rgb", "expected_revision"}
+        if not required <= set(payload) or not set(payload) <= allowed:
+            raise ProtocolV2Error(ValidationCode.INVALID_MESSAGE)
+        request_id = _required_string(payload["request_id"], MAX_ID_CHARS, identifier=True)
+        idempotency_key = _required_string(
+            payload["idempotency_key"], MAX_ID_CHARS, identifier=True
+        )
+        entity_id = _required_string(payload["entity_id"], MAX_ID_CHARS, identifier=True)
+        action = _required_string(payload["action"], 32)
+        if not request_id or not idempotency_key:
+            raise ProtocolV2Error(ValidationCode.INVALID_MESSAGE)
+        expected_revision = payload.get("expected_revision")
+        if expected_revision is not None and not _non_negative_int(expected_revision):
+            raise ProtocolV2Error(ValidationCode.INVALID_MESSAGE)
+        is_scene = entity_id.startswith("scene.")
+        if action == "activate_scene":
+            valid = is_scene and "value" not in payload and "rgb" not in payload
+        elif action == "set_brightness":
+            value = payload.get("value")
+            valid = (
+                not is_scene
+                and entity_id.startswith("light.")
+                and _bounded_int(value, 100)
+                and "rgb" not in payload
+            )
+        elif action == "set_color":
+            rgb = payload.get("rgb")
+            valid = (
+                not is_scene
+                and entity_id.startswith("light.")
+                and _bounded_int(rgb, 0xFFFFFF)
+                and "value" not in payload
+            )
+        else:
+            valid = (
+                action in {"turn_on", "turn_off", "toggle"}
+                and entity_id.startswith("light.")
+                and "value" not in payload
+                and "rgb" not in payload
+            )
+        if not valid:
             raise ProtocolV2Error(ValidationCode.INVALID_MESSAGE)
     elif message_type == "projection.snapshot":
         allowed = {

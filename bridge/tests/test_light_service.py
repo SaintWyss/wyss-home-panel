@@ -7,6 +7,7 @@ from pathlib import Path
 
 import pytest
 
+from wyss_panel_bridge.adapters.legacy_devices import ProjectedLegacyDeviceGateway
 from wyss_panel_bridge.adapters.sqlite_events import SqliteEventStore
 from wyss_panel_bridge.adapters.sqlite_light_audit import SqliteLightAuditStore
 from wyss_panel_bridge.application.light_service import LightService
@@ -187,6 +188,7 @@ async def test_accepted_toggle_from_interrupted_process_is_never_repeated(tmp_pa
     fingerprint = service._fingerprint("panel:living", command, None)  # noqa: SLF001
     SqliteLightAuditStore(audit_path).claim(
         command.request_id,
+        command.request_id,
         fingerprint,
         "panel:living",
         command.entity_id,
@@ -226,3 +228,19 @@ async def test_five_hundred_changes_leave_no_ghost_state_or_duplicate_audit(
     assert lights.calls == 500
     assert (count, verified) == (500, 500)
     assert living.brightness == 499 % 101
+
+
+@pytest.mark.asyncio
+async def test_v1_gateway_uses_same_projection_without_polling_changes(tmp_path: Path) -> None:
+    service, lights, _ = _service(tmp_path)
+    legacy = ProjectedLegacyDeviceGateway(service)
+    events = SqliteEventStore(tmp_path / "events.sqlite3")
+
+    first = await legacy.snapshot(frozenset({"light.living"}))
+    second = await legacy.snapshot(frozenset({"light.living"}))
+    changed = await legacy.execute(FastCommand("v1:1", "light.living", "turn_on"))
+
+    assert first == second
+    assert changed.on is True
+    assert lights.calls == 1
+    assert events.latest_event_id() == 2

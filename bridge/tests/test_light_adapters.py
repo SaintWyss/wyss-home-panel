@@ -86,6 +86,7 @@ async def test_tuya_controls_multiple_lights_color_and_scene() -> None:
         FastCommand("color:1", "light.living", "set_color", rgb=0x3366CC)
     )
     scene = await gateway.execute(FastCommand("scene:1", "scene.movie", "activate_scene"))
+    unchanged = await gateway.snapshot(["light.living", "light.desk", "scene.movie"])
 
     assert [state.entity_id for state in initial] == [
         "light.desk",
@@ -98,6 +99,10 @@ async def test_tuya_controls_multiple_lights_color_and_scene() -> None:
     assert [state.entity_id for state in scene] == ["light.desk", "light.living"]
     assert scene[0].on is False
     assert scene[1].on is True
+    assert [state.revision for state in unchanged] == [
+        state.revision
+        for state in await gateway.snapshot(["light.living", "light.desk", "scene.movie"])
+    ]
 
 
 @pytest.mark.asyncio

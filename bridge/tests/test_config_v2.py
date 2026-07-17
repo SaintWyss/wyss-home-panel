@@ -36,6 +36,7 @@ enabled = true
 identity_db = "private/identities.sqlite3"
 event_db = "private/events.sqlite3"
 projection_db = "private/projections.sqlite3"
+light_audit_db = "private/light-audit.sqlite3"
 rate_limit = 8
 heartbeat_seconds = 9.5
 snapshot_fallback = true
@@ -50,6 +51,7 @@ snapshot_fallback = true
     assert settings.v2_identity_db == Path("private/identities.sqlite3")
     assert settings.v2_event_db == Path("private/events.sqlite3")
     assert settings.v2_projection_db == Path("private/projections.sqlite3")
+    assert settings.v2_light_audit_db == Path("private/light-audit.sqlite3")
     assert settings.v2_rate_limit == 8
     assert settings.v2_heartbeat_seconds == 9.5
     assert settings.v2_snapshot_fallback is True
@@ -116,9 +118,7 @@ token_env = "TEST_WYSS_TOKEN"
         device_factory=lambda device_id, _address, _key: _ConfigDevice(device_id),
     )
 
-    assert settings.allowed_entities == frozenset(
-        {"light.living", "light.desk", "scene.movie"}
-    )
+    assert settings.allowed_entities == frozenset({"light.living", "light.desk", "scene.movie"})
     assert len(gateway._lights) == 2  # noqa: SLF001 - prueba de composición
     assert set(gateway._scenes) == {"scene.movie"}  # noqa: SLF001
 

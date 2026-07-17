@@ -393,6 +393,55 @@ void validate_payload(const std::string& type, const JsonValue& payload) {
         !non_negative_integer(required(payload, "last_event_id"))) {
       throw ParseError();
     }
+  } else if (type == "home.command") {
+    const std::unordered_set<std::string> required_fields = {
+        "request_id", "idempotency_key", "entity_id", "action",
+    };
+    const std::unordered_set<std::string> allowed_fields = {
+        "request_id", "idempotency_key", "entity_id", "action",
+        "value",      "rgb",             "expected_revision",
+    };
+    if (!subset_keys(payload, allowed_fields) ||
+        !std::all_of(required_fields.begin(), required_fields.end(),
+                     [&](const std::string& key) { return payload.object.contains(key); })) {
+      throw ParseError();
+    }
+    const JsonValue& request_id = required(payload, "request_id");
+    const JsonValue& idempotency_key = required(payload, "idempotency_key");
+    const JsonValue& entity_id = required(payload, "entity_id");
+    const JsonValue& action = required(payload, "action");
+    if (request_id.kind != Kind::String || !valid_identifier(request_id.string) ||
+        idempotency_key.kind != Kind::String || !valid_identifier(idempotency_key.string) ||
+        entity_id.kind != Kind::String || !valid_identifier(entity_id.string) ||
+        action.kind != Kind::String || action.string.empty() || action.string.size() > 32U) {
+      throw ParseError();
+    }
+    const auto expected = payload.object.find("expected_revision");
+    if (expected != payload.object.end() && !non_negative_integer(expected->second)) {
+      throw ParseError();
+    }
+    const auto value = payload.object.find("value");
+    const auto rgb = payload.object.find("rgb");
+    const bool is_light = entity_id.string.starts_with("light.");
+    const bool is_scene = entity_id.string.starts_with("scene.");
+    bool valid = false;
+    if (action.string == "activate_scene") {
+      valid = is_scene && value == payload.object.end() && rgb == payload.object.end();
+    } else if (action.string == "set_brightness") {
+      valid = is_light && value != payload.object.end() &&
+              non_negative_integer(value->second) && value->second.integer <= 100 &&
+              rgb == payload.object.end();
+    } else if (action.string == "set_color") {
+      valid = is_light && rgb != payload.object.end() && non_negative_integer(rgb->second) &&
+              rgb->second.integer <= 0xFFFFFF && value == payload.object.end();
+    } else {
+      valid = is_light && value == payload.object.end() && rgb == payload.object.end() &&
+              (action.string == "turn_on" || action.string == "turn_off" ||
+               action.string == "toggle");
+    }
+    if (!valid) {
+      throw ParseError();
+    }
   } else if (type == "projection.snapshot") {
     const std::unordered_set<std::string> allowed = {
         "projection_version", "assistant", "home", "spotify", "weather",

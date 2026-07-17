@@ -33,6 +33,7 @@ class LightPort(Protocol):
 class LightAuditPort(Protocol):
     def claim(
         self,
+        idempotency_key: str,
         request_id: str,
         fingerprint: str,
         source: str,
@@ -40,11 +41,11 @@ class LightAuditPort(Protocol):
         action: str,
     ) -> LightAuditRecord: ...
 
-    def verified(self, request_id: str, result: Mapping[str, Any]) -> LightAuditRecord: ...
+    def verified(self, idempotency_key: str, result: Mapping[str, Any]) -> LightAuditRecord: ...
 
     def failed(
         self,
-        request_id: str,
+        idempotency_key: str,
         code: str,
         message: str,
         *,

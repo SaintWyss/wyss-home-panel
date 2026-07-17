@@ -5,6 +5,7 @@ from dataclasses import replace
 from pathlib import Path
 
 import pytest
+from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from starlette.websockets import WebSocketDisconnect
 
@@ -14,7 +15,42 @@ from wyss_panel_bridge.api import create_app
 from wyss_panel_bridge.application.identity_service import IdentityService
 from wyss_panel_bridge.config import Settings
 from wyss_panel_bridge.domain.events import EventDraft
+from wyss_panel_bridge.domain.models import DeviceState, FastCommand
 from wyss_panel_bridge.domain.protocol_v2 import parse_envelope
+
+
+class FakeLights:
+    def __init__(self) -> None:
+        self.state = DeviceState("light.living", "Living", True, False, 40, 1)
+        self.calls = 0
+
+    async def snapshot(self, entity_ids: list[str]) -> list[DeviceState]:
+        return [self.state] if self.state.entity_id in entity_ids else []
+
+    async def execute(self, command: FastCommand) -> list[DeviceState]:
+        self.calls += 1
+        brightness = command.brightness if command.brightness is not None else self.state.brightness
+        on = self.state.on
+        if command.action == "turn_on":
+            on = True
+        elif command.action == "turn_off":
+            on = False
+        elif command.action == "toggle":
+            on = not on
+        elif command.action in {"set_brightness", "set_color"}:
+            on = True
+        self.state = replace(
+            self.state,
+            on=on,
+            brightness=brightness,
+            rgb=command.rgb if command.rgb is not None else self.state.rgb,
+            revision=self.state.revision + 1,
+        )
+        return [self.state]
+
+
+def _app(settings: Settings, lights: FakeLights | None = None) -> FastAPI:
+    return create_app(settings, lights or FakeLights())
 
 
 def _settings(tmp_path: Path, *, enabled: bool) -> Settings:
@@ -39,6 +75,7 @@ def _settings(tmp_path: Path, *, enabled: bool) -> Settings:
         v2_identity_db=tmp_path / "identities.sqlite3",
         v2_event_db=tmp_path / "events.sqlite3",
         v2_projection_db=tmp_path / "projections.sqlite3",
+        v2_light_audit_db=tmp_path / "light-audit.sqlite3",
     )
 
 
@@ -46,6 +83,11 @@ def _pair(settings: Settings) -> tuple[str, IdentityService]:
     service = IdentityService(SqliteIdentityStore(settings.v2_identity_db))
     token = service.pair("panel:living", {"panel.read_projection"})
     return token, service
+
+
+def _pair_as(settings: Settings, client_id: str, capability: str) -> str:
+    service = IdentityService(SqliteIdentityStore(settings.v2_identity_db))
+    return service.pair(client_id, {"panel.read_projection", capability})
 
 
 def _hello(last_event_id: int = 0) -> dict[str, object]:
@@ -62,13 +104,58 @@ def _hello(last_event_id: int = 0) -> dict[str, object]:
     }
 
 
+def _hello_as(client_id: str, number: int = 1) -> dict[str, object]:
+    return {
+        "v": 2,
+        "type": "session.hello",
+        "message_id": f"hello:{client_id}:{number}",
+        "source": client_id,
+        "payload": {
+            "firmware": "2.0.0",
+            "capabilities": ["ui.core", "light.fast"],
+            "last_event_id": 0,
+        },
+    }
+
+
 def _headers(token: str) -> dict[str, str]:
     return {"x-wyss-client": "panel:living", "authorization": f"Bearer {token}"}
 
 
+def _headers_as(client_id: str, token: str) -> dict[str, str]:
+    return {"x-wyss-client": client_id, "authorization": f"Bearer {token}"}
+
+
+def _command(
+    source: str,
+    number: int,
+    action: str,
+    *,
+    value: int | None = None,
+    rgb: int | None = None,
+) -> dict[str, object]:
+    payload: dict[str, object] = {
+        "request_id": f"request:{source}:{number}",
+        "idempotency_key": f"{source}:light:{number}",
+        "entity_id": "light.living",
+        "action": action,
+    }
+    if value is not None:
+        payload["value"] = value
+    if rgb is not None:
+        payload["rgb"] = rgb
+    return {
+        "v": 2,
+        "type": "home.command",
+        "message_id": f"message:{source}:{number}",
+        "source": source,
+        "payload": payload,
+    }
+
+
 def test_feature_flag_keeps_v1_and_avoids_v2_state_when_disabled(tmp_path: Path) -> None:
     settings = _settings(tmp_path, enabled=False)
-    app = create_app(settings)
+    app = _app(settings)
     paths = {getattr(route, "path", "") for route in app.routes}
 
     assert "/v1/panel" in paths
@@ -76,6 +163,7 @@ def test_feature_flag_keeps_v1_and_avoids_v2_state_when_disabled(tmp_path: Path)
     assert not settings.v2_identity_db.exists()
     assert not settings.v2_event_db.exists()
     assert not settings.v2_projection_db.exists()
+    assert not settings.v2_light_audit_db.exists()
 
 
 def test_disabling_v2_preserves_existing_identity_state(tmp_path: Path) -> None:
@@ -83,7 +171,7 @@ def test_disabling_v2_preserves_existing_identity_state(tmp_path: Path) -> None:
     token, identities = _pair(enabled)
 
     disabled = replace(enabled, v2_enabled=False)
-    app = create_app(disabled)
+    app = _app(disabled)
     paths = {getattr(route, "path", "") for route in app.routes}
 
     assert "/v1/panel" in paths
@@ -99,7 +187,7 @@ def test_enabled_listener_authenticates_and_sends_welcome_snapshot(tmp_path: Pat
         "internal:1",
     )
 
-    with TestClient(create_app(settings)) as client:
+    with TestClient(_app(settings)) as client:
         with client.websocket_connect(
             "/v2/client", headers=_headers(token), subprotocols=["wyss-v2"]
         ) as websocket:
@@ -110,7 +198,7 @@ def test_enabled_listener_authenticates_and_sends_welcome_snapshot(tmp_path: Pat
     assert welcome["type"] == "session.welcome"
     assert welcome["payload"]["snapshot_required"] is True
     assert snapshot["type"] == "projection.snapshot"
-    assert snapshot["payload"]["projection_version"] == 1
+    assert snapshot["payload"]["projection_version"] == 2
     assert "internal" not in snapshot["payload"]
     assert parse_envelope(json.dumps(snapshot)).message_type == "projection.snapshot"
 
@@ -125,7 +213,7 @@ def test_resume_sends_only_events_after_cursor(tmp_path: Path) -> None:
             f"event:{number}",
         )
 
-    with TestClient(create_app(settings)) as client:
+    with TestClient(_app(settings)) as client:
         with client.websocket_connect(
             "/v2/client", headers=_headers(token), subprotocols=["wyss-v2"]
         ) as websocket:
@@ -143,7 +231,7 @@ def test_revocation_is_observed_on_the_next_message(tmp_path: Path) -> None:
     settings = _settings(tmp_path, enabled=True)
     token, identities = _pair(settings)
 
-    with TestClient(create_app(settings)) as client:
+    with TestClient(_app(settings)) as client:
         with client.websocket_connect(
             "/v2/client", headers=_headers(token), subprotocols=["wyss-v2"]
         ) as websocket:
@@ -166,11 +254,11 @@ def test_revocation_is_observed_on_the_next_message(tmp_path: Path) -> None:
     assert disconnected.value.code == 4403
 
 
-def test_non_session_action_is_rejected_without_execution(tmp_path: Path) -> None:
+def test_light_action_without_capability_is_rejected_without_execution(tmp_path: Path) -> None:
     settings = _settings(tmp_path, enabled=True)
     token, _ = _pair(settings)
 
-    with TestClient(create_app(settings)) as client:
+    with TestClient(_app(settings)) as client:
         with client.websocket_connect(
             "/v2/client", headers=_headers(token), subprotocols=["wyss-v2"]
         ) as websocket:
@@ -183,10 +271,80 @@ def test_non_session_action_is_rejected_without_execution(tmp_path: Path) -> Non
                     "type": "home.command",
                     "message_id": "command:1",
                     "source": "panel:living",
-                    "payload": {"entity_id": "light.living", "action": "turn_on"},
+                    "payload": {
+                        "request_id": "request:1",
+                        "idempotency_key": "panel:1",
+                        "entity_id": "light.living",
+                        "action": "turn_on",
+                    },
                 }
             )
             response = websocket.receive_json()
 
     assert response["type"] == "error"
-    assert response["payload"]["code"] == "policy_rejected"
+    assert response["payload"]["code"] == "forbidden"
+
+
+def test_pc_android_and_panel_receive_each_verified_light_change_live(tmp_path: Path) -> None:
+    settings = _settings(tmp_path, enabled=True)
+    lights = FakeLights()
+    clients = {
+        "pc:desk": _pair_as(settings, "pc:desk", "pc.light.fast"),
+        "android:phone": _pair_as(settings, "android:phone", "android.light.fast"),
+        "panel:living": _pair_as(settings, "panel:living", "panel.light.fast"),
+    }
+
+    with TestClient(_app(settings, lights)) as client:
+        with (
+            client.websocket_connect(
+                "/v2/client",
+                headers=_headers_as("pc:desk", clients["pc:desk"]),
+                subprotocols=["wyss-v2"],
+            ) as pc,
+            client.websocket_connect(
+                "/v2/client",
+                headers=_headers_as("android:phone", clients["android:phone"]),
+                subprotocols=["wyss-v2"],
+            ) as android,
+            client.websocket_connect(
+                "/v2/client",
+                headers=_headers_as("panel:living", clients["panel:living"]),
+                subprotocols=["wyss-v2"],
+            ) as panel,
+        ):
+            sockets = {"pc:desk": pc, "android:phone": android, "panel:living": panel}
+            for client_id, websocket in sockets.items():
+                websocket.send_json(_hello_as(client_id))
+                assert websocket.receive_json()["type"] == "session.welcome"
+                assert websocket.receive_json()["type"] == "projection.snapshot"
+
+            scenarios = (
+                ("pc:desk", _command("pc:desk", 1, "set_brightness", value=72)),
+                ("android:phone", _command("android:phone", 1, "set_color", rgb=0x3366CC)),
+                ("panel:living", _command("panel:living", 1, "turn_off")),
+            )
+            observed_event_ids: list[int] = []
+            for origin, command in scenarios:
+                sockets[origin].send_json(command)
+                deltas = {
+                    client_id: websocket.receive_json() for client_id, websocket in sockets.items()
+                }
+                execution = sockets[origin].receive_json()
+
+                assert {message["type"] for message in deltas.values()} == {"projection.delta"}
+                event_ids = {message["payload"]["event_id"] for message in deltas.values()}
+                assert len(event_ids) == 1
+                observed_event_ids.append(next(iter(event_ids)))
+                assert execution["type"] == "execution.updated"
+                assert execution["payload"]["replayed"] is False
+
+            replay = _command("pc:desk", 1, "set_brightness", value=72)
+            replay["message_id"] = "message:pc:desk:replay"
+            pc.send_json(replay)
+            replay_result = pc.receive_json()
+
+    assert observed_event_ids == sorted(observed_event_ids)
+    assert len(set(observed_event_ids)) == 3
+    assert replay_result["type"] == "execution.updated"
+    assert replay_result["payload"]["replayed"] is True
+    assert lights.calls == 3

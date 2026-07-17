@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import asyncio
-import time
 from collections.abc import Sequence
+from dataclasses import replace
 
 import httpx
 
@@ -27,6 +27,8 @@ class HomeAssistantGateway:
             transport=transport,
         )
         self._locks: dict[str, asyncio.Lock] = {}
+        self._cache: dict[str, DeviceState] = {}
+        self._revision = 0
 
     async def snapshot(self, entities: Sequence[str]) -> list[DeviceState]:
         return [await self._state(entity) for entity in sorted(entities)]
@@ -60,11 +62,11 @@ class HomeAssistantGateway:
         try:
             response = await self._client.get(f"/api/states/{entity_id}")
         except httpx.HTTPError:
-            return DeviceState(entity_id, entity_id, False, False, 0, time.monotonic_ns())
+            return self._unavailable(entity_id)
         if response.status_code == 404:
-            return DeviceState(entity_id, entity_id, False, False, 0, time.monotonic_ns())
+            return self._unavailable(entity_id)
         if response.is_error:
-            return DeviceState(entity_id, entity_id, False, False, 0, time.monotonic_ns())
+            return self._unavailable(entity_id)
         raw = response.json()
         attributes = raw.get("attributes", {})
         raw_brightness = int(attributes.get("brightness") or 0)
@@ -80,15 +82,40 @@ class HomeAssistantGateway:
                 rgb = (red << 16) | (green << 8) | blue
             except (TypeError, ValueError):
                 rgb = None
-        return DeviceState(
-            entity_id=entity_id,
-            friendly_name=str(attributes.get("friendly_name") or entity_id),
-            available=raw.get("state") not in {"unavailable", "unknown"},
-            on=raw.get("state") == "on",
-            brightness=round(raw_brightness * 100 / 255),
-            revision=time.monotonic_ns(),
-            rgb=rgb,
+        return self._stable(
+            DeviceState(
+                entity_id=entity_id,
+                friendly_name=str(attributes.get("friendly_name") or entity_id),
+                available=raw.get("state") not in {"unavailable", "unknown"},
+                on=raw.get("state") == "on",
+                brightness=round(raw_brightness * 100 / 255),
+                revision=0,
+                rgb=rgb,
+            )
         )
 
     async def close(self) -> None:
         await self._client.aclose()
+
+    def _unavailable(self, entity_id: str) -> DeviceState:
+        before = self._cache.get(entity_id)
+        return self._stable(
+            DeviceState(
+                entity_id,
+                before.friendly_name if before is not None else entity_id,
+                False,
+                before.on if before is not None else False,
+                before.brightness if before is not None else 0,
+                0,
+                before.rgb if before is not None else None,
+            )
+        )
+
+    def _stable(self, candidate: DeviceState) -> DeviceState:
+        before = self._cache.get(candidate.entity_id)
+        if before is not None and replace(before, revision=0) == candidate:
+            return before
+        self._revision += 1
+        state = replace(candidate, revision=self._revision)
+        self._cache[candidate.entity_id] = state
+        return state

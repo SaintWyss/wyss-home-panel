@@ -119,6 +119,7 @@ class TuyaGateway:
             if any(step.entity_id not in self._lights for step in scene.steps):
                 raise ValueError("La escena Tuya referencia una luz desconocida")
         self._revision = 0
+        self._scene_cache: dict[str, DeviceState] = {}
 
     @classmethod
     def from_config(
@@ -183,16 +184,19 @@ class TuyaGateway:
                 by_entity.get(step.entity_id) or self._lights[step.entity_id].cached
                 for step in scene.steps
             ]
-            states.append(
+            scene_state = self._stable_state(
+                self._scene_cache.get(scene.entity_id),
                 DeviceState(
                     entity_id=scene.entity_id,
                     friendly_name=scene.name,
                     available=all(item is not None and item.available for item in related),
                     on=False,
                     brightness=0,
-                    revision=self._next_revision(),
-                )
+                    revision=0,
+                ),
             )
+            self._scene_cache[scene.entity_id] = scene_state
+            states.append(scene_state)
         return states
 
     async def execute(self, command: FastCommand) -> list[DeviceState]:
@@ -235,15 +239,18 @@ class TuyaGateway:
         except Exception:
             response = None
         if not isinstance(response, dict) or response.get("Error"):
-            before = managed.cached or DeviceState(
-                config.entity_id,
-                config.name,
-                False,
-                False,
-                0,
-                self._next_revision(),
+            unavailable = self._stable_state(
+                managed.cached,
+                DeviceState(
+                    config.entity_id,
+                    config.name,
+                    False,
+                    managed.cached.on if managed.cached is not None else False,
+                    managed.cached.brightness if managed.cached is not None else 0,
+                    0,
+                    managed.cached.rgb if managed.cached is not None else None,
+                ),
             )
-            unavailable = replace(before, available=False, revision=self._next_revision())
             managed.cached = unavailable
             return unavailable
         raw_dps = response.get("dps", {})
@@ -253,14 +260,17 @@ class TuyaGateway:
         raw_brightness = self._integer(self._dp(raw_dps, config.brightness_dp, 0))
         brightness = max(0, min(100, round(raw_brightness / 10)))
         rgb = self._decode_color(self._dp(raw_dps, config.color_dp, None))
-        state = DeviceState(
-            config.entity_id,
-            config.name,
-            True,
-            power,
-            brightness,
-            self._next_revision(),
-            rgb,
+        state = self._stable_state(
+            managed.cached,
+            DeviceState(
+                config.entity_id,
+                config.name,
+                True,
+                power,
+                brightness,
+                0,
+                rgb,
+            ),
         )
         managed.cached = state
         return state
@@ -352,6 +362,15 @@ class TuyaGateway:
     def _next_revision(self) -> int:
         self._revision += 1
         return self._revision
+
+    def _stable_state(
+        self,
+        before: DeviceState | None,
+        candidate: DeviceState,
+    ) -> DeviceState:
+        if before is not None and replace(before, revision=0) == candidate:
+            return before
+        return replace(candidate, revision=self._next_revision())
 
     @staticmethod
     def _light_config(raw: Mapping[str, Any]) -> TuyaLightConfig:
