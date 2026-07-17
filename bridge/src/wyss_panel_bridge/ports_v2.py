@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import AsyncIterator, Mapping, Sequence
 from typing import Any, Protocol
 
+from wyss_panel_bridge.domain.events import EventDraft
 from wyss_panel_bridge.domain.identity import ClientIdentity
 from wyss_panel_bridge.domain.v2_types import (
     CapabilityCommand,
@@ -86,3 +87,11 @@ class IdentityStorePort(Protocol):
     def get(self, client_id: str) -> ClientIdentity | None: ...
 
     def save(self, identity: ClientIdentity) -> None: ...
+
+
+class EventStorePort(Protocol):
+    def append(self, draft: EventDraft, idempotency_key: str) -> ProjectionEvent: ...
+
+    def after(self, event_id: int, limit: int) -> Sequence[ProjectionEvent]: ...
+
+    def latest_event_id(self) -> int: ...

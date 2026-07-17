@@ -21,6 +21,9 @@ class ProjectionEvent:
     aggregate: str
     revision: int
     payload: Mapping[str, Any]
+    event_type: str = "projection.delta"
+    correlation_id: str | None = None
+    causation_id: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
