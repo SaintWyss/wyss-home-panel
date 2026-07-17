@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "paths": [
+    "docs/evidence/pr-00/branch-protection.json",
+    "docs/evidence/pr-00/manifest.json",
+    ".planning/STATE.md",
+    ".planning/ROADMAP.md",
+    ".planning/phases/01-pr-00-baseline-reproducible-y-protecci-n/01-01-SUMMARY.md",
+    ".planning/phases/01-pr-00-baseline-reproducible-y-protecci-n/01-02-SUMMARY.md",
+    ".planning/phases/01-pr-00-baseline-reproducible-y-protecci-n/01-03-SUMMARY.md",
+    ".planning/phases/01-pr-00-baseline-reproducible-y-protecci-n/01-04-SUMMARY.md",
+    ".planning/phases/01-pr-00-baseline-reproducible-y-protecci-n/01-VERIFICATION.md"
+  ]
+}

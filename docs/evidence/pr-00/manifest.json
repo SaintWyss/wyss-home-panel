@@ -1,0 +1,95 @@
+{
+  "schema_version": 1,
+  "status": "NOT_VERIFIED",
+  "tested_commit": null,
+  "evidence": {
+    "factory_backup": {
+      "status": "NOT_VERIFIED",
+      "tested_commit": null,
+      "observed_at": null,
+      "provenance": "physical",
+      "hardware": "Waveshare ESP32-S3-Touch-LCD-7 Rev. 1.2",
+      "tool": "operator",
+      "result": "pending physical backup",
+      "artifact_ref": null,
+      "sha256": null
+    },
+    "lvgl_cycle": {
+      "status": "NOT_VERIFIED",
+      "tested_commit": null,
+      "observed_at": null,
+      "provenance": "physical",
+      "hardware": "Waveshare ESP32-S3-Touch-LCD-7 Rev. 1.2",
+      "tool": "serial telemetry",
+      "result": "pending physical measurement",
+      "artifact_ref": null,
+      "sha256": null
+    },
+    "touch_handler": {
+      "status": "NOT_VERIFIED",
+      "tested_commit": null,
+      "observed_at": null,
+      "provenance": "physical",
+      "hardware": "GT911 touch controller",
+      "tool": "serial telemetry",
+      "result": "pending physical measurement",
+      "artifact_ref": null,
+      "sha256": null
+    },
+    "tuya_round_trip": {
+      "status": "NOT_VERIFIED",
+      "tested_commit": null,
+      "observed_at": null,
+      "provenance": "physical",
+      "hardware": "real Tuya LAN light",
+      "tool": "bridge telemetry",
+      "result": "pending physical measurement",
+      "artifact_ref": null,
+      "sha256": null
+    },
+    "firmware_resources": {
+      "status": "NOT_VERIFIED",
+      "tested_commit": null,
+      "observed_at": null,
+      "provenance": "automated",
+      "hardware": "ESP32-S3 N16R8 build target",
+      "tool": "PlatformIO 6.1.19",
+      "result": "pending tested-commit binding",
+      "artifact_ref": null,
+      "sha256": null
+    },
+    "real_light_smoke": {
+      "status": "NOT_VERIFIED",
+      "tested_commit": null,
+      "observed_at": null,
+      "provenance": "physical",
+      "hardware": "panel and real light",
+      "tool": "operator",
+      "result": "pending physical smoke",
+      "artifact_ref": null,
+      "sha256": null
+    },
+    "rollback": {
+      "status": "NOT_VERIFIED",
+      "tested_commit": null,
+      "observed_at": null,
+      "provenance": "physical",
+      "hardware": "Waveshare ESP32-S3-Touch-LCD-7 Rev. 1.2",
+      "tool": "operator",
+      "result": "pending rollback verification",
+      "artifact_ref": null,
+      "sha256": null
+    },
+    "branch_protection": {
+      "status": "NOT_VERIFIED",
+      "tested_commit": null,
+      "observed_at": null,
+      "provenance": "external",
+      "hardware": "GitHub repository",
+      "tool": "GitHub API",
+      "result": "pending remote verification",
+      "artifact_ref": "docs/evidence/pr-00/branch-protection.json",
+      "sha256": null
+    }
+  }
+}

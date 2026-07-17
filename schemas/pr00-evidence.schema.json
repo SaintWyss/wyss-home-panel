@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wyss.local/schemas/pr00-evidence.schema.json",
+  "title": "Wyss Home Panel PR-00 evidence",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "status", "tested_commit", "evidence"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "status": {"enum": ["NOT_VERIFIED", "VERIFIED"]},
+    "tested_commit": {
+      "oneOf": [
+        {"type": "null"},
+        {"type": "string", "pattern": "^[0-9a-f]{40}$"}
+      ]
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "factory_backup",
+        "lvgl_cycle",
+        "touch_handler",
+        "tuya_round_trip",
+        "firmware_resources",
+        "real_light_smoke",
+        "rollback",
+        "branch_protection"
+      ],
+      "properties": {
+        "factory_backup": {"$ref": "#/$defs/evidenceItem"},
+        "lvgl_cycle": {"$ref": "#/$defs/evidenceItem"},
+        "touch_handler": {"$ref": "#/$defs/evidenceItem"},
+        "tuya_round_trip": {"$ref": "#/$defs/evidenceItem"},
+        "firmware_resources": {"$ref": "#/$defs/evidenceItem"},
+        "real_light_smoke": {"$ref": "#/$defs/evidenceItem"},
+        "rollback": {"$ref": "#/$defs/evidenceItem"},
+        "branch_protection": {"$ref": "#/$defs/evidenceItem"}
+      }
+    }
+  },
+  "$defs": {
+    "evidenceItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "tested_commit",
+        "observed_at",
+        "provenance",
+        "hardware",
+        "tool",
+        "result",
+        "artifact_ref",
+        "sha256"
+      ],
+      "properties": {
+        "status": {"enum": ["NOT_VERIFIED", "VERIFIED"]},
+        "tested_commit": {
+          "oneOf": [
+            {"type": "null"},
+            {"type": "string", "pattern": "^[0-9a-f]{40}$"}
+          ]
+        },
+        "observed_at": {
+          "oneOf": [
+            {"type": "null"},
+            {"type": "string", "format": "date-time"}
+          ]
+        },
+        "provenance": {"enum": ["physical", "automated", "external"]},
+        "hardware": {"type": "string", "minLength": 1},
+        "tool": {"type": "string", "minLength": 1},
+        "result": {"type": "string", "minLength": 1},
+        "artifact_ref": {
+          "oneOf": [{"type": "null"}, {"type": "string", "minLength": 1}]
+        },
+        "sha256": {
+          "oneOf": [
+            {"type": "null"},
+            {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+          ]
+        }
+      }
+    }
+  }
+}
