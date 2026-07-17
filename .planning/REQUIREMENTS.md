@@ -24,9 +24,9 @@
 ### Identidad y eventos
 
 - [ ] **IDENT-01**: El operador puede emparejar, rotar y revocar cada panel o cliente mediante identidad independiente y rechazo inmediato.
-- [ ] **EVENT-01**: Un cliente reconectado recupera sesión mediante heartbeat, cursor, snapshot y deltas sin repetir acciones.
-- [ ] **EVENT-02**: El Home Edge aplica idempotencia, orden revisionado, límites de tasa y observabilidad correlacionada a todos los mensajes v2.
-- [ ] **EVENT-03**: La migración puede desactivar v2 y volver al listener v1 sin perder configuración ni autoridad.
+- [x] **EVENT-01**: Un cliente reconectado recupera sesión mediante heartbeat, cursor, snapshot y deltas sin repetir acciones.
+- [x] **EVENT-02**: El Home Edge aplica idempotencia, orden revisionado, límites de tasa y observabilidad correlacionada a todos los mensajes v2.
+- [x] **EVENT-03**: La migración puede desactivar v2 y volver al listener v1 sin perder configuración ni autoridad.
 
 ### Proyección multicliente
 
@@ -125,10 +125,10 @@ La trazabilidad de cada requisito v2.0.0 se define en `ROADMAP.md` y se actualiz
 | PROTO-01 | Phase 2 — PR-01 | Complete |
 | PROTO-02 | Phase 2 — PR-01 | Complete |
 | PROTO-03 | Phase 2 — PR-01 | Complete |
-| IDENT-01 | Phase 3 — PR-02 | Pending |
-| EVENT-01 | Phase 3 — PR-02 | Pending |
-| EVENT-02 | Phase 3 — PR-02 | Pending |
-| EVENT-03 | Phase 3 — PR-02 | Pending |
+| IDENT-01 | Phase 3 — PR-02 | Automated complete; physical client pending |
+| EVENT-01 | Phase 3 — PR-02 | Complete |
+| EVENT-02 | Phase 3 — PR-02 | Complete |
+| EVENT-03 | Phase 3 — PR-02 | Complete |
 | SYNC-01 | Phase 4 — PR-03 | Pending |
 | SYNC-02 | Phase 4 — PR-03 | Pending |
 | SYNC-03 | Phase 4 — PR-03 | Pending |

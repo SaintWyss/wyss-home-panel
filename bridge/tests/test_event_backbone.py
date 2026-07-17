@@ -69,9 +69,7 @@ def test_revisions_are_monotonic_per_aggregate(tmp_path: Path) -> None:
     backbone = _backbone(tmp_path / "events.sqlite3")
 
     home_one = backbone.publish("panel:living", "panel:1", _draft(10))
-    timer_one = backbone.publish(
-        "panel:living", "panel:2", _draft(20, aggregate="timers")
-    )
+    timer_one = backbone.publish("panel:living", "panel:2", _draft(20, aggregate="timers"))
     home_two = backbone.publish("panel:living", "panel:3", _draft(30))
 
     assert (home_one.revision, timer_one.revision, home_two.revision) == (1, 1, 2)

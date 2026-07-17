@@ -60,7 +60,7 @@ Este milestone lleva el baseline v1 hasta un sistema doméstico v2.0.0 coherente
   2. **[Automatizada]** Tras desconexión, un cliente reanuda con heartbeat, cursor, snapshot y deltas ordenados sin reejecutar mensajes ya aceptados.
   3. **[Automatizada]** Rate limit, idempotencia, revisión y correlación son observables en todos los mensajes v2, y el Edge sólo llega a Wyss mediante su funnel público.
   4. **[Automatizada]** Desactivar el feature flag v2 restaura el listener v1 sin perder configuración, identidad autorizada ni autoridad.
-**Plans**: TBD
+**Plans**: 3
 
 ### Phase 4: PR-03 — Projection Store y sincronización multicliente
 **Goal**: PC, Android y panel observan una proyección coherente después de una acción originada en cualquiera de ellos.
@@ -267,7 +267,7 @@ Este milestone lleva el baseline v1 hasta un sistema doméstico v2.0.0 coherente
 |-------|----------------|--------|-----------|
 | 1. PR-00 — Baseline reproducible y protección | 2/4 | In progress | - |
 | 2. PR-01 — Contratos y arquitectura v2 | 3/3 | Complete | 2026-07-17 |
-| 3. PR-02 — Identidad, pairing y event backbone | 0/TBD | Not started | - |
+| 3. PR-02 — Identidad, pairing y event backbone | 3/3 | Automated complete; physical pending | - |
 | 4. PR-03 — Projection Store y sincronización multicliente | 0/TBD | Not started | - |
 | 5. PR-04 — Shell visual Wyss Core y modo dormido | 0/TBD | Not started | - |
 | 6. PR-05 — Luces completas y migración del baseline | 0/TBD | Not started | - |
