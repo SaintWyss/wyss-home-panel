@@ -19,9 +19,15 @@ class Commands final : public wyss::ports::CommandPort {
         return succeeds;
     }
     bool send_intent(const wyss::domain::Intent&) override { return succeeds; }
-    bool confirm(std::string_view, bool, wyss::domain::RiskLevel) override { return succeeds; }
+    bool confirm(std::string_view, bool, wyss::domain::RiskLevel, std::uint64_t revision) override {
+        ++confirmations;
+        confirmed_revision = revision;
+        return succeeds;
+    }
     bool succeeds{true};
     std::string last_action;
+    unsigned confirmations{0};
+    std::uint64_t confirmed_revision{0};
 };
 
 class View final : public wyss::ports::ViewPort {
@@ -136,6 +142,22 @@ void policy_accepts_only_well_formed_scene_and_color_commands() {
     assert(!EdgePolicy::allows_fast_path(
         FastCommand{"four", "light.desk", "turn_on", 20, std::nullopt, 1}));
 }
+
+void shared_plan_resolution_clears_modal_authority_and_revision_is_forwarded() {
+    Clock clock;
+    Commands commands;
+    View view;
+    wyss::application::PanelService service(clock, commands, view);
+    service.receive_plan({"plan-shared", "Plan", wyss::domain::RiskLevel::B, {}, 5'000, 7});
+    service.receive_plan_resolution("plan-shared");
+    service.answer_plan(true);
+    assert(commands.confirmations == 0);
+
+    service.receive_plan({"plan-next", "Plan", wyss::domain::RiskLevel::C, {}, 5'000, 9});
+    service.answer_plan(true);
+    assert(commands.confirmations == 1);
+    assert(commands.confirmed_revision == 9);
+}
 }  // namespace
 
 int main() {
@@ -145,5 +167,6 @@ int main() {
     policy_rejects_unknown_edge_actions();
     color_targets_only_the_selected_light();
     policy_accepts_only_well_formed_scene_and_color_commands();
+    shared_plan_resolution_clears_modal_authority_and_revision_is_forwarded();
     return 0;
 }

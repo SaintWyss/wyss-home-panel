@@ -82,6 +82,12 @@ void PanelService::receive_plan(domain::Plan plan) {
     view_.render_plan(*pending_plan_);
 }
 
+void PanelService::receive_plan_resolution(std::string_view plan_id) {
+    if (pending_plan_ && pending_plan_->plan_id == plan_id) {
+        pending_plan_.reset();
+    }
+}
+
 void PanelService::answer_plan(bool accepted) {
     if (!pending_plan_) {
         return;
@@ -92,7 +98,7 @@ void PanelService::answer_plan(bool accepted) {
         view_.render_toast("El plan venció; pedí uno nuevo", true);
         return;
     }
-    if (!commands_.confirm(plan.plan_id, accepted, plan.risk)) {
+    if (!commands_.confirm(plan.plan_id, accepted, plan.risk, plan.revision)) {
         view_.render_toast("No pude responder la confirmación", true);
         return;
     }

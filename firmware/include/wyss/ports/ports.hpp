@@ -19,7 +19,8 @@ class CommandPort {
     virtual ~CommandPort() = default;
     virtual bool send_fast(const domain::FastCommand& command) = 0;
     virtual bool send_intent(const domain::Intent& intent) = 0;
-    virtual bool confirm(std::string_view plan_id, bool accepted, domain::RiskLevel risk) = 0;
+    virtual bool confirm(std::string_view plan_id, bool accepted, domain::RiskLevel risk,
+                         std::uint64_t revision) = 0;
 };
 
 class ViewPort {

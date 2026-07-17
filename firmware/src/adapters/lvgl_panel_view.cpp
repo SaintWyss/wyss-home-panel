@@ -637,6 +637,9 @@ void LvglPanelView::update_brightness_label(std::uint8_t value) {
 }
 
 void LvglPanelView::render_execution(const domain::ExecutionUpdate& update) {
+    if (update.state != domain::ExecutionState::AwaitingConfirmation) {
+        lv_obj_add_flag(modal_, LV_OBJ_FLAG_HIDDEN);
+    }
     auto message = ascii_safe(update.message);
     if (update.round_trip_ms > 0) {
         message.append(" - ");

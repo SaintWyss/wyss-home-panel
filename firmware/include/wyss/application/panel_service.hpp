@@ -23,6 +23,7 @@ class PanelService final {
                      std::optional<std::uint32_t> rgb = std::nullopt);
     void submit_intent(std::string text);
     void receive_plan(domain::Plan plan);
+    void receive_plan_resolution(std::string_view plan_id);
     void answer_plan(bool accepted);
     void receive_execution(domain::ExecutionUpdate update);
     void tick();

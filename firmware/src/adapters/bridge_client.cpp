@@ -10,6 +10,10 @@
 #include <string>
 #include <vector>
 
+#ifndef WYSS_PROTOCOL_V2_CLIENT
+#define WYSS_PROTOCOL_V2_CLIENT 0
+#endif
+
 namespace wyss::adapters {
 namespace {
 constexpr std::uint16_t kDefaultPort = 443;
@@ -34,7 +38,13 @@ std::optional<Endpoint> parse_endpoint(std::string_view url) {
                            static_cast<unsigned int>(colon == std::string_view::npos
                                                          ? authority.size()
                                                          : colon));
-    endpoint.path = slash == std::string_view::npos ? "/v1/panel" : String(remainder.substr(slash).data());
+    endpoint.path =
+        slash == std::string_view::npos ? "/v1/panel" : String(remainder.substr(slash).data());
+#if WYSS_PROTOCOL_V2_CLIENT
+    if (endpoint.path == "/" || endpoint.path == "/v1/panel") {
+        endpoint.path = "/v2/client";
+    }
+#endif
     if (colon != std::string_view::npos) {
         const unsigned long parsed = String(authority.substr(colon + 1).data()).toInt();
         if (parsed == 0 || parsed > 65535) {
@@ -46,13 +56,25 @@ std::optional<Endpoint> parse_endpoint(std::string_view url) {
 }
 
 domain::ExecutionState execution_state(const char* value) {
-    if (std::strcmp(value, "planning") == 0) return domain::ExecutionState::Planning;
+    if (std::strcmp(value, "planning") == 0 || std::strcmp(value, "thinking") == 0)
+        return domain::ExecutionState::Planning;
     if (std::strcmp(value, "awaiting_confirmation") == 0)
         return domain::ExecutionState::AwaitingConfirmation;
     if (std::strcmp(value, "executing") == 0) return domain::ExecutionState::Executing;
     if (std::strcmp(value, "verified") == 0) return domain::ExecutionState::Verified;
     if (std::strcmp(value, "failed") == 0) return domain::ExecutionState::Failed;
     return domain::ExecutionState::Idle;
+}
+
+domain::RiskLevel risk_level(JsonVariantConst value) {
+    if (value.is<const char*>()) {
+        const char* risk = value.as<const char*>();
+        if (std::strcmp(risk, "B") == 0) return domain::RiskLevel::B;
+        if (std::strcmp(risk, "C") == 0) return domain::RiskLevel::C;
+        if (std::strcmp(risk, "D") == 0) return domain::RiskLevel::D;
+        return domain::RiskLevel::A;
+    }
+    return static_cast<domain::RiskLevel>(std::clamp(value.as<int>(), 0, 3));
 }
 }  // namespace
 
@@ -71,15 +93,20 @@ bool BridgeClient::begin() {
     if (!endpoint) {
         return false;
     }
-    outbound_ = xQueueCreate(12, sizeof(Message));
-    inbound_ = xQueueCreate(12, sizeof(Message));
+    outbound_ = xQueueCreate(6, sizeof(Message));
+    inbound_ = xQueueCreate(6, sizeof(Message));
     if (outbound_ == nullptr || inbound_ == nullptr) {
         return false;
     }
 
     auth_header_ = "Authorization: Bearer ";
     auth_header_ += config_.device_token().data();
-    auth_header_ += "\r\nX-Wyss-Panel: ";
+    auth_header_ += "\r\nX-Wyss-";
+#if WYSS_PROTOCOL_V2_CLIENT
+    auth_header_ += "Client: ";
+#else
+    auth_header_ += "Panel: ";
+#endif
     auth_header_ += config_.panel_id().data();
     auth_header_ += "\r\n";
     socket_.setExtraHeaders(auth_header_.c_str());
@@ -89,7 +116,13 @@ bool BridgeClient::begin() {
     socket_.setReconnectInterval(1000);
     socket_.enableHeartbeat(12000, 3000, 2);
     socket_.beginSslWithCA(endpoint->host.c_str(), endpoint->port, endpoint->path.c_str(),
-                           config_.ca_certificate().data());
+                           config_.ca_certificate().data(),
+#if WYSS_PROTOCOL_V2_CLIENT
+                           "wyss-v2"
+#else
+                           "arduino"
+#endif
+    );
     state_.store(domain::ConnectionState::Discovering);
     return xTaskCreatePinnedToCore(task_entry, "wyss-network", 12288, this, 4, &task_, 0) == pdPASS;
 }
@@ -113,10 +146,24 @@ void BridgeClient::handle_socket_event(WStype_t type, std::uint8_t* payload, std
     if (type == WStype_CONNECTED) {
         state_.store(domain::ConnectionState::Online);
         JsonDocument hello;
+#if WYSS_PROTOCOL_V2_CLIENT
+        hello["v"] = 2;
+        hello["type"] = "session.hello";
+        hello["message_id"] = "panel:hello";
+        hello["source"] = config_.panel_id();
+        JsonObject payload = hello["payload"].to<JsonObject>();
+        payload["firmware"] = "2.0.0";
+        JsonArray capabilities = payload["capabilities"].to<JsonArray>();
+        capabilities.add("ui.core");
+        capabilities.add("light.fast");
+        capabilities.add("assistant.text");
+        payload["last_event_id"] = last_event_id_;
+#else
         hello["v"] = 1;
         hello["type"] = "hello";
         hello["panel_id"] = config_.panel_id();
         hello["firmware"] = "1.0.0";
+#endif
         char json[256]{};
         const std::size_t written = serializeJson(hello, json, sizeof(json));
         enqueue_json(json, written);
@@ -142,6 +189,19 @@ bool BridgeClient::enqueue_json(const char* json, std::size_t length) {
 
 bool BridgeClient::send_fast(const domain::FastCommand& command) {
     JsonDocument document;
+#if WYSS_PROTOCOL_V2_CLIENT
+    document["v"] = 2;
+    document["type"] = "home.command";
+    document["message_id"] = command.request_id;
+    document["source"] = config_.panel_id();
+    JsonObject payload = document["payload"].to<JsonObject>();
+    payload["request_id"] = command.request_id;
+    payload["idempotency_key"] = command.request_id;
+    payload["entity_id"] = command.entity_id;
+    payload["action"] = command.action;
+    if (command.brightness) payload["value"] = *command.brightness;
+    if (command.rgb) payload["rgb"] = *command.rgb;
+#else
     document["v"] = 1;
     document["type"] = "command.fast";
     document["id"] = command.request_id;
@@ -150,28 +210,54 @@ bool BridgeClient::send_fast(const domain::FastCommand& command) {
     document["action"] = command.action;
     if (command.brightness) document["brightness"] = *command.brightness;
     if (command.rgb) document["rgb"] = *command.rgb;
+#endif
     char json[512]{};
     return enqueue_json(json, serializeJson(document, json, sizeof(json)));
 }
 
 bool BridgeClient::send_intent(const domain::Intent& intent) {
     JsonDocument document;
+#if WYSS_PROTOCOL_V2_CLIENT
+    document["v"] = 2;
+    document["type"] = "assistant.intent";
+    document["message_id"] = intent.request_id;
+    document["source"] = config_.panel_id();
+    JsonObject payload = document["payload"].to<JsonObject>();
+    payload["request_id"] = intent.request_id;
+    payload["text"] = intent.text;
+    payload["input"] = "text";
+#else
     document["v"] = 1;
     document["type"] = "intent.submit";
     document["id"] = intent.request_id;
     document["sent_at_ms"] = intent.issued_at_ms;
     document["text"] = intent.text;
+#endif
     char json[1024]{};
     return enqueue_json(json, serializeJson(document, json, sizeof(json)));
 }
 
-bool BridgeClient::confirm(std::string_view plan_id, bool accepted, domain::RiskLevel risk) {
+bool BridgeClient::confirm(std::string_view plan_id, bool accepted, domain::RiskLevel risk,
+                           std::uint64_t revision) {
     JsonDocument document;
+#if WYSS_PROTOCOL_V2_CLIENT
+    (void)risk;
+    document["v"] = 2;
+    document["type"] = "plan.answer";
+    document["message_id"] = String("panel:answer:") + String(++sequence_);
+    document["source"] = config_.panel_id();
+    JsonObject payload = document["payload"].to<JsonObject>();
+    payload["plan_id"] = plan_id;
+    payload["decision"] = accepted ? "approve" : "reject";
+    payload["confirmation"] = accepted ? "CONFIRMAR" : "";
+    payload["expected_revision"] = revision;
+#else
     document["v"] = 1;
     document["type"] = "plan.answer";
     document["plan_id"] = plan_id;
     document["accepted"] = accepted;
     document["risk"] = static_cast<unsigned>(risk);
+#endif
     char json[384]{};
     return enqueue_json(json, serializeJson(document, json, sizeof(json)));
 }
@@ -193,6 +279,84 @@ void BridgeClient::dispatch(application::PanelService& service, const char* json
     if (deserializeJson(document, json) != DeserializationError::Ok) {
         return;
     }
+#if WYSS_PROTOCOL_V2_CLIENT
+    const char* type = document["type"] | "";
+    auto replace_devices = [&](JsonArrayConst items) {
+        std::vector<domain::DeviceState> devices;
+        for (JsonObjectConst item : items) {
+            domain::DeviceState device;
+            device.entity_id = item["entity_id"] | "";
+            device.friendly_name = item["friendly_name"] | device.entity_id.c_str();
+            device.available = item["available"] | false;
+            device.on = item["on"] | false;
+            device.brightness =
+                static_cast<std::uint8_t>(std::clamp(item["brightness"] | 0, 0, 100));
+            if (item["rgb"].is<unsigned>()) device.rgb = item["rgb"].as<unsigned>();
+            device.revision = item["revision"] | 0ULL;
+            devices.push_back(std::move(device));
+        }
+        service.replace_devices(std::move(devices));
+    };
+    auto assistant = [&](JsonObjectConst value, const char* event_type) {
+        const char* state_text = value["state"] | "";
+        if (state_text[0] != '\0') {
+            assistant_state_ = execution_state(state_text);
+            if (assistant_state_ == domain::ExecutionState::Planning) response_buffer_.clear();
+            service.receive_execution({value["request_id"] | "assistant", assistant_state_,
+                                       value["message"] | "", 0});
+        }
+        if (std::strcmp(event_type, "assistant.response.delta") == 0) {
+            response_buffer_.append(value["delta"] | "");
+            service.receive_execution({value["request_id"] | "assistant", assistant_state_,
+                                       response_buffer_, 0});
+        } else if (std::strcmp(event_type, "assistant.response.completed") == 0) {
+            response_buffer_ = value["message"] | "";
+            service.receive_execution({value["request_id"] | "assistant", assistant_state_,
+                                       response_buffer_, 0});
+        } else if (std::strcmp(event_type, "plan.proposed") == 0 ||
+                   (event_type[0] == '\0' &&
+                    assistant_state_ == domain::ExecutionState::AwaitingConfirmation)) {
+            domain::Plan plan;
+            plan.plan_id = value["plan_id"] | "";
+            plan.summary = value["summary"] | "";
+            plan.risk = risk_level(value["risk"]);
+            plan.revision = value["plan_revision"] | 1ULL;
+            const std::uint64_t expires_in_ms =
+                std::clamp<std::uint64_t>(value["expires_in_ms"] | 120000ULL, 0, 300000);
+            plan.expires_at_ms = millis() + expires_in_ms;
+            for (JsonObjectConst item : value["steps"].as<JsonArrayConst>()) {
+                plan.steps.push_back({item["description"] | "", item["target"] | ""});
+            }
+            if (!plan.plan_id.empty()) service.receive_plan(std::move(plan));
+        } else if (std::strcmp(event_type, "plan.resolved") == 0) {
+            service.receive_plan_resolution(value["plan_id"] | "");
+        }
+    };
+
+    if (std::strcmp(type, "projection.snapshot") == 0) {
+        JsonObjectConst payload = document["payload"];
+        replace_devices(payload["home"]["entities"].as<JsonArrayConst>());
+        assistant(payload["assistant"].as<JsonObjectConst>(), "");
+    } else if (std::strcmp(type, "projection.delta") == 0) {
+        JsonObjectConst payload = document["payload"];
+        last_event_id_ = payload["event_id"] | last_event_id_;
+        JsonObjectConst changes = payload["changes"];
+        const char* aggregate = payload["aggregate"] | "";
+        if (std::strcmp(aggregate, "home") == 0 && changes["entities"].is<JsonArrayConst>()) {
+            replace_devices(changes["entities"].as<JsonArrayConst>());
+        } else if (std::strcmp(aggregate, "assistant") == 0) {
+            assistant(changes, changes["event_type"] | "");
+        }
+    } else if (std::strcmp(type, "execution.updated") == 0) {
+        JsonObjectConst payload = document["payload"];
+        service.receive_execution(
+            {payload["request_id"] | "", execution_state(payload["state"] | ""),
+             payload["state"] | "", 0});
+    } else if (std::strcmp(type, "error") == 0) {
+        service.receive_execution({"edge:error", domain::ExecutionState::Failed,
+                                   document["payload"]["message"] | "Error de Wyss", 0});
+    }
+#else
     const char* type = document["type"] | "";
     if (std::strcmp(type, "state.snapshot") == 0) {
         std::vector<domain::DeviceState> devices;
@@ -235,6 +399,7 @@ void BridgeClient::dispatch(application::PanelService& service, const char* json
         service.receive_execution({document["id"] | "", execution_state(document["state"] | ""),
                                    document["message"] | "", document["round_trip_ms"] | 0U});
     }
+#endif
 }
 
 }  // namespace wyss::adapters

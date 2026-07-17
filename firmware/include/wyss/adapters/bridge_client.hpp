@@ -24,10 +24,11 @@ class BridgeClient final : public ports::CommandPort {
     void poll(application::PanelService& service);
     bool send_fast(const domain::FastCommand& command) override;
     bool send_intent(const domain::Intent& intent) override;
-    bool confirm(std::string_view plan_id, bool accepted, domain::RiskLevel risk) override;
+    bool confirm(std::string_view plan_id, bool accepted, domain::RiskLevel risk,
+                 std::uint64_t revision) override;
 
    private:
-    static constexpr std::size_t kMaxMessageBytes = 2048;
+    static constexpr std::size_t kMaxMessageBytes = 4096;
     struct Message {
         char text[kMaxMessageBytes];
     };
@@ -46,6 +47,10 @@ class BridgeClient final : public ports::CommandPort {
     std::atomic<domain::ConnectionState> state_{domain::ConnectionState::Offline};
     domain::ConnectionState rendered_state_{domain::ConnectionState::Offline};
     String auth_header_;
+    std::uint64_t sequence_{0};
+    std::uint64_t last_event_id_{0};
+    domain::ExecutionState assistant_state_{domain::ExecutionState::Idle};
+    std::string response_buffer_;
 };
 
 }  // namespace wyss::adapters

@@ -39,7 +39,9 @@ class Commands final : public wyss::ports::CommandPort {
    public:
     bool send_fast(const wyss::domain::FastCommand&) override { return true; }
     bool send_intent(const wyss::domain::Intent&) override { return true; }
-    bool confirm(std::string_view, bool, wyss::domain::RiskLevel) override { return true; }
+    bool confirm(std::string_view, bool, wyss::domain::RiskLevel, std::uint64_t) override {
+        return true;
+    }
 };
 
 void flush(lv_disp_drv_t* driver, const lv_area_t* area, lv_color_t* colors) {

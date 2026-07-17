@@ -61,6 +61,7 @@ struct Plan {
     RiskLevel risk{RiskLevel::A};
     std::vector<PlanStep> steps;
     std::uint64_t expires_at_ms{0};
+    std::uint64_t revision{1};
 };
 
 struct ExecutionUpdate {
