@@ -18,6 +18,9 @@ class PanelService final {
     void set_connection(domain::ConnectionState state);
     void replace_devices(std::vector<domain::DeviceState> devices);
     void reconcile_device(const domain::DeviceState& state);
+    void receive_media(domain::MediaState state);
+    void media_action(std::string action, std::optional<std::uint8_t> value = std::nullopt,
+                      std::string device_id = {});
     void fast_action(std::string entity_id, std::string action,
                      std::optional<std::uint8_t> brightness = std::nullopt,
                      std::optional<std::uint32_t> rgb = std::nullopt);
@@ -48,6 +51,7 @@ class PanelService final {
     std::vector<domain::DeviceState> devices_;
     std::unordered_map<std::string, OptimisticState> optimistic_;
     std::optional<domain::Plan> pending_plan_;
+    domain::MediaState media_;
     std::uint32_t sequence_{0};
 };
 

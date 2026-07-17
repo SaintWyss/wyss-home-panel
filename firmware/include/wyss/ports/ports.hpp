@@ -18,6 +18,7 @@ class CommandPort {
    public:
     virtual ~CommandPort() = default;
     virtual bool send_fast(const domain::FastCommand& command) = 0;
+    virtual bool send_media(const domain::MediaCommand& command) = 0;
     virtual bool send_intent(const domain::Intent& intent) = 0;
     virtual bool confirm(std::string_view plan_id, bool accepted, domain::RiskLevel risk,
                          std::uint64_t revision) = 0;
@@ -28,6 +29,7 @@ class ViewPort {
     virtual ~ViewPort() = default;
     virtual void render_connection(domain::ConnectionState state) = 0;
     virtual void render_devices(std::span<const domain::DeviceState> devices) = 0;
+    virtual void render_media(const domain::MediaState& state) = 0;
     virtual void render_execution(const domain::ExecutionUpdate& update) = 0;
     virtual void render_plan(const domain::Plan& plan) = 0;
     virtual void render_toast(std::string_view message, bool error) = 0;

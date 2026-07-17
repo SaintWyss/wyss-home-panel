@@ -37,6 +37,43 @@ void PanelService::reconcile_device(const domain::DeviceState& state) {
     view_.render_devices(devices_);
 }
 
+void PanelService::receive_media(domain::MediaState state) {
+    media_ = std::move(state);
+    view_.render_media(media_);
+}
+
+void PanelService::media_action(std::string action, std::optional<std::uint8_t> value,
+                                std::string device_id) {
+    const bool plain = action == "play" || action == "pause" || action == "previous" ||
+                       action == "next" || action == "toggle_favorite";
+    const bool volume = action == "set_volume" && value.has_value() && *value <= 100U;
+    const bool transfer = action == "transfer_device" && !device_id.empty();
+    if ((!plain && !volume && !transfer) || (plain && (value || !device_id.empty())) ||
+        (volume && !device_id.empty()) || (transfer && value)) {
+        view_.render_toast("La política local bloqueó esa acción de media", true);
+        return;
+    }
+    if (connection_ != domain::ConnectionState::Online) {
+        view_.render_toast("Wyss está sin conexión", true);
+        return;
+    }
+    if (!media_.linked ||
+        (!transfer &&
+         (!media_.available || !media_.device || !media_.device->active ||
+          media_.device->restricted)) ||
+        (volume && (!media_.device || !media_.device->supports_volume))) {
+        view_.render_toast("Spotify no tiene un dispositivo controlable", true);
+        return;
+    }
+    domain::MediaCommand command{next_request_id(), std::move(action), value,
+                                 std::move(device_id), clock_.now_ms()};
+    view_.render_execution({command.request_id, domain::ExecutionState::Optimistic,
+                            "Aplicando en Spotify…", 0});
+    if (!commands_.send_media(command)) {
+        view_.render_toast("No pude enviar la acción de Spotify", true);
+    }
+}
+
 void PanelService::fast_action(std::string entity_id, std::string action,
                                std::optional<std::uint8_t> brightness,
                                std::optional<std::uint32_t> rgb) {

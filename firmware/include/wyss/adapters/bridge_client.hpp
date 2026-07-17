@@ -23,6 +23,7 @@ class BridgeClient final : public ports::CommandPort {
     bool begin();
     void poll(application::PanelService& service);
     bool send_fast(const domain::FastCommand& command) override;
+    bool send_media(const domain::MediaCommand& command) override;
     bool send_intent(const domain::Intent& intent) override;
     bool confirm(std::string_view plan_id, bool accepted, domain::RiskLevel risk,
                  std::uint64_t revision) override;

@@ -18,6 +18,10 @@ class Commands final : public wyss::ports::CommandPort {
         last_action = command.action;
         return succeeds;
     }
+    bool send_media(const wyss::domain::MediaCommand& command) override {
+        last_media_action = command.action;
+        return succeeds;
+    }
     bool send_intent(const wyss::domain::Intent&) override { return succeeds; }
     bool confirm(std::string_view, bool, wyss::domain::RiskLevel, std::uint64_t revision) override {
         ++confirmations;
@@ -26,6 +30,7 @@ class Commands final : public wyss::ports::CommandPort {
     }
     bool succeeds{true};
     std::string last_action;
+    std::string last_media_action;
     unsigned confirmations{0};
     std::uint64_t confirmed_revision{0};
 };
@@ -37,6 +42,7 @@ class View final : public wyss::ports::ViewPort {
         devices.assign(value.begin(), value.end());
         ++device_renders;
     }
+    void render_media(const wyss::domain::MediaState& value) override { media = value; }
     void render_execution(const wyss::domain::ExecutionUpdate& value) override {
         execution = value.state;
     }
@@ -48,6 +54,7 @@ class View final : public wyss::ports::ViewPort {
     wyss::domain::ConnectionState connection{wyss::domain::ConnectionState::Offline};
     wyss::domain::ExecutionState execution{wyss::domain::ExecutionState::Idle};
     std::vector<wyss::domain::DeviceState> devices;
+    wyss::domain::MediaState media;
     std::string toast;
     bool toast_error{false};
     unsigned device_renders{0};
@@ -158,6 +165,22 @@ void shared_plan_resolution_clears_modal_authority_and_revision_is_forwarded() {
     assert(commands.confirmations == 1);
     assert(commands.confirmed_revision == 9);
 }
+
+void media_controls_are_validated_and_forwarded_without_provider_details() {
+    Clock clock;
+    Commands commands;
+    View view;
+    wyss::application::PanelService service(clock, commands, view);
+    service.set_connection(wyss::domain::ConnectionState::Online);
+    service.receive_media({true, true, true, "spotify:track:test", "Tema", "Artista"});
+    assert(view.media.playing);
+
+    service.media_action("pause");
+    assert(commands.last_media_action == "pause");
+    service.media_action("set_volume", 101U);
+    assert(view.toast_error);
+    assert(commands.last_media_action == "pause");
+}
 }  // namespace
 
 int main() {
@@ -168,5 +191,6 @@ int main() {
     color_targets_only_the_selected_light();
     policy_accepts_only_well_formed_scene_and_color_commands();
     shared_plan_resolution_clears_modal_authority_and_revision_is_forwarded();
+    media_controls_are_validated_and_forwarded_without_provider_details();
     return 0;
 }

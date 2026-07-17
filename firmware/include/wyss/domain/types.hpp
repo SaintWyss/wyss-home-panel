@@ -44,6 +44,39 @@ struct FastCommand {
     std::uint64_t issued_at_ms{0};
 };
 
+struct MediaDevice {
+    std::string id;
+    std::string name;
+    std::string type;
+    bool active{false};
+    bool restricted{false};
+    bool supports_volume{false};
+    std::optional<std::uint8_t> volume;
+};
+
+struct MediaState {
+    bool linked{false};
+    bool available{false};
+    bool playing{false};
+    std::string track_uri;
+    std::string title;
+    std::string artist;
+    std::uint32_t progress_ms{0};
+    std::uint32_t duration_ms{0};
+    bool favorite{false};
+    std::optional<MediaDevice> device;
+    std::string error_code;
+    std::optional<std::uint32_t> retry_after;
+};
+
+struct MediaCommand {
+    std::string request_id;
+    std::string action;
+    std::optional<std::uint8_t> value;
+    std::string device_id;
+    std::uint64_t issued_at_ms{0};
+};
+
 struct Intent {
     std::string request_id;
     std::string text;

@@ -26,6 +26,7 @@ class LvglPanelView final : public ports::ViewPort {
 
     void render_connection(domain::ConnectionState state) override;
     void render_devices(std::span<const domain::DeviceState> devices) override;
+    void render_media(const domain::MediaState& state) override;
     void render_execution(const domain::ExecutionUpdate& update) override;
     void render_plan(const domain::Plan& plan) override;
     void render_toast(std::string_view message, bool error) override;
@@ -37,6 +38,12 @@ class LvglPanelView final : public ports::ViewPort {
     static void on_device(lv_event_t* event);
     static void on_color(lv_event_t* event);
     static void on_scene(lv_event_t* event);
+    static void on_media_previous(lv_event_t* event);
+    static void on_media_play(lv_event_t* event);
+    static void on_media_next(lv_event_t* event);
+    static void on_media_favorite(lv_event_t* event);
+    static void on_media_volume(lv_event_t* event);
+    static void on_media_volume_release(lv_event_t* event);
     static void on_tab(lv_event_t* event);
     static void on_quick_intent(lv_event_t* event);
     static void on_submit(lv_event_t* event);
@@ -58,6 +65,9 @@ class LvglPanelView final : public ports::ViewPort {
     bool has_device_{false};
     bool slider_active_{false};
     bool suppress_slider_{false};
+    bool media_playing_{false};
+    bool media_volume_active_{false};
+    bool suppress_media_volume_{false};
     ui::ShellMode mode_{ui::ShellMode::Manual};
     ui::ManualPage active_page_{ui::ManualPage::Inicio};
 
@@ -77,11 +87,21 @@ class LvglPanelView final : public ports::ViewPort {
     lv_obj_t* home_summary_{nullptr};
     lv_obj_t* brightness_{nullptr};
     lv_obj_t* brightness_label_{nullptr};
+    lv_obj_t* media_title_{nullptr};
+    lv_obj_t* media_artist_{nullptr};
+    lv_obj_t* media_device_{nullptr};
+    lv_obj_t* media_progress_{nullptr};
+    lv_obj_t* media_progress_label_{nullptr};
+    lv_obj_t* media_play_label_{nullptr};
+    lv_obj_t* media_favorite_label_{nullptr};
+    lv_obj_t* media_volume_{nullptr};
+    lv_obj_t* media_volume_label_{nullptr};
     std::array<lv_obj_t*, 3> device_buttons_{};
     std::array<lv_obj_t*, 3> device_labels_{};
     std::array<lv_obj_t*, 3> scene_buttons_{};
     std::array<lv_obj_t*, 3> scene_labels_{};
     std::array<lv_obj_t*, 4> color_buttons_{};
+    std::array<lv_obj_t*, 4> media_buttons_{};
     std::array<std::string, 3> device_entities_{};
     std::array<std::string, 3> scene_entities_{};
     lv_obj_t* conversation_state_{nullptr};
@@ -93,6 +113,11 @@ class LvglPanelView final : public ports::ViewPort {
     lv_obj_t* modal_body_{nullptr};
     lv_obj_t* toast_{nullptr};
     char brightness_text_[12]{};
+    char media_title_text_[192]{};
+    char media_artist_text_[192]{};
+    char media_device_text_[192]{};
+    char media_progress_text_[24]{};
+    char media_volume_text_[16]{};
     char execution_text_[96]{};
     char selected_text_[64]{};
     char home_text_[64]{};

@@ -442,6 +442,49 @@ void validate_payload(const std::string& type, const JsonValue& payload) {
     if (!valid) {
       throw ParseError();
     }
+  } else if (type == "capability.command") {
+    const std::unordered_set<std::string> required_fields = {
+        "capability", "action", "idempotency_key",
+    };
+    const std::unordered_set<std::string> allowed_fields = {
+        "capability", "action", "idempotency_key", "value", "device_id", "expected_revision",
+    };
+    if (!subset_keys(payload, allowed_fields) ||
+        !std::all_of(required_fields.begin(), required_fields.end(),
+                     [&](const std::string& key) { return payload.object.contains(key); })) {
+      throw ParseError();
+    }
+    const JsonValue& capability = required(payload, "capability");
+    const JsonValue& action = required(payload, "action");
+    const JsonValue& idempotency_key = required(payload, "idempotency_key");
+    if (capability.kind != Kind::String || capability.string != "spotify" ||
+        action.kind != Kind::String || action.string.empty() || action.string.size() > 32U ||
+        idempotency_key.kind != Kind::String || !valid_identifier(idempotency_key.string)) {
+      throw ParseError();
+    }
+    const auto expected = payload.object.find("expected_revision");
+    if (expected != payload.object.end() && !non_negative_integer(expected->second)) {
+      throw ParseError();
+    }
+    const auto value = payload.object.find("value");
+    const auto device = payload.object.find("device_id");
+    bool valid = false;
+    if (action.string == "set_volume") {
+      valid = value != payload.object.end() && non_negative_integer(value->second) &&
+              value->second.integer <= 100 && device == payload.object.end();
+    } else if (action.string == "transfer_device") {
+      valid = device != payload.object.end() && device->second.kind == Kind::String &&
+              !device->second.string.empty() && device->second.string.size() <= 128U &&
+              value == payload.object.end();
+    } else {
+      valid = value == payload.object.end() && device == payload.object.end() &&
+              (action.string == "play" || action.string == "pause" ||
+               action.string == "previous" || action.string == "next" ||
+               action.string == "toggle_favorite");
+    }
+    if (!valid) {
+      throw ParseError();
+    }
   } else if (type == "assistant.intent") {
     if (!exact_keys(payload, {"request_id", "text", "input"})) {
       throw ParseError();

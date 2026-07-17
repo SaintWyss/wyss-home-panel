@@ -41,6 +41,8 @@ void palette_meets_wcag_aa() {
 
 void targets_are_large_and_inside_the_display() {
     using namespace wyss::ui::tokens;
+    require(media_button_height >= min_touch_target);
+    require(media_slider_height >= min_touch_target);
     constexpr std::array fixed_targets = {manual_button, power_button, brightness_slider};
     for (const auto& target : fixed_targets) {
         require(target.width >= min_touch_target);

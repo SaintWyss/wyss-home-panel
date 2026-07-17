@@ -157,6 +157,7 @@ void BridgeClient::handle_socket_event(WStype_t type, std::uint8_t* payload, std
         capabilities.add("ui.core");
         capabilities.add("light.fast");
         capabilities.add("assistant.text");
+        capabilities.add("spotify.control");
         payload["last_event_id"] = last_event_id_;
 #else
         hello["v"] = 1;
@@ -213,6 +214,27 @@ bool BridgeClient::send_fast(const domain::FastCommand& command) {
 #endif
     char json[512]{};
     return enqueue_json(json, serializeJson(document, json, sizeof(json)));
+}
+
+bool BridgeClient::send_media(const domain::MediaCommand& command) {
+#if WYSS_PROTOCOL_V2_CLIENT
+    JsonDocument document;
+    document["v"] = 2;
+    document["type"] = "capability.command";
+    document["message_id"] = command.request_id;
+    document["source"] = config_.panel_id();
+    JsonObject payload = document["payload"].to<JsonObject>();
+    payload["capability"] = "spotify";
+    payload["action"] = command.action;
+    payload["idempotency_key"] = command.request_id;
+    if (command.value) payload["value"] = *command.value;
+    if (!command.device_id.empty()) payload["device_id"] = command.device_id;
+    char json[512]{};
+    return enqueue_json(json, serializeJson(document, json, sizeof(json)));
+#else
+    (void)command;
+    return false;
+#endif
 }
 
 bool BridgeClient::send_intent(const domain::Intent& intent) {
@@ -332,11 +354,44 @@ void BridgeClient::dispatch(application::PanelService& service, const char* json
             service.receive_plan_resolution(value["plan_id"] | "");
         }
     };
+    auto spotify = [&](JsonObjectConst value) {
+        domain::MediaState state;
+        state.linked = value["linked"] | false;
+        state.available = value["available"] | false;
+        state.playing = value["playing"] | false;
+        state.track_uri = value["track_uri"] | "";
+        state.title = value["title"] | "";
+        state.artist = value["artist"] | "";
+        state.progress_ms = value["progress_ms"] | 0U;
+        state.duration_ms = value["duration_ms"] | 0U;
+        state.favorite = value["favorite"] | false;
+        state.error_code = value["error_code"] | "";
+        if (value["retry_after"].is<unsigned>()) {
+            state.retry_after = value["retry_after"].as<unsigned>();
+        }
+        if (value["device"].is<JsonObjectConst>()) {
+            JsonObjectConst item = value["device"];
+            domain::MediaDevice device;
+            device.id = item["id"] | "";
+            device.name = item["name"] | "";
+            device.type = item["type"] | "";
+            device.active = item["active"] | false;
+            device.restricted = item["restricted"] | false;
+            device.supports_volume = item["supports_volume"] | false;
+            if (item["volume"].is<unsigned>()) {
+                device.volume = static_cast<std::uint8_t>(
+                    std::clamp(item["volume"].as<int>(), 0, 100));
+            }
+            state.device = std::move(device);
+        }
+        service.receive_media(std::move(state));
+    };
 
     if (std::strcmp(type, "projection.snapshot") == 0) {
         JsonObjectConst payload = document["payload"];
         replace_devices(payload["home"]["entities"].as<JsonArrayConst>());
         assistant(payload["assistant"].as<JsonObjectConst>(), "");
+        spotify(payload["spotify"].as<JsonObjectConst>());
     } else if (std::strcmp(type, "projection.delta") == 0) {
         JsonObjectConst payload = document["payload"];
         last_event_id_ = payload["event_id"] | last_event_id_;
@@ -346,6 +401,8 @@ void BridgeClient::dispatch(application::PanelService& service, const char* json
             replace_devices(changes["entities"].as<JsonArrayConst>());
         } else if (std::strcmp(aggregate, "assistant") == 0) {
             assistant(changes, changes["event_type"] | "");
+        } else if (std::strcmp(aggregate, "spotify") == 0) {
+            spotify(changes);
         }
     } else if (std::strcmp(type, "execution.updated") == 0) {
         JsonObjectConst payload = document["payload"];

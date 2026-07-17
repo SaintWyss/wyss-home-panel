@@ -38,6 +38,7 @@ class Clock final : public wyss::ports::Clock {
 class Commands final : public wyss::ports::CommandPort {
    public:
     bool send_fast(const wyss::domain::FastCommand&) override { return true; }
+    bool send_media(const wyss::domain::MediaCommand&) override { return true; }
     bool send_intent(const wyss::domain::Intent&) override { return true; }
     bool confirm(std::string_view, bool, wyss::domain::RiskLevel, std::uint64_t) override {
         return true;
@@ -231,6 +232,19 @@ int main(int argc, char** argv) {
             throw std::runtime_error("no se pudo seleccionar una segunda luz");
         }
         recorder.capture("hogar_indisponible");
+        service.receive_media(
+            {true,
+             true,
+             true,
+             "spotify:track:visual",
+             "Midnight City",
+             "M83",
+             74'000,
+             244'000,
+             true,
+             wyss::domain::MediaDevice{"desk", "Escritorio", "Computer", true, false, true, 42},
+             "",
+             std::nullopt});
         view.show_page(ManualPage::Media);
         recorder.capture("media");
         view.show_page(ManualPage::Agenda);
