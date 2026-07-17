@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include <WiFi.h>
-#include <esp_display_panel.hpp>
 
+#include <esp_display_panel.hpp>
 #include <memory>
 
 #include "lvgl_v8_port.h"
@@ -10,6 +10,7 @@
 #include "wyss/adapters/lvgl_panel_view.hpp"
 #include "wyss/adapters/nvs_config_store.hpp"
 #include "wyss/application/panel_service.hpp"
+#include "wyss/ui/design_tokens.hpp"
 
 using esp_panel::board::Board;
 using esp_panel::drivers::BusRGB;
@@ -87,14 +88,21 @@ void loop() {
         lvgl_port_unlock();
     }
     if (board != nullptr) {
-        const bool should_sleep = lv_disp_get_inactive_time(nullptr) > 300'000;
+        const bool should_sleep =
+            lv_disp_get_inactive_time(nullptr) > wyss::ui::tokens::sleeping_after_ms;
         if (should_sleep != backlight_sleeping) {
             backlight_sleeping = should_sleep;
+            lvgl_port_lock(-1);
             if (should_sleep) {
-                board->getBacklight()->off();
+                view.set_mode(wyss::ui::ShellMode::Sleeping);
+                board->getBacklight()->setBrightness(wyss::ui::tokens::sleeping_brightness);
             } else {
-                board->getBacklight()->on();
+                if (view.mode() == wyss::ui::ShellMode::Sleeping) {
+                    view.set_mode(wyss::ui::ShellMode::Manual);
+                }
+                board->getBacklight()->setBrightness(wyss::ui::tokens::active_brightness);
             }
+            lvgl_port_unlock();
         }
     }
     delay(5);
