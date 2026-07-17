@@ -71,7 +71,21 @@ Yo documento el modelo exacto, su pinout validado y los límites eléctricos en 
 
 ## Calidad
 
-Yo valido el dominio C++ y el puente Python con:
+Yo valido el baseline automatizado completo con un único comando reproducible. El runner fija
+versiones y mantiene los entornos de uv, PlatformIO y CMake bajo `.cache/wyss-baseline/`:
+
+```bash
+./scripts/verify_baseline.sh automated
+```
+
+El gate total incluye además la evidencia física versionada. `all` retorna 40 hasta que esa
+evidencia exista y su estado sea `VERIFIED`:
+
+```bash
+./scripts/verify_baseline.sh all
+```
+
+Los comandos individuales equivalentes para diagnóstico son:
 
 ```bash
 python tools/doctor.py
