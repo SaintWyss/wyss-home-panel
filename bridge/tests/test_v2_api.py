@@ -87,12 +87,25 @@ class FakeConversationWyss:
         return ConfirmationResult("Plan verificado", "verified", True)
 
 
+class FakeSpeech:
+    def __init__(self, transcript: str = "Prepará el living") -> None:
+        self.transcript = transcript
+        self.calls = 0
+
+    async def transcribe(self, audio: memoryview, content_type: str) -> str:
+        assert bytes(audio) == b"audio-local"
+        assert content_type == "audio/webm"
+        self.calls += 1
+        return self.transcript
+
+
 def _app(
     settings: Settings,
     lights: FakeLights | None = None,
     orchestrator: FakeConversationWyss | None = None,
+    speech: FakeSpeech | None = None,
 ) -> FastAPI:
-    return create_app(settings, lights or FakeLights(), orchestrator)
+    return create_app(settings, lights or FakeLights(), orchestrator, speech)
 
 
 def _settings(tmp_path: Path, *, enabled: bool) -> Settings:
@@ -567,3 +580,107 @@ def test_conversation_and_confirmation_converge_live_on_all_three_clients(
     assert duplicate["type"] == "error"
     assert duplicate["payload"]["code"] == "already_resolved"
     assert wyss.confirmations == 1
+
+
+def test_voice_client_transcribes_without_implicit_send_then_submits_reviewed_text(
+    tmp_path: Path,
+) -> None:
+    settings = replace(_settings(tmp_path, enabled=True), v2_voice_enabled=True)
+    token = _pair_with(settings, "pc:desk", {"pc.voice", "pc.submit_intent"})
+    speech = FakeSpeech()
+    wyss = FakeConversationWyss()
+
+    with TestClient(_app(settings, orchestrator=wyss, speech=speech)) as client:
+        page = client.get("/v2/voice/")
+        assert page.status_code == 200
+        assert "Mantené para hablar" in page.text
+        assert "frame-ancestors 'none'" in page.headers["content-security-policy"]
+
+        transcription = client.post(
+            "/v2/voice/transcribe",
+            content=b"audio-local",
+            headers={
+                **_headers_as("pc:desk", token),
+                "content-type": "audio/webm",
+            },
+        )
+        assert transcription.status_code == 200
+        assert transcription.json() == {
+            "transcript": "Prepará el living",
+            "retained_audio": False,
+            "requires_explicit_send": True,
+        }
+        assert speech.calls == 1
+        assert wyss.turns == 0
+
+        reviewed = client.post(
+            "/v2/voice/intent",
+            json={
+                "v": 2,
+                "type": "assistant.intent",
+                "message_id": "message:pc:voice:1",
+                "source": "pc:desk",
+                "payload": {
+                    "request_id": "request:pc:voice:1",
+                    "text": "Prepará sólo el living",
+                    "input": "voice",
+                },
+            },
+            headers=_headers_as("pc:desk", token),
+        )
+        assert reviewed.status_code == 202
+        assert reviewed.json()["accepted"] is True
+        assert wyss.turns == 1
+
+
+def test_voice_permission_and_feature_flag_fail_closed_but_text_remains(
+    tmp_path: Path,
+) -> None:
+    enabled = replace(_settings(tmp_path, enabled=True), v2_voice_enabled=True)
+    no_voice_token = _pair_with(enabled, "android:phone", {"android.submit_intent"})
+    speech = FakeSpeech()
+
+    with TestClient(_app(enabled, speech=speech)) as client:
+        forbidden = client.post(
+            "/v2/voice/transcribe",
+            content=b"audio-local",
+            headers={
+                **_headers_as("android:phone", no_voice_token),
+                "content-type": "audio/webm",
+            },
+        )
+        assert forbidden.status_code == 403
+        assert forbidden.json()["code"] == "forbidden"
+        assert speech.calls == 0
+
+    disabled = replace(enabled, v2_voice_enabled=False)
+    wyss = FakeConversationWyss()
+    with TestClient(_app(disabled, orchestrator=wyss, speech=speech)) as client:
+        unavailable = client.post(
+            "/v2/voice/transcribe",
+            content=b"audio-local",
+            headers={
+                **_headers_as("android:phone", no_voice_token),
+                "content-type": "audio/webm",
+            },
+        )
+        assert unavailable.status_code == 403
+        assert unavailable.json()["code"] == "policy_rejected"
+
+        text = client.post(
+            "/v2/voice/intent",
+            json={
+                "v": 2,
+                "type": "assistant.intent",
+                "message_id": "message:android:text:1",
+                "source": "android:phone",
+                "payload": {
+                    "request_id": "request:android:text:1",
+                    "text": "Usá el camino de texto",
+                    "input": "text",
+                },
+            },
+            headers=_headers_as("android:phone", no_voice_token),
+        )
+        assert text.status_code == 202
+        assert wyss.turns == 1

@@ -98,7 +98,7 @@ class NotificationPort(Protocol):
 
 
 class SpeechPort(Protocol):
-    async def transcribe(self, audio_ref: str) -> str: ...
+    async def transcribe(self, audio: memoryview, content_type: str) -> str: ...
 
 
 class CameraPort(Protocol):

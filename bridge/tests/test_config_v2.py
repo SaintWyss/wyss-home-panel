@@ -43,6 +43,9 @@ snapshot_fallback = true
 lights_enabled = true
 conversation_enabled = true
 conversation_streaming = false
+voice_enabled = true
+voice_max_bytes = 2097152
+voice_timeout_seconds = 12.5
 """.strip(),
         encoding="utf-8",
     )
@@ -61,6 +64,9 @@ conversation_streaming = false
     assert settings.v2_lights_enabled is True
     assert settings.v2_conversation_enabled is True
     assert settings.v2_conversation_streaming is False
+    assert settings.v2_voice_enabled is True
+    assert settings.v2_voice_max_bytes == 2_097_152
+    assert settings.v2_voice_timeout_seconds == 12.5
     assert settings.wyss_url == "http://127.0.0.1:8000"
 
 

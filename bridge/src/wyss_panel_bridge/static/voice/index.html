@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f7f6f3">
+    <title>Hablar con Wyss</title>
+    <link rel="stylesheet" href="/v2/voice/styles.css">
+    <script src="/v2/voice/app.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#voice-workspace">Ir al dictado</a>
+    <main id="voice-workspace" class="shell">
+      <header class="masthead">
+        <p class="eyebrow">Wyss / entrada deliberada</p>
+        <h1 id="phase-title">Mantené.<br>Revisá.<br>Enviá.</h1>
+        <p class="lede">
+          El micrófono funciona sólo mientras sostenés el control. El audio se descarta al
+          transcribir y Wyss no recibe nada hasta que elegís enviar.
+        </p>
+      </header>
+
+      <section class="workspace" aria-labelledby="capture-title">
+        <div class="capture-panel">
+          <div class="section-heading">
+            <div>
+              <p class="step">01 / Capturar</p>
+              <h2 id="capture-title">Dictado momentáneo</h2>
+            </div>
+            <span id="voice-state" class="status-badge">Comprobando</span>
+          </div>
+
+          <button
+            id="hold-button"
+            class="hold-button"
+            type="button"
+            aria-describedby="hold-help"
+            aria-pressed="false"
+            disabled
+          >
+            <span class="record-rail" aria-hidden="true"></span>
+            <span class="hold-copy">
+              <strong id="hold-label">Mantené para hablar</strong>
+              <small>Soltá para transcribir</small>
+            </span>
+          </button>
+          <p id="hold-help" class="helper">
+            También podés mantener <kbd>Espacio</kbd> o <kbd>Enter</kbd> con el control enfocado.
+          </p>
+          <button id="cancel-button" class="text-button" type="button" disabled>
+            Cancelar captura
+          </button>
+        </div>
+
+        <div class="review-panel">
+          <div class="section-heading">
+            <div>
+              <p class="step">02 / Revisar</p>
+              <h2>Texto editable</h2>
+            </div>
+            <span class="privacy-mark">Audio no retenido</span>
+          </div>
+
+          <label for="transcript">Mensaje para Wyss</label>
+          <textarea
+            id="transcript"
+            rows="7"
+            maxlength="1000"
+            placeholder="Escribí o dictá una instrucción concreta"
+          ></textarea>
+          <div class="review-actions">
+            <button id="clear-button" class="secondary-button" type="button">Borrar texto</button>
+            <button id="send-button" class="primary-button" type="button" disabled>
+              Enviar a Wyss
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <p id="live-status" class="live-status" role="status" aria-live="polite">
+        Preparando el cliente.
+      </p>
+
+      <details class="identity-panel">
+        <summary>Identidad de este dispositivo</summary>
+        <div class="identity-fields">
+          <label for="client-id">Identificador</label>
+          <input id="client-id" name="client-id" autocomplete="username" spellcheck="false">
+          <label for="client-token">Token de dispositivo</label>
+          <input
+            id="client-token"
+            name="client-token"
+            type="password"
+            autocomplete="current-password"
+            spellcheck="false"
+          >
+          <p>Se conserva sólo en esta pestaña. Pegarlo está permitido.</p>
+        </div>
+      </details>
+    </main>
+  </body>
+</html>

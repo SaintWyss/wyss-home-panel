@@ -5,9 +5,11 @@ from __future__ import annotations
 import asyncio
 import secrets
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any
 
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, Request, WebSocket, WebSocketDisconnect
+from fastapi.responses import FileResponse, JSONResponse
 
 from wyss_panel_bridge.adapters.sqlite_identity import SqliteIdentityStore
 from wyss_panel_bridge.application.event_backbone import ClientRateLimiter
@@ -18,8 +20,11 @@ from wyss_panel_bridge.domain.conversation import ConversationError
 from wyss_panel_bridge.domain.events import RateLimitExceeded
 from wyss_panel_bridge.domain.lights import LightError
 from wyss_panel_bridge.domain.models import FastCommand
-from wyss_panel_bridge.domain.protocol_v2 import ProtocolV2Error, parse_envelope
+from wyss_panel_bridge.domain.protocol_v2 import ProtocolV2Error, ValidationCode, parse_envelope
 from wyss_panel_bridge.domain.v2_types import ProjectionEvent
+from wyss_panel_bridge.domain.voice import VoiceError
+
+_VOICE_ASSETS = Path(__file__).parent / "static" / "voice"
 
 
 def _message(message_type: str, payload: dict[str, Any], **metadata: str | None) -> dict[str, Any]:
@@ -179,6 +184,27 @@ def _conversation_capability(client_id: str, message_type: str) -> str | None:
     return f"{prefix}.{suffix}"
 
 
+def _voice_capability(client_id: str) -> str | None:
+    prefix = client_id.partition(":")[0]
+    return f"{prefix}.voice" if prefix in {"android", "pc"} else None
+
+
+def _bearer(request: Request) -> tuple[str, str]:
+    client_id = request.headers.get("x-wyss-client", "")
+    authorization = request.headers.get("authorization", "")
+    token = authorization.removeprefix("Bearer ") if authorization.startswith("Bearer ") else ""
+    return client_id, token
+
+
+def _no_store(payload: dict[str, Any], status_code: int = 200) -> JSONResponse:
+    return JSONResponse(payload, status_code=status_code, headers={"Cache-Control": "no-store"})
+
+
+def _wipe(buffer: bytearray) -> None:
+    buffer[:] = b"\x00" * len(buffer)
+    buffer.clear()
+
+
 def create_v2_router(settings: Settings, runtime: V2Runtime) -> APIRouter:
     router = APIRouter()
     identities = SqliteIdentityStore(settings.v2_identity_db)
@@ -187,6 +213,134 @@ def create_v2_router(settings: Settings, runtime: V2Runtime) -> APIRouter:
     hub = _ClientHub()
     runtime.lights.set_event_sink(hub.broadcast)
     runtime.conversation.set_event_sink(hub.broadcast)
+
+    @router.get("/v2/voice/config")
+    async def voice_config() -> JSONResponse:
+        return _no_store(
+            {
+                "enabled": settings.v2_voice_enabled,
+                "max_bytes": settings.v2_voice_max_bytes,
+                "requires_explicit_send": True,
+                "retains_audio": False,
+            }
+        )
+
+    @router.get("/v2/voice/")
+    async def voice_client() -> FileResponse:
+        return FileResponse(
+            _VOICE_ASSETS / "index.html",
+            headers={
+                "Cache-Control": "no-store",
+                "Content-Security-Policy": (
+                    "default-src 'self'; connect-src 'self'; media-src 'none'; "
+                    "script-src 'self'; style-src 'self'; object-src 'none'; "
+                    "base-uri 'none'; frame-ancestors 'none'"
+                ),
+                "Permissions-Policy": "microphone=(self)",
+            },
+        )
+
+    @router.get("/v2/voice/app.js")
+    async def voice_script() -> FileResponse:
+        return FileResponse(_VOICE_ASSETS / "app.js", media_type="text/javascript")
+
+    @router.get("/v2/voice/styles.css")
+    async def voice_styles() -> FileResponse:
+        return FileResponse(_VOICE_ASSETS / "styles.css", media_type="text/css")
+
+    @router.post("/v2/voice/transcribe")
+    async def transcribe_voice(request: Request) -> JSONResponse:
+        if not settings.v2_voice_enabled:
+            return _no_store(
+                {"code": "policy_rejected", "message": "La entrada por voz está desactivada"},
+                403,
+            )
+        client_id, token = _bearer(request)
+        capability = _voice_capability(client_id)
+        if not identity_service.authenticate(client_id, token):
+            return _no_store({"code": "unauthenticated", "message": "Credenciales inválidas"}, 401)
+        if capability is None or not identity_service.authenticate(client_id, token, capability):
+            return _no_store({"code": "forbidden", "message": "Falta permiso de voz"}, 403)
+
+        content_length = request.headers.get("content-length", "")
+        if content_length.isdecimal() and int(content_length) > runtime.voice.max_bytes:
+            return _no_store(
+                {"code": "audio_too_large", "message": "El audio supera el límite permitido"},
+                413,
+            )
+        audio = bytearray()
+        async for chunk in request.stream():
+            if len(audio) + len(chunk) > runtime.voice.max_bytes:
+                _wipe(audio)
+                return _no_store(
+                    {
+                        "code": "audio_too_large",
+                        "message": "El audio supera el límite permitido",
+                    },
+                    413,
+                )
+            audio.extend(chunk)
+        try:
+            result = await runtime.voice.transcribe(
+                audio,
+                request.headers.get("content-type", "").lower(),
+            )
+        except VoiceError as error:
+            status = {
+                "unsupported_audio": 415,
+                "audio_too_large": 413,
+                "silence": 422,
+                "noise": 422,
+                "provider_timeout": 504,
+                "provider_unavailable": 503,
+            }.get(error.code, 422)
+            return _no_store({"code": error.code, "message": str(error)}, status)
+        return _no_store(
+            {
+                "transcript": result.text,
+                "retained_audio": result.retained_audio,
+                "requires_explicit_send": result.requires_explicit_send,
+            }
+        )
+
+    @router.post("/v2/voice/intent")
+    async def submit_reviewed_intent(request: Request) -> JSONResponse:
+        client_id, token = _bearer(request)
+        capability = _conversation_capability(client_id, "assistant.intent")
+        if not identity_service.authenticate(client_id, token):
+            return _no_store({"code": "unauthenticated", "message": "Credenciales inválidas"}, 401)
+        if capability is None or not identity_service.authenticate(client_id, token, capability):
+            return _no_store({"code": "forbidden", "message": "Falta permiso conversacional"}, 403)
+        if not settings.v2_conversation_enabled:
+            return _no_store(
+                {"code": "policy_rejected", "message": "La conversación v2 está desactivada"},
+                403,
+            )
+        raw = await request.body()
+        if len(raw) > 8192:
+            return _no_store(
+                {"code": "message_too_large", "message": "Mensaje demasiado grande"}, 413
+            )
+        try:
+            envelope = parse_envelope(raw.decode("utf-8"))
+            if envelope.message_type != "assistant.intent" or envelope.source != client_id:
+                raise ProtocolV2Error(ValidationCode.INVALID_MESSAGE)
+            if envelope.payload["input"] == "voice" and not settings.v2_voice_enabled:
+                return _no_store(
+                    {"code": "policy_rejected", "message": "La entrada por voz está desactivada"},
+                    403,
+                )
+            await runtime.conversation.submit(
+                client_id,
+                str(envelope.payload["request_id"]),
+                str(envelope.payload["text"]),
+                str(envelope.payload["input"]),
+            )
+        except ProtocolV2Error as error:
+            return _no_store({"code": error.code.value, "message": str(error)}, 400)
+        except ConversationError as error:
+            return _no_store({"code": error.code, "message": str(error)}, 409)
+        return _no_store({"accepted": True, "requires_explicit_send": True}, 202)
 
     @router.websocket("/v2/client")
     async def client(websocket: WebSocket) -> None:

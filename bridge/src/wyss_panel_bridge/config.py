@@ -57,6 +57,9 @@ class Settings:
     v2_lights_enabled: bool = False
     v2_conversation_enabled: bool = False
     v2_conversation_streaming: bool = True
+    v2_voice_enabled: bool = False
+    v2_voice_max_bytes: int = 4_194_304
+    v2_voice_timeout_seconds: float = 30.0
 
     @classmethod
     def load(cls, path: Path) -> Settings:
@@ -95,4 +98,7 @@ class Settings:
             v2_lights_enabled=bool(v2.get("lights_enabled", False)),
             v2_conversation_enabled=bool(v2.get("conversation_enabled", False)),
             v2_conversation_streaming=bool(v2.get("conversation_streaming", True)),
+            v2_voice_enabled=bool(v2.get("voice_enabled", False)),
+            v2_voice_max_bytes=int(v2.get("voice_max_bytes", 4_194_304)),
+            v2_voice_timeout_seconds=float(v2.get("voice_timeout_seconds", 30.0)),
         )

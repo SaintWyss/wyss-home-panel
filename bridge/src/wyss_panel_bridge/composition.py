@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from wyss_panel_bridge.adapters.disabled_speech import DisabledSpeechGateway
 from wyss_panel_bridge.adapters.home_assistant import HomeAssistantGateway
 from wyss_panel_bridge.adapters.sqlite_events import SqliteEventStore
 from wyss_panel_bridge.adapters.sqlite_light_audit import SqliteLightAuditStore
@@ -12,9 +13,11 @@ from wyss_panel_bridge.adapters.tuya import TuyaGateway
 from wyss_panel_bridge.application.conversation_service import ConversationService
 from wyss_panel_bridge.application.light_service import LightService
 from wyss_panel_bridge.application.projection_service import ProjectionCoordinator
+from wyss_panel_bridge.application.voice_service import VoiceService
 from wyss_panel_bridge.config import Settings
 from wyss_panel_bridge.ports import WyssGatewayPort
 from wyss_panel_bridge.ports_v2 import LightPort as LightPort
+from wyss_panel_bridge.ports_v2 import SpeechPort
 
 
 @dataclass(frozen=True, slots=True)
@@ -23,6 +26,7 @@ class V2Runtime:
     projections: ProjectionCoordinator
     lights: LightService
     conversation: ConversationService
+    voice: VoiceService
 
 
 def build_light_gateway(settings: Settings) -> LightPort:
@@ -35,7 +39,10 @@ def build_light_gateway(settings: Settings) -> LightPort:
 
 
 def build_v2_runtime(
-    settings: Settings, gateway: LightPort, orchestrator: WyssGatewayPort
+    settings: Settings,
+    gateway: LightPort,
+    orchestrator: WyssGatewayPort,
+    speech: SpeechPort | None = None,
 ) -> V2Runtime:
     events = SqliteEventStore(settings.v2_event_db)
     projections = ProjectionCoordinator(
@@ -54,4 +61,9 @@ def build_v2_runtime(
         events,
         streaming_enabled=settings.v2_conversation_streaming,
     )
-    return V2Runtime(events, projections, lights, conversation)
+    voice = VoiceService(
+        speech or DisabledSpeechGateway(),
+        settings.v2_voice_max_bytes,
+        settings.v2_voice_timeout_seconds,
+    )
+    return V2Runtime(events, projections, lights, conversation, voice)
