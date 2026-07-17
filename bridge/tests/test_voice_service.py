@@ -26,6 +26,11 @@ class FailedSpeech:
         raise RuntimeError("detalle interno que no debe filtrarse")
 
 
+class NoiseSpeech:
+    async def transcribe(self, _audio: memoryview, _content_type: str) -> str:
+        raise VoiceError("noise", "Detecté ruido, pero no una instrucción")
+
+
 class SlowSpeech:
     async def transcribe(self, _audio: memoryview, _content_type: str) -> str:
         await asyncio.sleep(0.05)
@@ -50,13 +55,17 @@ async def test_transcription_is_editable_and_raw_buffer_is_zeroed() -> None:
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
     ("speech", "expected"),
-    [(Speech("   "), "silence"), (FailedSpeech(), "provider_unavailable")],
+    [
+        (Speech("   "), "silence"),
+        (NoiseSpeech(), "noise"),
+        (FailedSpeech(), "provider_unavailable"),
+    ],
 )
 async def test_recoverable_failures_never_retain_audio(speech: SpeechPort, expected: str) -> None:
     service = VoiceService(speech, max_bytes=4096, timeout_seconds=1)
     audio = bytearray(b"sensible")
 
-    with pytest.raises(VoiceError, match="voz|disponible") as raised:
+    with pytest.raises(VoiceError, match="voz|ruido|disponible") as raised:
         await service.transcribe(audio, "audio/webm")
 
     assert raised.value.code == expected

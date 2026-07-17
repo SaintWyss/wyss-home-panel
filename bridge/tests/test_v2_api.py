@@ -18,6 +18,7 @@ from wyss_panel_bridge.domain.conversation import ConfirmationResult, Conversati
 from wyss_panel_bridge.domain.events import EventDraft
 from wyss_panel_bridge.domain.models import DeviceState, FastCommand, Plan, PlanStep, RiskLevel
 from wyss_panel_bridge.domain.protocol_v2 import parse_envelope
+from wyss_panel_bridge.ports_v2 import SpeechPort
 
 
 class FakeLights:
@@ -103,7 +104,7 @@ def _app(
     settings: Settings,
     lights: FakeLights | None = None,
     orchestrator: FakeConversationWyss | None = None,
-    speech: FakeSpeech | None = None,
+    speech: SpeechPort | None = None,
 ) -> FastAPI:
     return create_app(settings, lights or FakeLights(), orchestrator, speech)
 
@@ -612,6 +613,15 @@ def test_voice_client_transcribes_without_implicit_send_then_submits_reviewed_te
         }
         assert speech.calls == 1
         assert wyss.turns == 0
+        assert SqliteEventStore(settings.v2_event_db).latest_event_id() == 0
+
+        script = client.get("/v2/voice/app.js")
+        assert script.status_code == 200
+        assert "getUserMedia" in script.text
+        assert "pointerdown" in script.text and "pointerup" in script.text
+        assert "visibilitychange" in script.text
+        assert "sessionStorage" in script.text
+        assert "localStorage" not in script.text
 
         reviewed = client.post(
             "/v2/voice/intent",
