@@ -88,3 +88,9 @@ Yo verifiqué la compilación completa de producción con PlatformIO: uso 96.048
 Yo reutilizo únicamente el conocimiento probado de [esp32-smart-light-panel](https://github.com/SaintWyss/esp32-smart-light-panel): pinout, puerto LVGL y mediciones físicas. Yo no copio sus credenciales ni su Flash. Yo baso el controlador de placa en [ESP32 Display Panel de Espressif](https://github.com/esp-arduino-libs/ESP32_Display_Panel), la interfaz en [LVGL](https://github.com/lvgl/lvgl), el hardware en la [documentación oficial de Waveshare](https://www.waveshare.com/wiki/ESP32-S3-Touch-LCD-7) y el streaming doméstico en la [API WebSocket de Home Assistant](https://developers.home-assistant.io/docs/api/websocket/).
 
 Yo publico el proyecto bajo Apache-2.0 y mantengo las dependencias de terceros bajo sus licencias originales.
+
+## Evolución Wyss Home v2.0.0
+
+Yo documenté el producto final que conecta Wyss PC, Android y esta pantalla como una sola experiencia de clase Jarvis. Yo mantengo a [`SaintWyss/Wyss`](https://github.com/SaintWyss/Wyss) como autoridad de planes, política, voz y auditoría; yo convierto este repositorio en el edge doméstico y cuerpo físico de Wyss.
+
+Yo no declaro esa versión implementada todavía. Yo concentro la especificación, arquitectura UML, protocolo, UX, integraciones, seguridad, pruebas, operación, roadmap por PR y trazabilidad en el [índice de producto v2](docs/README.md).
