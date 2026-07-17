@@ -265,7 +265,7 @@ Este milestone lleva el baseline v1 hasta un sistema doméstico v2.0.0 coherente
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. PR-00 — Baseline reproducible y protección | 1/4 | In progress | - |
+| 1. PR-00 — Baseline reproducible y protección | 2/4 | In progress | - |
 | 2. PR-01 — Contratos y arquitectura v2 | 0/TBD | Not started | - |
 | 3. PR-02 — Identidad, pairing y event backbone | 0/TBD | Not started | - |
 | 4. PR-03 — Projection Store y sincronización multicliente | 0/TBD | Not started | - |
