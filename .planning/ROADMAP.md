@@ -38,7 +38,7 @@ Este milestone lleva el baseline v1 hasta un sistema doméstico v2.0.0 coherente
   2. **[Automatizada]** `doctor` informa toolchain, dependencias y configuración insegura con redacción de secretos, y CI bloquea dominio, bridge, firmware, secret scan y documentación esencial cuando fallan.
   3. **[Física]** El commit probado tiene evidencia fechada del backup de fábrica y mediciones comparables de LVGL/touch, Tuya, RAM y Flash; sin placa y luz reales este criterio permanece bloqueado.
   4. **[Física]** El smoke de la luz real confirma que el baseline continúa operativo sin alterar credenciales, NVS ni firmware estable.
-**Plans**: TBD
+**Plans**: 4
 
 ### Phase 2: PR-01 — Contratos y arquitectura v2
 **Goal**: Los runtimes comparten contratos v2 cerrados y ports estables sin comprometer el camino v1.
@@ -265,7 +265,7 @@ Este milestone lleva el baseline v1 hasta un sistema doméstico v2.0.0 coherente
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. PR-00 — Baseline reproducible y protección | 0/TBD | Not started | - |
+| 1. PR-00 — Baseline reproducible y protección | 1/4 | In progress | - |
 | 2. PR-01 — Contratos y arquitectura v2 | 0/TBD | Not started | - |
 | 3. PR-02 — Identidad, pairing y event backbone | 0/TBD | Not started | - |
 | 4. PR-03 — Projection Store y sincronización multicliente | 0/TBD | Not started | - |
