@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.0.0
 milestone_name: final
 status: executing
-stopped_at: Phase 1 plan 03 completed
-last_updated: "2026-07-17T20:13:27Z"
-last_activity: 2026-07-17 -- Phase 01 plan 03 completed
+stopped_at: Phase 01 external authorization pending; Phase 02 complete
+last_updated: "2026-07-17T20:30:27Z"
+last_activity: 2026-07-17 -- Phase 02 contracts and architecture verified
 progress:
   total_phases: 20
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 4
   completed_plans: 2
-  percent: 50
+  percent: 5
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-17)
 
 **Core value:** Toda acción doméstica debe pasar por una única autoridad de política y ejecución de Wyss, conservar coherencia observable entre clientes y fallar de forma segura.
-**Current focus:** Phase 01 — pr-00-baseline-reproducible-y-protecci-n
+**Current focus:** Phase 01 external/physical gates; Phase 02 automation complete
 
 ## Current Position
 
-Phase: 01 (pr-00-baseline-reproducible-y-protecci-n) — EXECUTING
-Plan: 3 of 4
-Status: Executing Phase 01
-Last activity: 2026-07-17 -- Phase 01 plan 03 completed
+Phase: 01 external gate pending; 02 complete
+Plan: PR-00 remote/physical checkpoint
+Status: Continuing autonomous roadmap work
+Last activity: 2026-07-17 -- Phase 02 contracts and architecture verified
 
-Progress: [█████░░░░░] 50%
+Progress: [█░░░░░░░░░] 5% of roadmap phases complete
 
 ## Performance Metrics
 

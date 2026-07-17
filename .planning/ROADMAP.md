@@ -7,7 +7,7 @@ Este milestone lleva el baseline v1 hasta un sistema doméstico v2.0.0 coherente
 ## Phases
 
 - [ ] **Phase 1: PR-00 — Baseline reproducible y protección** - Congelar build, pruebas, fixtures, métricas, backup y gates antes de cambiar el runtime.
-- [ ] **Phase 2: PR-01 — Contratos y arquitectura v2** - Definir ports, envelope v2 y límites arquitectónicos sin adapters reales.
+- [x] **Phase 2: PR-01 — Contratos y arquitectura v2** - Definir ports, envelope v2 y límites arquitectónicos sin adapters reales.
 - [ ] **Phase 3: PR-02 — Identidad, pairing y event backbone** - Conectar clientes y Edge con identidad revocable y eventos reanudables.
 - [ ] **Phase 4: PR-03 — Projection Store y sincronización multicliente** - Hacer converger PC, Android y panel sobre proyecciones revisionadas.
 - [ ] **Phase 5: PR-04 — Shell visual Wyss Core y modo dormido** - Entregar la experiencia visual final, accesible y dentro de presupuesto físico.
@@ -49,7 +49,7 @@ Este milestone lleva el baseline v1 hasta un sistema doméstico v2.0.0 coherente
   2. **[Automatizada]** Los fixtures dorados compartidos cubren replay, revisión, snapshot, delta y errores con el mismo resultado en ambos lenguajes.
   3. **[Automatizada]** Cada capacidad v2 tiene un port pequeño antes de cualquier adapter real y los checks de imports bloquean dependencias que crucen límites hexagonales.
   4. **[Automatizada]** La suite v1 sigue pasando y el runtime v1 puede arrancar sin activar consumidores v2.
-**Plans**: TBD
+**Plans**: 3
 
 ### Phase 3: PR-02 — Identidad, pairing y event backbone
 **Goal**: Cada cliente se autentica de forma independiente y recupera eventos sin repetir acciones ni eludir a Wyss.
@@ -266,7 +266,7 @@ Este milestone lleva el baseline v1 hasta un sistema doméstico v2.0.0 coherente
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. PR-00 — Baseline reproducible y protección | 2/4 | In progress | - |
-| 2. PR-01 — Contratos y arquitectura v2 | 0/TBD | Not started | - |
+| 2. PR-01 — Contratos y arquitectura v2 | 3/3 | Complete | 2026-07-17 |
 | 3. PR-02 — Identidad, pairing y event backbone | 0/TBD | Not started | - |
 | 4. PR-03 — Projection Store y sincronización multicliente | 0/TBD | Not started | - |
 | 5. PR-04 — Shell visual Wyss Core y modo dormido | 0/TBD | Not started | - |

@@ -7,19 +7,19 @@
 
 ### Baseline y protección
 
-- [ ] **BASE-01**: El operador puede reproducir el build del firmware y los tests del Home Edge desde un checkout limpio con versiones registradas.
-- [ ] **BASE-02**: El operador puede validar fixtures dorados del protocolo v1 antes de introducir contratos v2.
-- [ ] **BASE-03**: El operador puede ejecutar un comando `doctor` que diagnostica toolchain, configuración segura y dependencias sin exponer secretos.
+- [x] **BASE-01**: El operador puede reproducir el build del firmware y los tests del Home Edge desde un checkout limpio con versiones registradas.
+- [x] **BASE-02**: El operador puede validar fixtures dorados del protocolo v1 antes de introducir contratos v2.
+- [x] **BASE-03**: El operador puede ejecutar un comando `doctor` que diagnostica toolchain, configuración segura y dependencias sin exponer secretos.
 - [ ] **BASE-04**: El operador dispone de evidencia fechada del backup de fábrica y de las métricas físicas de latencia, memoria y Flash asociadas al commit probado.
 - [ ] **BASE-05**: Cada cambio es bloqueado por CI cuando falla dominio, bridge, firmware, detección de secretos o validación documental esencial.
 
 ### Contratos y arquitectura
 
-- [ ] **ARCH-01**: Cada capacidad v2 dispone de un port pequeño y estable antes de implementar adapters reales.
-- [ ] **ARCH-02**: El repositorio bloquea imports que violan dominio, aplicación, ports y adapters.
-- [ ] **PROTO-01**: Python y C++ aceptan el mismo envelope v2 versionado y rechazan mensajes incompatibles o fuera de límites.
-- [ ] **PROTO-02**: Fixtures dorados compartidos prueban campos desconocidos, duplicados, replay, revisión, snapshots y errores en ambos lenguajes.
-- [ ] **PROTO-03**: El runtime v1 permanece operativo mientras ningún consumidor dependa exclusivamente de v2.
+- [x] **ARCH-01**: Cada capacidad v2 dispone de un port pequeño y estable antes de implementar adapters reales.
+- [x] **ARCH-02**: El repositorio bloquea imports que violan dominio, aplicación, ports y adapters.
+- [x] **PROTO-01**: Python y C++ aceptan el mismo envelope v2 versionado y rechazan mensajes incompatibles o fuera de límites.
+- [x] **PROTO-02**: Fixtures dorados compartidos prueban campos desconocidos, duplicados, replay, revisión, snapshots y errores en ambos lenguajes.
+- [x] **PROTO-03**: El runtime v1 permanece operativo mientras ningún consumidor dependa exclusivamente de v2.
 
 ### Identidad y eventos
 
@@ -115,16 +115,16 @@ La trazabilidad de cada requisito v2.0.0 se define en `ROADMAP.md` y se actualiz
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| BASE-01 | Phase 1 — PR-00 | Pending |
-| BASE-02 | Phase 1 — PR-00 | Pending |
-| BASE-03 | Phase 1 — PR-00 | Pending |
+| BASE-01 | Phase 1 — PR-00 | Complete |
+| BASE-02 | Phase 1 — PR-00 | Complete |
+| BASE-03 | Phase 1 — PR-00 | Complete |
 | BASE-04 | Phase 1 — PR-00 | Pending |
 | BASE-05 | Phase 1 — PR-00 | Pending |
-| ARCH-01 | Phase 2 — PR-01 | Pending |
-| ARCH-02 | Phase 2 — PR-01 | Pending |
-| PROTO-01 | Phase 2 — PR-01 | Pending |
-| PROTO-02 | Phase 2 — PR-01 | Pending |
-| PROTO-03 | Phase 2 — PR-01 | Pending |
+| ARCH-01 | Phase 2 — PR-01 | Complete |
+| ARCH-02 | Phase 2 — PR-01 | Complete |
+| PROTO-01 | Phase 2 — PR-01 | Complete |
+| PROTO-02 | Phase 2 — PR-01 | Complete |
+| PROTO-03 | Phase 2 — PR-01 | Complete |
 | IDENT-01 | Phase 3 — PR-02 | Pending |
 | EVENT-01 | Phase 3 — PR-02 | Pending |
 | EVENT-02 | Phase 3 — PR-02 | Pending |
