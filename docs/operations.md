@@ -83,6 +83,17 @@ Para rollback pongo `voice_enabled = false`: el botón de micrófono queda desac
 texto sigue operativo. No borro identidades ni conversación y no envío audio al event log,
 proyecciones o WebSocket de control.
 
+Spotify tiene un gate independiente: `spotify_enabled = true` sólo carga si
+`spotify_approved_scopes` coincide exactamente con `user-read-playback-state`,
+`user-modify-playback-state`, `user-library-read` y `user-library-modify`. O-07 debe registrar la
+aprobación antes de activarlo. Los tokens OAuth viven únicamente en Wyss; Home Edge usa su canal
+interno autenticado y el panel recibe sólo estado sanitizado.
+
+Cada identidad controladora necesita `panel|android|pc.spotify.control`. Para rollback pongo
+`spotify_enabled = false` y reinicio el bridge: `capability.command` queda rechazado, la proyección
+Spotify queda vacía y v1, health, luces, conversación y el shell continúan. No revoco ni modifico
+OAuth desde este repositorio; esa operación pertenece a Wyss.
+
 La proyección materializada vive en `projection_db`. Si un cliente no puede aplicar deltas de forma confiable, activo temporalmente `snapshot_fallback = true`; el Edge continúa derivando la vista desde el event log y el cliente nunca escribe estado autoritativo.
 
 ## Recuperación

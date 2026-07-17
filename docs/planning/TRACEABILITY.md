@@ -9,7 +9,7 @@ Yo actualizo esta matriz en cada PR. Yo no marco una fila como completa sin enla
 | RF-01 Conversación multicliente | PR-03/06 | contract + integration | PC/Android/Panel | Planificado |
 | RF-02 Push-to-talk | PR-07 | `test_voice_service` + `test_v2_api` | Mic PC + Android | Automatizado; O-01/física pendiente |
 | RF-03 Luces | PR-05 | domain/contract/protocol | LEDVANCE real | Baseline existente; migración pendiente |
-| RF-04 Spotify | PR-08 | OAuth/player contract | Cuenta Premium real | Planificado |
+| RF-04 Spotify | PR-08 | `test_media_adapters` + `test_media_service` + `test_v2_api` | Cuenta Premium real | Automatizado; O-07/cuenta pendiente |
 | RF-05 Clima | PR-09 | provider/cache/timezone | Panel real | Planificado |
 | RF-06 Calendar | PR-10 | OAuth/sync/CRUD/policy | Calendar real | Planificado |
 | RF-07 Temporizadores | PR-12 | clock/recovery/idempotency | Android notification | Planificado |

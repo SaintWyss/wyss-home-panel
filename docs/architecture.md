@@ -161,7 +161,11 @@ flowchart TB
 El composition root activa v2 sólo mediante feature flags. El firmware de producción compila el
 parser y el cliente v2, abre `/v2/client` y aplica snapshot+deltas sobre LVGL; PC, Android y panel
 observan la misma proyección. El listener v1 permanece como rollback y no requiere migrar NVS.
-El build verificado usa 145.992 bytes de RAM y 1.599.445 bytes de Flash.
+El build verificado usa 146.664 bytes de RAM y 1.612.493 bytes de Flash.
+
+Spotify respeta la misma frontera: OAuth, refresh y revocación pertenecen a Wyss. Home Edge sólo
+traduce su contrato de media a la proyección `spotify` y a `capability.command`; PC, Android y panel
+nunca reciben access/refresh tokens ni conocen endpoints del proveedor.
 
 Yo definí ports pequeños para hogar, luces, proyecciones, eventos de clientes, media, clima,
 Calendar, recordatorios, timers, notificaciones, voz y cámaras en `bridge/.../ports_v2.py`. Los DTOs

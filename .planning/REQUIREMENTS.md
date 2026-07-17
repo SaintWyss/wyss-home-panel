@@ -142,8 +142,8 @@ La trazabilidad de cada requisito v2.0.0 se define en `ROADMAP.md` y se actualiz
 | CONV-02 | Phase 7 — PR-06 | Complete (automated) |
 | VOICE-01 | Phase 8 — PR-07 | Automated complete; O-01 and physical PC/Android pending |
 | VOICE-02 | Phase 8 — PR-07 | Automated complete; physical permission/audio matrix pending |
-| MEDIA-01 | Phase 9 — PR-08 | Pending |
-| MEDIA-02 | Phase 9 — PR-08 | Pending |
+| MEDIA-01 | Phase 9 — PR-08 | Automated complete; O-07/Premium physical pending |
+| MEDIA-02 | Phase 9 — PR-08 | Automated complete; real OAuth lifecycle pending |
 | WEATHER-01 | Phase 10 — PR-09 | Pending |
 | CAL-01 | Phase 11 — PR-10 | Pending |
 | CAL-02 | Phase 11 — PR-10 | Pending |

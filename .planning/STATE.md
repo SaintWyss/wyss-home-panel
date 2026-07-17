@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0.0
 milestone_name: final
 status: executing
-stopped_at: Phase 01/03/04/05/06/07/08 physical or external evidence pending
-last_updated: "2026-07-17T23:11:27Z"
-last_activity: 2026-07-17 -- Phase 08 push-to-talk automation and responsive browser QA verified
+stopped_at: Phase 01/03/04/05/06/07/08/09 physical or external evidence pending
+last_updated: "2026-07-17T23:39:13Z"
+last_activity: 2026-07-17 -- Phase 09 Spotify automation, panel boot and exact rollback verified
 progress:
   total_phases: 20
   completed_phases: 1
-  total_plans: 25
-  completed_plans: 23
+  total_plans: 28
+  completed_plans: 26
   percent: 5
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-17)
 
 **Core value:** Toda acción doméstica debe pasar por una única autoridad de política y ejecución de Wyss, conservar coherencia observable entre clientes y fallar de forma segura.
-**Current focus:** Phase 01/03/04/05/06/07/08 physical gates; Phase 09 automation next
+**Current focus:** Phase 01/03/04/05/06/07/08/09 external gates; Phase 10 automation next
 
 ## Current Position
 
-Phase: 01, 03, 04, 05, 06, 07 and 08 physical/external gates pending; 02 complete
-Plan: Continue automated roadmap work from PR-08
+Phase: 01, 03, 04, 05, 06, 07, 08 and 09 physical/external gates pending; 02 complete
+Plan: Continue automated roadmap work from PR-09
 Status: Continuing autonomous roadmap work
-Last activity: 2026-07-17 -- Phase 08 push-to-talk automation and responsive browser QA verified
+Last activity: 2026-07-17 -- Phase 09 Spotify automation, panel boot and exact rollback verified
 
 Progress: [█░░░░░░░░░] 5% of roadmap phases complete
 
@@ -51,6 +51,7 @@ Progress: [█░░░░░░░░░] 5% of roadmap phases complete
 | 06 | 4/4 automated | Not tracked | Not tracked |
 | 07 | 3/3 automated | Not tracked | Not tracked |
 | 08 | 3/3 automated | Not tracked | Not tracked |
+| 09 | 3/3 automated | Not tracked | Not tracked |
 
 **Recent Trend:**
 
@@ -87,6 +88,9 @@ None yet.
 - Phase 8 has a responsive PC/Android PTT client, ephemeral audio lifecycle and automated failure
   matrix. O-01 still requires the operator to select a real local STT engine, then PC and Android
   physical must verify hold duration, permissions, silence/noise and interruption on this commit.
+- Phase 9 has a token-free Wyss media contract, strict scope gate, multiclient projection, complete
+  panel controls, automated provider-failure matrix and physical panel boot/rollback. O-07 and a
+  real Spotify Premium account are still required for OAuth, refresh and three-surface control.
 - Gates O-01..O-07 require explicit operator decisions at Phases 5, 8, 9/11, 12, 14, 15 and 20.
 - Android, Spotify, Google Calendar, camera hardware and private remote network are external dependencies; simulations cannot close their physical criteria.
 - Secure Boot, Flash Encryption and eFuses remain untouched without separate explicit authorization.
@@ -99,6 +103,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-17T23:11:27Z
-Stopped at: Phase 8 automated evidence complete; O-01 and physical voice matrix pending
-Resume file: .planning/phases/08-pr-07-push-to-talk-pc-y-android/08-VERIFICATION.md
+Last session: 2026-07-17T23:39:13Z
+Stopped at: Phase 9 automated/panel evidence complete; O-07 and Premium account pending
+Resume file: .planning/phases/09-pr-08-spotify-premium/09-VERIFICATION.md
