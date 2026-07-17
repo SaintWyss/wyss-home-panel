@@ -7,6 +7,7 @@ from typing import Any, Protocol
 
 from wyss_panel_bridge.domain.events import EventDraft
 from wyss_panel_bridge.domain.identity import ClientIdentity
+from wyss_panel_bridge.domain.projection import ProjectionDelivery
 from wyss_panel_bridge.domain.v2_types import (
     CapabilityCommand,
     DeliveryReceipt,
@@ -95,3 +96,15 @@ class EventStorePort(Protocol):
     def after(self, event_id: int, limit: int) -> Sequence[ProjectionEvent]: ...
 
     def latest_event_id(self) -> int: ...
+
+
+class ProjectionStorePort(Protocol):
+    def apply(self, event: ProjectionEvent) -> bool: ...
+
+    def snapshot(self) -> Snapshot: ...
+
+    def last_event_id(self) -> int: ...
+
+
+class ProjectionCoordinatorPort(Protocol):
+    def delivery(self, client_id: str, last_event_id: int) -> ProjectionDelivery: ...
