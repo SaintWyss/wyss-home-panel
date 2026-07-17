@@ -78,6 +78,11 @@ los clientes converjan sobre la misma revisión.
 
 Yo envío texto revisable, no audio. Yo trato el contenido como no confiable hasta que Wyss lo convierta en Plan y lo evalúe.
 
+La captura PTT usa un endpoint binario separado y autenticado; el audio crudo nunca forma parte del
+envelope, event log, proyección ni historial. Transcribir no envía una intención. Sólo después de
+editar y pulsar “Enviar a Wyss”, PC o Android publica este `assistant.intent` con `input = voice`.
+El endpoint HTTP reutiliza el mismo parser estricto y el mismo `ConversationService` que WSS.
+
 ### Respuesta a plan
 
 ```json

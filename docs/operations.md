@@ -67,6 +67,22 @@ completas y se mantiene exactamente la misma confirmación. Para rollback del fu
 `conversation_enabled = false`; para volver además al transporte v1 recompilo con
 `WYSS_PROTOCOL_V2_CLIENT=0`. Ninguno de esos pasos escribe NVS ni elimina las bases existentes.
 
+Voz tiene un tercer gate: `voice_enabled = true`. Antes de activarlo emparejo cada cliente con
+`pc.voice` o `android.voice` además de su capacidad `submit_intent`, y cierro O-01 con una ADR del
+motor STT local elegido. Mientras O-01 siga abierta, el adapter productivo falla cerrado como
+`provider_unavailable`; no existe un proveedor remoto implícito.
+
+El cliente responsive vive en `/v2/voice/`. Captura sólo mientras el control está sostenido,
+transcribe mediante `POST /v2/voice/transcribe`, deja editar el resultado y exige otro gesto sobre
+“Enviar a Wyss”. Ese envío usa `POST /v2/voice/intent`, valida el mismo envelope
+`assistant.intent` y entra al mismo `ConversationService`; no crea otra autoridad. Los tokens se
+guardan sólo en `sessionStorage` de la pestaña. El endpoint limita formatos, tamaño y tiempo,
+responde con `Cache-Control: no-store` y borra el buffer mutable en un `finally`.
+
+Para rollback pongo `voice_enabled = false`: el botón de micrófono queda desactivado y el editor de
+texto sigue operativo. No borro identidades ni conversación y no envío audio al event log,
+proyecciones o WebSocket de control.
+
 La proyección materializada vive en `projection_db`. Si un cliente no puede aplicar deltas de forma confiable, activo temporalmente `snapshot_fallback = true`; el Edge continúa derivando la vista desde el event log y el cliente nunca escribe estado autoritativo.
 
 ## Recuperación

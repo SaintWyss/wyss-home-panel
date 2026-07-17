@@ -13,3 +13,10 @@ Yo capturo mediante botón en PC y Android, transcribo fuera del ESP32, permito 
 ## Consecuencias
 
 Yo mejoro privacidad, precisión y carga del panel. Yo dependo de al menos un cliente con micrófono para voz, pero mantengo texto como fallback completo.
+
+## Estado de implementación
+
+El cliente PTT, el ciclo efímero, los límites y el fallback de texto están implementados en PR-07.
+La elección concreta del motor STT sigue deliberadamente abierta en O-01: el adapter productivo
+falla cerrado hasta que el operador compare precisión, latencia, CPU, privacidad y español argentino
+y registre esa selección en una ADR separada.

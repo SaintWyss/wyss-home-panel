@@ -109,7 +109,7 @@ directorio CMake en `ui-snapshots/`; una diferencia no aprobada falla `ui_visual
 
 Yo verifiqué la compilación completa de producción con PlatformIO: usa 145.992 bytes de RAM
 (44,6 %) y 1.599.445 bytes de Flash (24,4 %), incluido el heap LVGL de 96 KiB requerido por el
-shell v2. Yo también verifiqué cinco pruebas C++ —incluida la regresión visual— y las 108 pruebas
+shell v2. Yo también verifiqué cinco pruebas C++ —incluida la regresión visual— y las 116 pruebas
 del puente.
 
 ## Fuentes y procedencia

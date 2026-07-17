@@ -140,8 +140,8 @@ La trazabilidad de cada requisito v2.0.0 se define en `ROADMAP.md` y se actualiz
 | LIGHT-03 | Phase 6 — PR-05 | Automated stress/failure/rollback complete; physical fault matrix pending |
 | CONV-01 | Phase 7 — PR-06 | Automated complete; real Wyss and three physical surfaces pending |
 | CONV-02 | Phase 7 — PR-06 | Complete (automated) |
-| VOICE-01 | Phase 8 — PR-07 | Pending |
-| VOICE-02 | Phase 8 — PR-07 | Pending |
+| VOICE-01 | Phase 8 — PR-07 | Automated complete; O-01 and physical PC/Android pending |
+| VOICE-02 | Phase 8 — PR-07 | Automated complete; physical permission/audio matrix pending |
 | MEDIA-01 | Phase 9 — PR-08 | Pending |
 | MEDIA-02 | Phase 9 — PR-08 | Pending |
 | WEATHER-01 | Phase 10 — PR-09 | Pending |

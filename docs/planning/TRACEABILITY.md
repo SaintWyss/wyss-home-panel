@@ -7,7 +7,7 @@ Yo actualizo esta matriz en cada PR. Yo no marco una fila como completa sin enla
 | Requisito | PR dueño | Test automatizado | Evidencia física | Estado inicial |
 | --- | --- | --- | --- | --- |
 | RF-01 Conversación multicliente | PR-03/06 | contract + integration | PC/Android/Panel | Planificado |
-| RF-02 Push-to-talk | PR-07 | client + transcription fakes | Mic PC + Android | Planificado |
+| RF-02 Push-to-talk | PR-07 | `test_voice_service` + `test_v2_api` | Mic PC + Android | Automatizado; O-01/física pendiente |
 | RF-03 Luces | PR-05 | domain/contract/protocol | LEDVANCE real | Baseline existente; migración pendiente |
 | RF-04 Spotify | PR-08 | OAuth/player contract | Cuenta Premium real | Planificado |
 | RF-05 Clima | PR-09 | provider/cache/timezone | Panel real | Planificado |
@@ -23,7 +23,7 @@ Yo actualizo esta matriz en cada PR. Yo no marco una fila como completa sin enla
 | RNF-04 Arranque | PR-16 | boot instrumentation | Panel cold boot | Planificado |
 | RNF-05 Disponibilidad | PR-03/16/18 | fault injection | Soak | Planificado |
 | RNF-06 Seguridad | PR-02/17 | adversarial suite | Pair/revoke | Planificado |
-| RNF-07 Privacidad | PR-07/17 | retention/redaction | Permisos/audio | Planificado |
+| RNF-07 Privacidad | PR-07/17 | borrado/no-store/no implicit send | Permisos/audio | PR-07 automatizado; física pendiente |
 | RNF-08 Resiliencia | PR-18 | chaos/soak | 72 h | Planificado |
 | RNF-09 Recursos | PR-04/16 | size/heap gates | Panel | Baseline: RAM 29,3 %, Flash 24 % |
 | RNF-10 Mantenibilidad | PR-01 | import/contract gates | N/A | Arquitectura base existente |

@@ -20,6 +20,18 @@ Yo considero hostiles la Wi-Fi, los mensajes repetidos, un panel perdido y cualq
 
 Yo reconozco que NVS sin cifrado permite extraer el token si alguien obtiene la placa y acceso de laboratorio. Para un despliegue fuera de un hogar controlado yo activo Secure Boot v2 y Flash Encryption en modo release después de verificar el respaldo de fábrica; yo trato esa operación de eFuse como irreversible y no la automatizo durante el desarrollo.
 
+## Voz efímera
+
+Yo sólo solicito micrófono durante un gesto visible y sostenido en PC o Android. El navegador corta
+tracks al soltar, cancelar, perder foco o sufrir una interrupción. Home Edge acepta únicamente
+formatos permitidos, limita el cuerpo a 4 MiB por defecto, aplica timeout y exige `pc.voice` o
+`android.voice`. El buffer mutable se sobrescribe al terminar y no se registra, persiste ni proyecta.
+La transcripción tampoco se envía sola: el owner la revisa y realiza un segundo gesto explícito.
+
+El token de cliente vive sólo en `sessionStorage`, las respuestas usan `no-store` y la página aplica
+CSP, `frame-ancestors 'none'` y una Permissions Policy limitada al propio origen. Mientras O-01 no
+tenga una decisión del operador, no habilito un STT ni hago fallback silencioso a cloud.
+
 ## Política Wyss
 
 Yo no dupliqué la autoridad del orquestador. Mi política del borde sólo permite acciones domésticas

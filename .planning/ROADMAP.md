@@ -118,7 +118,7 @@ Este milestone lleva el baseline v1 hasta un sistema doméstico v2.0.0 coherente
   2. **[Física]** En PC y Android físico, el audio sólo se captura mientras el control visible está pulsado; el owner puede editar, cancelar y enviar explícitamente la transcripción.
   3. **[Automatizada + física]** Permiso negado, silencio, ruido, interrupción y proveedor caído terminan en estados recuperables sin envío implícito.
   4. **[Automatizada]** El audio crudo se elimina por defecto, no aparece en logs o proyecciones y voz puede desactivarse conservando texto como camino principal.
-**Plans**: TBD
+**Plans**: 3
 **UI hint**: yes
 
 ### Phase 9: PR-08 — Spotify Premium
@@ -272,7 +272,7 @@ Este milestone lleva el baseline v1 hasta un sistema doméstico v2.0.0 coherente
 | 5. PR-04 — Shell visual Wyss Core y modo dormido | 2/2 | Automated complete; physical pending | - |
 | 6. PR-05 — Luces completas y migración del baseline | 4/4 | Automated complete; physical pending | - |
 | 7. PR-06 — Conversación visual y confirmaciones | 3/3 | Automated complete; physical E2E pending | - |
-| 8. PR-07 — Push-to-talk PC y Android | 0/TBD | Not started | - |
+| 8. PR-07 — Push-to-talk PC y Android | 3/3 | Automated complete; O-01 and physical pending | - |
 | 9. PR-08 — Spotify Premium | 0/TBD | Not started | - |
 | 10. PR-09 — Clima semanal | 0/TBD | Not started | - |
 | 11. PR-10 — Google Calendar | 0/TBD | Not started | - |

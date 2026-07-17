@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0.0
 milestone_name: final
 status: executing
-stopped_at: Phase 01/03/04/05/06/07 physical or external evidence pending
-last_updated: "2026-07-17T22:48:43Z"
-last_activity: 2026-07-17 -- Phase 07 physical boot/display/touch and exact app rollback verified
+stopped_at: Phase 01/03/04/05/06/07/08 physical or external evidence pending
+last_updated: "2026-07-17T23:11:27Z"
+last_activity: 2026-07-17 -- Phase 08 push-to-talk automation and responsive browser QA verified
 progress:
   total_phases: 20
   completed_phases: 1
-  total_plans: 22
-  completed_plans: 20
+  total_plans: 25
+  completed_plans: 23
   percent: 5
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-17)
 
 **Core value:** Toda acción doméstica debe pasar por una única autoridad de política y ejecución de Wyss, conservar coherencia observable entre clientes y fallar de forma segura.
-**Current focus:** Phase 01/03/04/05/06/07 physical gates; Phase 08 automation next
+**Current focus:** Phase 01/03/04/05/06/07/08 physical gates; Phase 09 automation next
 
 ## Current Position
 
-Phase: 01, 03, 04, 05, 06 and 07 physical gates pending; 02 complete
-Plan: Continue automated roadmap work from PR-07
+Phase: 01, 03, 04, 05, 06, 07 and 08 physical/external gates pending; 02 complete
+Plan: Continue automated roadmap work from PR-08
 Status: Continuing autonomous roadmap work
-Last activity: 2026-07-17 -- Phase 07 physical boot/display/touch and exact app rollback verified
+Last activity: 2026-07-17 -- Phase 08 push-to-talk automation and responsive browser QA verified
 
 Progress: [█░░░░░░░░░] 5% of roadmap phases complete
 
@@ -36,7 +36,7 @@ Progress: [█░░░░░░░░░] 5% of roadmap phases complete
 
 **Velocity:**
 
-- Total plans completed: 20
+- Total plans completed: 23
 - GSD-lite: timing por plan no se registra para evitar ceremonia innecesaria.
 
 **By Phase:**
@@ -50,6 +50,7 @@ Progress: [█░░░░░░░░░] 5% of roadmap phases complete
 | 05 | 2/2 automated | Not tracked | Not tracked |
 | 06 | 4/4 automated | Not tracked | Not tracked |
 | 07 | 3/3 automated | Not tracked | Not tracked |
+| 08 | 3/3 automated | Not tracked | Not tracked |
 
 **Recent Trend:**
 
@@ -83,6 +84,9 @@ None yet.
 - Phase 7 passed physical panel boot, display/touch initialization and exact app rollback. It still
   requires an authorized v2 identity, the real Wyss daemon plus PC, Android and panel on the same
   commit; fakes prove policy and convergence but not the external end-to-end integration.
+- Phase 8 has a responsive PC/Android PTT client, ephemeral audio lifecycle and automated failure
+  matrix. O-01 still requires the operator to select a real local STT engine, then PC and Android
+  physical must verify hold duration, permissions, silence/noise and interruption on this commit.
 - Gates O-01..O-07 require explicit operator decisions at Phases 5, 8, 9/11, 12, 14, 15 and 20.
 - Android, Spotify, Google Calendar, camera hardware and private remote network are external dependencies; simulations cannot close their physical criteria.
 - Secure Boot, Flash Encryption and eFuses remain untouched without separate explicit authorization.
@@ -95,6 +99,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-17T22:48:43Z
-Stopped at: Phase 7 automated evidence and physical panel boot complete; conversation E2E pending
-Resume file: .planning/phases/07-pr-06-conversacion-visual-y-confirmaciones/07-VERIFICATION.md
+Last session: 2026-07-17T23:11:27Z
+Stopped at: Phase 8 automated evidence complete; O-01 and physical voice matrix pending
+Resume file: .planning/phases/08-pr-07-push-to-talk-pc-y-android/08-VERIFICATION.md
