@@ -42,6 +42,7 @@ class FastCommand:
     entity_id: str
     action: str
     brightness: int | None = None
+    rgb: int | None = None
 
 
 @dataclass(frozen=True, slots=True)

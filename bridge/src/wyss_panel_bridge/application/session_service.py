@@ -3,7 +3,7 @@ from __future__ import annotations
 import time
 from collections import OrderedDict, deque
 from collections.abc import Callable
-from typing import Any
+from typing import Any, cast
 
 from wyss_panel_bridge.domain.models import FastCommand, PolicyError
 from wyss_panel_bridge.domain.policy import validate_fast_command
@@ -56,6 +56,7 @@ class SessionService:
             entity_id=str(message.get("entity_id", "")),
             action=str(message.get("action", "")),
             brightness=self._brightness(message.get("brightness")),
+            rgb=self._rgb(message.get("rgb")),
         )
         try:
             validate_fast_command(command, self._allowed)
@@ -129,7 +130,15 @@ class SessionService:
             return None
         if isinstance(value, bool) or not isinstance(value, int):
             raise ValueError("Yo recibí un brillo inválido")
-        return value
+        return cast(int, value)
+
+    @staticmethod
+    def _rgb(value: Any) -> int | None:
+        if value is None:
+            return None
+        if isinstance(value, bool) or not isinstance(value, int):
+            raise ValueError("Yo recibí un color RGB inválido")
+        return cast(int, value)
 
     @staticmethod
     def _safe_id(value: Any) -> str:

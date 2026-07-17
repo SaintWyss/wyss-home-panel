@@ -8,17 +8,39 @@ keyfile = "config/private/server.key"
 id = "wyss-REEMPLAZAR"
 token_sha256 = "REEMPLAZAR_CON_SHA256"
 primary_entity = "light.living"
-allowed_entities = ["light.living"]
+allowed_entities = ["light.living", "light.desk", "scene.movie"]
 
 [devices]
 provider = "tuya"
 
-[tuya]
+[[tuya.lights]]
+entity_id = "light.living"
 name = "Luz del living"
-device_id_env = "WYSS_TUYA_DEVICE_ID"
+device_id_env = "WYSS_TUYA_LIVING_DEVICE_ID"
 address = "192.168.1.50"
-local_key_env = "WYSS_TUYA_LOCAL_KEY"
+local_key_env = "WYSS_TUYA_LIVING_LOCAL_KEY"
 version = 3.3
+
+[[tuya.lights]]
+entity_id = "light.desk"
+name = "Luz del escritorio"
+device_id_env = "WYSS_TUYA_DESK_DEVICE_ID"
+address = "192.168.1.51"
+local_key_env = "WYSS_TUYA_DESK_LOCAL_KEY"
+version = 3.3
+
+[[tuya.scenes]]
+entity_id = "scene.movie"
+name = "Cine"
+
+[[tuya.scenes.steps]]
+entity_id = "light.living"
+brightness = 20
+rgb = 16719872
+
+[[tuya.scenes.steps]]
+entity_id = "light.desk"
+on = false
 
 [home_assistant]
 url = "http://homeassistant.local:8123"

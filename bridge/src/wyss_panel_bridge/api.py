@@ -13,28 +13,16 @@ import uvicorn
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 
 from wyss_panel_bridge import __version__
-from wyss_panel_bridge.adapters.home_assistant import HomeAssistantGateway
-from wyss_panel_bridge.adapters.tuya import TuyaGateway
+from wyss_panel_bridge.adapters.legacy_devices import LegacyDeviceGateway
 from wyss_panel_bridge.adapters.wyss import WyssGateway
 from wyss_panel_bridge.application.session_service import SessionService
+from wyss_panel_bridge.composition import build_light_gateway
 from wyss_panel_bridge.config import Settings
 from wyss_panel_bridge.ports import DeviceGateway
 
 
 def _device_gateway(settings: Settings) -> DeviceGateway:
-    config = settings.provider_config
-    if settings.provider == "home_assistant":
-        return HomeAssistantGateway(str(config["url"]), str(config["token"]))
-    if settings.provider == "tuya":
-        return TuyaGateway(
-            entity_id=settings.primary_entity,
-            name=str(config.get("name", "Luz principal")),
-            device_id=str(config["device_id"]),
-            address=str(config["address"]),
-            local_key=str(config["local_key"]),
-            version=float(config.get("version", 3.3)),
-        )
-    raise RuntimeError(f"Yo no conozco el proveedor {settings.provider}")
+    return LegacyDeviceGateway(build_light_gateway(settings))
 
 
 def _authorized(websocket: WebSocket, settings: Settings) -> bool:

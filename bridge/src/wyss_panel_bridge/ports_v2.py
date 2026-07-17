@@ -7,6 +7,7 @@ from typing import Any, Protocol
 
 from wyss_panel_bridge.domain.events import EventDraft
 from wyss_panel_bridge.domain.identity import ClientIdentity
+from wyss_panel_bridge.domain.models import DeviceState, FastCommand
 from wyss_panel_bridge.domain.projection import ProjectionDelivery
 from wyss_panel_bridge.domain.v2_types import (
     CapabilityCommand,
@@ -23,9 +24,9 @@ class HomePort(Protocol):
 
 
 class LightPort(Protocol):
-    async def snapshot(self, entity_ids: Sequence[str]) -> Snapshot: ...
+    async def snapshot(self, entity_ids: Sequence[str]) -> Sequence[DeviceState]: ...
 
-    async def execute(self, command: CapabilityCommand) -> ProjectionEvent: ...
+    async def execute(self, command: FastCommand) -> Sequence[DeviceState]: ...
 
 
 class ProjectionPort(Protocol):

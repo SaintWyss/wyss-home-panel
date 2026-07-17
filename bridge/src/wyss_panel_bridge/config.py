@@ -14,6 +14,24 @@ def _env(name: str) -> str:
     return value
 
 
+def _resolve_env(value: Any) -> Any:
+    if isinstance(value, list):
+        return [_resolve_env(item) for item in value]
+    if not isinstance(value, dict):
+        return value
+    resolved: dict[str, Any] = {}
+    for raw_key, child in value.items():
+        key = str(raw_key)
+        if key.endswith("_env"):
+            key = key.removesuffix("_env")
+            if key in value or key in resolved:
+                raise RuntimeError(f"Yo recibí una configuración duplicada para {key}")
+            resolved[key] = _env(str(child))
+        else:
+            resolved[key] = _resolve_env(child)
+    return resolved
+
+
 @dataclass(frozen=True, slots=True)
 class Settings:
     host: str
@@ -46,11 +64,9 @@ class Settings:
         wyss = raw["wyss"]
         v2 = raw.get("protocol_v2", {})
         provider = str(devices["provider"])
-        provider_config = dict(raw[provider])
-        for key, value in tuple(provider_config.items()):
-            if key.endswith("_env"):
-                provider_config[key.removesuffix("_env")] = _env(str(value))
-                del provider_config[key]
+        provider_config = _resolve_env(dict(raw[provider]))
+        if not isinstance(provider_config, dict):
+            raise RuntimeError("Yo recibí una configuración de proveedor inválida")
         return cls(
             host=str(bridge.get("host", "0.0.0.0")),
             port=int(bridge.get("port", 8443)),
