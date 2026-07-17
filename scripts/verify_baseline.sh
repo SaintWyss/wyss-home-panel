@@ -76,10 +76,10 @@ run_code uv run --project bridge --locked --extra dev --python "$PYTHON_VERSION"
 run_code uv run --project bridge --locked --extra dev --python "$PYTHON_VERSION" python tools/check_architecture.py --format json
 run_code uv run --project bridge --locked --extra dev --python "$PYTHON_VERSION" pytest bridge/tests --quiet
 
+run_code pio run -e "$FIRMWARE_ENV"
 run_code uvx --from "cmake==$CMAKE_VERSION" cmake -S . -B "$CMAKE_BUILD_DIR" -DCMAKE_BUILD_TYPE=Release
 run_code uvx --from "cmake==$CMAKE_VERSION" cmake --build "$CMAKE_BUILD_DIR" --parallel
 run_code uvx --from "cmake==$CMAKE_VERSION" ctest --test-dir "$CMAKE_BUILD_DIR" --output-on-failure
-run_code pio run -e "$FIRMWARE_ENV"
 run_code uv run --project bridge --locked --extra dev --python "$PYTHON_VERSION" python tools/doctor.py --format json
 run_code uv run --project bridge --locked --extra dev --python "$PYTHON_VERSION" python tools/check_docs.py --format json
 
