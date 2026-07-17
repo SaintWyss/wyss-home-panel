@@ -111,12 +111,67 @@
 
 ## Traceability
 
-La trazabilidad de cada requisito se completa en `ROADMAP.md` y se actualiza al cerrar cada fase.
+La trazabilidad de cada requisito v2.0.0 se define en `ROADMAP.md` y se actualiza al cerrar cada fase. Cada requisito pertenece a una sola fase.
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| BASE-01 | Phase 1 — PR-00 | Pending |
+| BASE-02 | Phase 1 — PR-00 | Pending |
+| BASE-03 | Phase 1 — PR-00 | Pending |
+| BASE-04 | Phase 1 — PR-00 | Pending |
+| BASE-05 | Phase 1 — PR-00 | Pending |
+| ARCH-01 | Phase 2 — PR-01 | Pending |
+| ARCH-02 | Phase 2 — PR-01 | Pending |
+| PROTO-01 | Phase 2 — PR-01 | Pending |
+| PROTO-02 | Phase 2 — PR-01 | Pending |
+| PROTO-03 | Phase 2 — PR-01 | Pending |
+| IDENT-01 | Phase 3 — PR-02 | Pending |
+| EVENT-01 | Phase 3 — PR-02 | Pending |
+| EVENT-02 | Phase 3 — PR-02 | Pending |
+| EVENT-03 | Phase 3 — PR-02 | Pending |
+| SYNC-01 | Phase 4 — PR-03 | Pending |
+| SYNC-02 | Phase 4 — PR-03 | Pending |
+| SYNC-03 | Phase 4 — PR-03 | Pending |
+| UI-01 | Phase 5 — PR-04 | Pending |
+| UI-02 | Phase 5 — PR-04 | Pending |
+| UI-03 | Phase 5 — PR-04 | Pending |
+| LIGHT-01 | Phase 6 — PR-05 | Pending |
+| LIGHT-02 | Phase 6 — PR-05 | Pending |
+| LIGHT-03 | Phase 6 — PR-05 | Pending |
+| CONV-01 | Phase 7 — PR-06 | Pending |
+| CONV-02 | Phase 7 — PR-06 | Pending |
+| VOICE-01 | Phase 8 — PR-07 | Pending |
+| VOICE-02 | Phase 8 — PR-07 | Pending |
+| MEDIA-01 | Phase 9 — PR-08 | Pending |
+| MEDIA-02 | Phase 9 — PR-08 | Pending |
+| WEATHER-01 | Phase 10 — PR-09 | Pending |
+| CAL-01 | Phase 11 — PR-10 | Pending |
+| CAL-02 | Phase 11 — PR-10 | Pending |
+| REM-01 | Phase 12 — PR-11 | Pending |
+| REM-02 | Phase 12 — PR-11 | Pending |
+| TIMER-01 | Phase 13 — PR-12 | Pending |
+| TIMER-02 | Phase 13 — PR-12 | Pending |
+| CAM-01 | Phase 14 — PR-13 | Pending |
+| CAM-02 | Phase 14 — PR-13 | Pending |
+| REMOTE-01 | Phase 15 — PR-14 | Pending |
+| REMOTE-02 | Phase 15 — PR-14 | Pending |
+| OTA-01 | Phase 16 — PR-15 | Pending |
+| OTA-02 | Phase 16 — PR-15 | Pending |
+| OBS-01 | Phase 17 — PR-16 | Pending |
+| OBS-02 | Phase 17 — PR-16 | Pending |
+| SEC-01 | Phase 18 — PR-17 | Pending |
+| SEC-02 | Phase 18 — PR-17 | Pending |
+| SOAK-01 | Phase 19 — PR-18 | Pending |
+| SOAK-02 | Phase 19 — PR-18 | Pending |
+| REL-01 | Phase 20 — PR-19 | Pending |
+| REL-02 | Phase 20 — PR-19 | Pending |
+| REL-03 | Phase 20 — PR-19 | Pending |
 
 **Coverage:**
 - v2.0.0 requirements: 51 total
-- Mapped to phases: pendiente de roadmap
-- Unmapped: 51
+- Mapped to phases: 51
+- Unmapped: 0
+- Duplicated mappings: 0
 
 ---
 *Requirements defined: 2026-07-17*
