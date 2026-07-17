@@ -13,6 +13,7 @@ sdkconfig.old
 *.key
 .env
 .venv/
+.cache/
 __pycache__/
 .pytest_cache/
 .mypy_cache/
