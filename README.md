@@ -103,9 +103,14 @@ Las versiones mínimas y exactas que forman la línea base están registradas en
 `config/baseline-versions.toml`; `bridge/uv.lock` congela el entorno Python. Los fixtures dorados
 de protocolo v1 son compartidos por las pruebas Python y C++.
 
-Yo verifiqué la compilación completa de producción con PlatformIO: usa 96.048 bytes de RAM
-(29,3 %) y 1.574.789 bytes de Flash (24,0 %). Yo también verifiqué el dominio C++ con
-advertencias tratadas como errores y las pruebas asíncronas del puente.
+El baseline también compila un simulador headless con el mismo LVGL 8.4.0 del firmware y compara
+nueve frames 800×480 contra `tests/fixtures/ui_visual_manifest.txt`. Las capturas quedan bajo el
+directorio CMake en `ui-snapshots/`; una diferencia no aprobada falla `ui_visual_tests`.
+
+Yo verifiqué la compilación completa de producción con PlatformIO: usa 145.248 bytes de RAM
+(44,3 %) y 1.581.081 bytes de Flash (24,1 %), incluido el heap LVGL de 96 KiB requerido por el
+shell v2. Yo también verifiqué cinco pruebas C++ —incluida la regresión visual— y las 85 pruebas
+del puente.
 
 ## Fuentes y procedencia
 

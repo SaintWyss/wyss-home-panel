@@ -83,7 +83,7 @@ Este milestone lleva el baseline v1 hasta un sistema doméstico v2.0.0 coherente
   2. **[Física]** En la placa real, tacto→paint es ≤50 ms p95, la UI activa sostiene ≥30 FPS, el reposo 5–10 FPS y los objetivos táctiles miden ≥44 px; sin medición ligada al commit no se cierra.
   3. **[Física]** RAM, Flash, brillo, energía, temperatura y legibilidad permanecen dentro de presupuestos registrados en el panel exacto.
   4. **[Gate O-05 — física]** Antes de cerrar PR-04, el operador decide brillo/FPS de modo dormido con mediciones de legibilidad, energía, temperatura y respuesta; el resultado queda en una ADR.
-**Plans**: TBD
+**Plans**: 2
 **UI hint**: yes
 
 ### Phase 6: PR-05 — Luces completas y migración del baseline

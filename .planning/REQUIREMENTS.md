@@ -36,9 +36,9 @@
 
 ### Experiencia Wyss Core
 
-- [ ] **UI-01**: El panel presenta shell Wyss Core, modo manual, modo dormido y estados de conversación con navegación consistente.
+- [x] **UI-01**: El panel presenta shell Wyss Core, modo manual, modo dormido y estados de conversación con navegación consistente.
 - [ ] **UI-02**: La interacción mantiene feedback táctil ≤50 ms p95, ≥30 FPS activa, 5–10 FPS en reposo y objetivos táctiles ≥44 px.
-- [ ] **UI-03**: El simulador y las pruebas visuales cubren navegación, textos largos, offline, confirmaciones, contraste y cambios intencionales.
+- [x] **UI-03**: El simulador y las pruebas visuales cubren navegación, textos largos, offline, confirmaciones, contraste y cambios intencionales.
 
 ### Luces y degradación
 
@@ -132,9 +132,9 @@ La trazabilidad de cada requisito v2.0.0 se define en `ROADMAP.md` y se actualiz
 | SYNC-01 | Phase 4 — PR-03 | Automated complete; three physical clients pending |
 | SYNC-02 | Phase 4 — PR-03 | Complete |
 | SYNC-03 | Phase 4 — PR-03 | Complete |
-| UI-01 | Phase 5 — PR-04 | Pending |
-| UI-02 | Phase 5 — PR-04 | Pending |
-| UI-03 | Phase 5 — PR-04 | Pending |
+| UI-01 | Phase 5 — PR-04 | Complete (automated) |
+| UI-02 | Phase 5 — PR-04 | Automated configuration complete; physical performance and O-05 pending |
+| UI-03 | Phase 5 — PR-04 | Complete |
 | LIGHT-01 | Phase 6 — PR-05 | Pending |
 | LIGHT-02 | Phase 6 — PR-05 | Pending |
 | LIGHT-03 | Phase 6 — PR-05 | Pending |
@@ -175,4 +175,4 @@ La trazabilidad de cada requisito v2.0.0 se define en `ROADMAP.md` y se actualiz
 
 ---
 *Requirements defined: 2026-07-17*
-*Last updated: 2026-07-17 after initial definition*
+*Last updated: 2026-07-17 after Phase 5 automated verification*
