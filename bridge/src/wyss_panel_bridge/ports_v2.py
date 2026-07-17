@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import AsyncIterator, Mapping, Sequence
 from typing import Any, Protocol
 
+from wyss_panel_bridge.domain.identity import ClientIdentity
 from wyss_panel_bridge.domain.v2_types import (
     CapabilityCommand,
     DeliveryReceipt,
@@ -79,3 +80,9 @@ class CameraPort(Protocol):
     async def snapshot(self, camera_id: str) -> Snapshot: ...
 
     async def health(self, camera_id: str) -> Mapping[str, Any]: ...
+
+
+class IdentityStorePort(Protocol):
+    def get(self, client_id: str) -> ClientIdentity | None: ...
+
+    def save(self, identity: ClientIdentity) -> None: ...
