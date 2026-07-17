@@ -9,9 +9,11 @@ from wyss_panel_bridge.adapters.sqlite_events import SqliteEventStore
 from wyss_panel_bridge.adapters.sqlite_light_audit import SqliteLightAuditStore
 from wyss_panel_bridge.adapters.sqlite_projection import SqliteProjectionStore
 from wyss_panel_bridge.adapters.tuya import TuyaGateway
+from wyss_panel_bridge.application.conversation_service import ConversationService
 from wyss_panel_bridge.application.light_service import LightService
 from wyss_panel_bridge.application.projection_service import ProjectionCoordinator
 from wyss_panel_bridge.config import Settings
+from wyss_panel_bridge.ports import WyssGatewayPort
 from wyss_panel_bridge.ports_v2 import LightPort as LightPort
 
 
@@ -20,6 +22,7 @@ class V2Runtime:
     events: SqliteEventStore
     projections: ProjectionCoordinator
     lights: LightService
+    conversation: ConversationService
 
 
 def build_light_gateway(settings: Settings) -> LightPort:
@@ -31,7 +34,9 @@ def build_light_gateway(settings: Settings) -> LightPort:
     raise RuntimeError(f"Yo no conozco el proveedor {settings.provider}")
 
 
-def build_v2_runtime(settings: Settings, gateway: LightPort) -> V2Runtime:
+def build_v2_runtime(
+    settings: Settings, gateway: LightPort, orchestrator: WyssGatewayPort
+) -> V2Runtime:
     events = SqliteEventStore(settings.v2_event_db)
     projections = ProjectionCoordinator(
         events,
@@ -44,4 +49,9 @@ def build_v2_runtime(settings: Settings, gateway: LightPort) -> V2Runtime:
         SqliteLightAuditStore(settings.v2_light_audit_db),
         settings.allowed_entities,
     )
-    return V2Runtime(events, projections, lights)
+    conversation = ConversationService(
+        orchestrator,
+        events,
+        streaming_enabled=settings.v2_conversation_streaming,
+    )
+    return V2Runtime(events, projections, lights, conversation)

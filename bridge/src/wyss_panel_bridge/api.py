@@ -21,7 +21,7 @@ from wyss_panel_bridge.adapters.wyss import WyssGateway
 from wyss_panel_bridge.application.session_service import SessionService
 from wyss_panel_bridge.composition import LightPort, build_light_gateway, build_v2_runtime
 from wyss_panel_bridge.config import Settings
-from wyss_panel_bridge.ports import DeviceGateway
+from wyss_panel_bridge.ports import DeviceGateway, WyssGatewayPort
 
 
 def _device_gateway(settings: Settings) -> DeviceGateway:
@@ -38,7 +38,11 @@ def _authorized(websocket: WebSocket, settings: Settings) -> bool:
     )
 
 
-def create_app(settings: Settings, light_gateway: LightPort | None = None) -> FastAPI:
+def create_app(
+    settings: Settings,
+    light_gateway: LightPort | None = None,
+    orchestrator_gateway: WyssGatewayPort | None = None,
+) -> FastAPI:
     app = FastAPI(
         title="Wyss Home Panel Bridge",
         version=__version__,
@@ -47,14 +51,15 @@ def create_app(settings: Settings, light_gateway: LightPort | None = None) -> Fa
         openapi_url=None,
     )
     light_gateway = light_gateway or build_light_gateway(settings)
-    runtime = build_v2_runtime(settings, light_gateway) if settings.v2_enabled else None
+    orchestrator = orchestrator_gateway or WyssGateway(settings.wyss_url, settings.wyss_token)
+    runtime = (
+        build_v2_runtime(settings, light_gateway, orchestrator) if settings.v2_enabled else None
+    )
     devices: DeviceGateway = (
         ProjectedLegacyDeviceGateway(runtime.lights)
         if runtime is not None and settings.v2_lights_enabled
         else LegacyDeviceGateway(light_gateway)
     )
-    orchestrator = WyssGateway(settings.wyss_url, settings.wyss_token)
-
     if settings.v2_enabled:
         from wyss_panel_bridge.v2_api import create_v2_router
 

@@ -14,6 +14,7 @@ from wyss_panel_bridge.application.event_backbone import ClientRateLimiter
 from wyss_panel_bridge.application.identity_service import IdentityService
 from wyss_panel_bridge.composition import V2Runtime
 from wyss_panel_bridge.config import Settings
+from wyss_panel_bridge.domain.conversation import ConversationError
 from wyss_panel_bridge.domain.events import RateLimitExceeded
 from wyss_panel_bridge.domain.lights import LightError
 from wyss_panel_bridge.domain.models import FastCommand
@@ -167,6 +168,17 @@ def _light_capability(client_id: str) -> str | None:
     }.get(prefix)
 
 
+def _conversation_capability(client_id: str, message_type: str) -> str | None:
+    prefix = client_id.partition(":")[0]
+    suffix = {
+        "assistant.intent": "submit_intent",
+        "plan.answer": "answer_plan",
+    }.get(message_type)
+    if prefix not in {"panel", "android", "pc"} or suffix is None:
+        return None
+    return f"{prefix}.{suffix}"
+
+
 def create_v2_router(settings: Settings, runtime: V2Runtime) -> APIRouter:
     router = APIRouter()
     identities = SqliteIdentityStore(settings.v2_identity_db)
@@ -174,6 +186,7 @@ def create_v2_router(settings: Settings, runtime: V2Runtime) -> APIRouter:
     ingress_limit = ClientRateLimiter(settings.v2_rate_limit, 1.0)
     hub = _ClientHub()
     runtime.lights.set_event_sink(hub.broadcast)
+    runtime.conversation.set_event_sink(hub.broadcast)
 
     @router.websocket("/v2/client")
     async def client(websocket: WebSocket) -> None:
@@ -318,6 +331,62 @@ def create_v2_router(settings: Settings, runtime: V2Runtime) -> APIRouter:
                             causation_id=envelope.message_id,
                         ),
                     )
+                    continue
+                if envelope.message_type in {"assistant.intent", "plan.answer"}:
+                    if not settings.v2_conversation_enabled:
+                        await hub.send(
+                            connection,
+                            _message(
+                                "error",
+                                {
+                                    "code": "policy_rejected",
+                                    "message": "La conversación v2 está desactivada",
+                                },
+                                correlation_id=envelope.message_id,
+                                causation_id=envelope.message_id,
+                            ),
+                        )
+                        continue
+                    capability = _conversation_capability(client_id, envelope.message_type)
+                    if capability is None or not identity_service.authenticate(
+                        client_id, token, capability
+                    ):
+                        await hub.send(
+                            connection,
+                            _message(
+                                "error",
+                                {"code": "forbidden", "message": "Falta permiso conversacional"},
+                                correlation_id=envelope.message_id,
+                                causation_id=envelope.message_id,
+                            ),
+                        )
+                        continue
+                    try:
+                        if envelope.message_type == "assistant.intent":
+                            await runtime.conversation.submit(
+                                client_id,
+                                str(envelope.payload["request_id"]),
+                                str(envelope.payload["text"]),
+                                str(envelope.payload["input"]),
+                            )
+                        else:
+                            await runtime.conversation.answer(
+                                client_id,
+                                str(envelope.payload["plan_id"]),
+                                str(envelope.payload["decision"]),
+                                str(envelope.payload["confirmation"]),
+                                int(envelope.payload["expected_revision"]),
+                            )
+                    except ConversationError as error:
+                        await hub.send(
+                            connection,
+                            _message(
+                                "error",
+                                {"code": error.code, "message": str(error)},
+                                correlation_id=envelope.message_id,
+                                causation_id=envelope.message_id,
+                            ),
+                        )
                     continue
                 await hub.send(
                     connection,

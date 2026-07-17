@@ -41,6 +41,8 @@ rate_limit = 8
 heartbeat_seconds = 9.5
 snapshot_fallback = true
 lights_enabled = true
+conversation_enabled = true
+conversation_streaming = false
 """.strip(),
         encoding="utf-8",
     )
@@ -57,6 +59,8 @@ lights_enabled = true
     assert settings.v2_heartbeat_seconds == 9.5
     assert settings.v2_snapshot_fallback is True
     assert settings.v2_lights_enabled is True
+    assert settings.v2_conversation_enabled is True
+    assert settings.v2_conversation_streaming is False
     assert settings.wyss_url == "http://127.0.0.1:8000"
 
 

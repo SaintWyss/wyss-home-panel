@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Protocol
 
+from wyss_panel_bridge.domain.conversation import ConfirmationResult, ConversationTurn
 from wyss_panel_bridge.domain.models import DeviceState, FastCommand, Plan
 
 
@@ -15,6 +16,19 @@ class OrchestratorGateway(Protocol):
     async def submit_intent(self, request_id: str, text: str) -> Plan | None: ...
 
     async def answer_plan(self, plan_id: str, accepted: bool) -> None: ...
+
+
+class WyssGatewayPort(OrchestratorGateway, Protocol):
+    async def submit_turn(self, request_id: str, text: str, source: str) -> ConversationTurn: ...
+
+    async def confirm_turn(
+        self,
+        plan_id: str,
+        accepted: bool,
+        confirmation: str,
+        expected_revision: int,
+        source: str,
+    ) -> ConfirmationResult: ...
 
 
 class MonotonicClock(Protocol):

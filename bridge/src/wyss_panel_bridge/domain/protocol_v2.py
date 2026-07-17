@@ -180,6 +180,30 @@ def _validate_payload(message_type: str, payload: dict[str, Any]) -> None:
             )
         if not valid:
             raise ProtocolV2Error(ValidationCode.INVALID_MESSAGE)
+    elif message_type == "assistant.intent":
+        if set(payload) != {"request_id", "text", "input"}:
+            raise ProtocolV2Error(ValidationCode.INVALID_MESSAGE)
+        _required_string(payload["request_id"], MAX_ID_CHARS, identifier=True)
+        text = _required_string(payload["text"], 1000)
+        if not text.strip() or payload["input"] not in {"text", "voice"}:
+            raise ProtocolV2Error(ValidationCode.INVALID_MESSAGE)
+    elif message_type == "plan.answer":
+        if set(payload) != {
+            "plan_id",
+            "decision",
+            "confirmation",
+            "expected_revision",
+        }:
+            raise ProtocolV2Error(ValidationCode.INVALID_MESSAGE)
+        _required_string(payload["plan_id"], MAX_ID_CHARS, identifier=True)
+        if payload["decision"] not in {"approve", "reject"}:
+            raise ProtocolV2Error(ValidationCode.INVALID_MESSAGE)
+        confirmation = payload["confirmation"]
+        if not isinstance(confirmation, str) or len(confirmation) > 16:
+            raise ProtocolV2Error(ValidationCode.INVALID_MESSAGE)
+        revision = payload["expected_revision"]
+        if not _non_negative_int(revision) or revision == 0:
+            raise ProtocolV2Error(ValidationCode.INVALID_MESSAGE)
     elif message_type == "projection.snapshot":
         allowed = {
             "projection_version",

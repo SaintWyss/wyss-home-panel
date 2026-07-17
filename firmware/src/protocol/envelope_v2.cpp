@@ -442,6 +442,37 @@ void validate_payload(const std::string& type, const JsonValue& payload) {
     if (!valid) {
       throw ParseError();
     }
+  } else if (type == "assistant.intent") {
+    if (!exact_keys(payload, {"request_id", "text", "input"})) {
+      throw ParseError();
+    }
+    const JsonValue& request_id = required(payload, "request_id");
+    const JsonValue& text = required(payload, "text");
+    const JsonValue& input = required(payload, "input");
+    if (request_id.kind != Kind::String || !valid_identifier(request_id.string) ||
+        text.kind != Kind::String || text.string.empty() || text.string.size() > 1000U ||
+        std::all_of(text.string.begin(), text.string.end(), [](char character) {
+          return std::isspace(static_cast<unsigned char>(character)) != 0;
+        }) ||
+        input.kind != Kind::String || (input.string != "text" && input.string != "voice")) {
+      throw ParseError();
+    }
+  } else if (type == "plan.answer") {
+    if (!exact_keys(payload,
+                    {"plan_id", "decision", "confirmation", "expected_revision"})) {
+      throw ParseError();
+    }
+    const JsonValue& plan_id = required(payload, "plan_id");
+    const JsonValue& decision = required(payload, "decision");
+    const JsonValue& confirmation = required(payload, "confirmation");
+    const JsonValue& revision = required(payload, "expected_revision");
+    if (plan_id.kind != Kind::String || !valid_identifier(plan_id.string) ||
+        decision.kind != Kind::String ||
+        (decision.string != "approve" && decision.string != "reject") ||
+        confirmation.kind != Kind::String || confirmation.string.size() > 16U ||
+        !non_negative_integer(revision) || revision.integer == 0) {
+      throw ParseError();
+    }
   } else if (type == "projection.snapshot") {
     const std::unordered_set<std::string> allowed = {
         "projection_version", "assistant", "home", "spotify", "weather",

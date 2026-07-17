@@ -14,8 +14,9 @@ from wyss_panel_bridge.adapters.sqlite_identity import SqliteIdentityStore
 from wyss_panel_bridge.api import create_app
 from wyss_panel_bridge.application.identity_service import IdentityService
 from wyss_panel_bridge.config import Settings
+from wyss_panel_bridge.domain.conversation import ConfirmationResult, ConversationTurn
 from wyss_panel_bridge.domain.events import EventDraft
-from wyss_panel_bridge.domain.models import DeviceState, FastCommand
+from wyss_panel_bridge.domain.models import DeviceState, FastCommand, Plan, PlanStep, RiskLevel
 from wyss_panel_bridge.domain.protocol_v2 import parse_envelope
 
 
@@ -49,8 +50,49 @@ class FakeLights:
         return [self.state]
 
 
-def _app(settings: Settings, lights: FakeLights | None = None) -> FastAPI:
-    return create_app(settings, lights or FakeLights())
+class FakeConversationWyss:
+    def __init__(self) -> None:
+        self.confirmations = 0
+        self.turns = 0
+
+    async def submit_intent(self, request_id: str, text: str) -> Plan | None:
+        return (await self.submit_turn(request_id, text, "legacy")).plan
+
+    async def answer_plan(self, plan_id: str, accepted: bool) -> None:
+        return None
+
+    async def submit_turn(self, request_id: str, text: str, source: str) -> ConversationTurn:
+        self.turns += 1
+        return ConversationTurn(
+            "Preparé un plan seguro",
+            "verified",
+            Plan(
+                "plan:shared",
+                "Preparar living",
+                RiskLevel.B,
+                (PlanStep("Ajustar luz", "light.living"),),
+                9_999_999_999,
+            ),
+        )
+
+    async def confirm_turn(
+        self,
+        plan_id: str,
+        accepted: bool,
+        confirmation: str,
+        expected_revision: int,
+        source: str,
+    ) -> ConfirmationResult:
+        self.confirmations += 1
+        return ConfirmationResult("Plan verificado", "verified", True)
+
+
+def _app(
+    settings: Settings,
+    lights: FakeLights | None = None,
+    orchestrator: FakeConversationWyss | None = None,
+) -> FastAPI:
+    return create_app(settings, lights or FakeLights(), orchestrator)
 
 
 def _settings(tmp_path: Path, *, enabled: bool) -> Settings:
@@ -77,6 +119,7 @@ def _settings(tmp_path: Path, *, enabled: bool) -> Settings:
         v2_projection_db=tmp_path / "projections.sqlite3",
         v2_light_audit_db=tmp_path / "light-audit.sqlite3",
         v2_lights_enabled=enabled,
+        v2_conversation_enabled=enabled,
     )
 
 
@@ -89,6 +132,11 @@ def _pair(settings: Settings) -> tuple[str, IdentityService]:
 def _pair_as(settings: Settings, client_id: str, capability: str) -> str:
     service = IdentityService(SqliteIdentityStore(settings.v2_identity_db))
     return service.pair(client_id, {"panel.read_projection", capability})
+
+
+def _pair_with(settings: Settings, client_id: str, capabilities: set[str]) -> str:
+    service = IdentityService(SqliteIdentityStore(settings.v2_identity_db))
+    return service.pair(client_id, {"panel.read_projection", *capabilities})
 
 
 def _hello(last_event_id: int = 0) -> dict[str, object]:
@@ -151,6 +199,35 @@ def _command(
         "message_id": f"message:{source}:{number}",
         "source": source,
         "payload": payload,
+    }
+
+
+def _intent(source: str, number: int = 1) -> dict[str, object]:
+    return {
+        "v": 2,
+        "type": "assistant.intent",
+        "message_id": f"message:{source}:intent:{number}",
+        "source": source,
+        "payload": {
+            "request_id": f"request:{source}:intent:{number}",
+            "text": "Prepará el living",
+            "input": "text",
+        },
+    }
+
+
+def _answer(source: str, number: int = 1) -> dict[str, object]:
+    return {
+        "v": 2,
+        "type": "plan.answer",
+        "message_id": f"message:{source}:answer:{number}",
+        "source": source,
+        "payload": {
+            "plan_id": "plan:shared",
+            "decision": "approve",
+            "confirmation": "CONFIRMAR",
+            "expected_revision": 1,
+        },
     }
 
 
@@ -286,6 +363,26 @@ def test_light_action_without_capability_is_rejected_without_execution(tmp_path:
     assert response["payload"]["code"] == "forbidden"
 
 
+def test_conversation_without_capability_is_rejected_before_wyss(tmp_path: Path) -> None:
+    settings = _settings(tmp_path, enabled=True)
+    token, _ = _pair(settings)
+    wyss = FakeConversationWyss()
+
+    with TestClient(_app(settings, orchestrator=wyss)) as client:
+        with client.websocket_connect(
+            "/v2/client", headers=_headers(token), subprotocols=["wyss-v2"]
+        ) as websocket:
+            websocket.send_json(_hello())
+            websocket.receive_json()
+            websocket.receive_json()
+            websocket.send_json(_intent("panel:living"))
+            response = websocket.receive_json()
+
+    assert response["type"] == "error"
+    assert response["payload"]["code"] == "forbidden"
+    assert wyss.turns == 0
+
+
 def test_pc_android_and_panel_receive_each_verified_light_change_live(tmp_path: Path) -> None:
     settings = _settings(tmp_path, enabled=True)
     lights = FakeLights()
@@ -377,3 +474,104 @@ def test_light_migration_flag_rolls_back_to_read_only_v2_without_deleting_state(
     assert settings.v2_identity_db.exists()
     assert settings.v2_event_db.exists()
     assert settings.v2_light_audit_db.exists()
+
+
+def test_conversation_and_confirmation_converge_live_on_all_three_clients(
+    tmp_path: Path,
+) -> None:
+    settings = _settings(tmp_path, enabled=True)
+    wyss = FakeConversationWyss()
+    clients = {
+        "pc:desk": _pair_with(
+            settings, "pc:desk", {"pc.submit_intent", "pc.answer_plan"}
+        ),
+        "android:phone": _pair_with(
+            settings,
+            "android:phone",
+            {"android.submit_intent", "android.answer_plan"},
+        ),
+        "panel:living": _pair_with(
+            settings,
+            "panel:living",
+            {"panel.submit_intent", "panel.answer_plan"},
+        ),
+    }
+
+    with TestClient(_app(settings, orchestrator=wyss)) as client:
+        with (
+            client.websocket_connect(
+                "/v2/client",
+                headers=_headers_as("pc:desk", clients["pc:desk"]),
+                subprotocols=["wyss-v2"],
+            ) as pc,
+            client.websocket_connect(
+                "/v2/client",
+                headers=_headers_as("android:phone", clients["android:phone"]),
+                subprotocols=["wyss-v2"],
+            ) as android,
+            client.websocket_connect(
+                "/v2/client",
+                headers=_headers_as("panel:living", clients["panel:living"]),
+                subprotocols=["wyss-v2"],
+            ) as panel,
+        ):
+            sockets = {"pc:desk": pc, "android:phone": android, "panel:living": panel}
+            for client_id, websocket in sockets.items():
+                websocket.send_json(_hello_as(client_id))
+                assert websocket.receive_json()["type"] == "session.welcome"
+                assert websocket.receive_json()["type"] == "projection.snapshot"
+
+            pc.send_json(_intent("pc:desk"))
+            proposed: dict[str, list[dict[str, object]]] = {
+                client_id: [websocket.receive_json() for _ in range(4)]
+                for client_id, websocket in sockets.items()
+            }
+            assert all(
+                [
+                    str(message["payload"]["changes"]["event_type"])
+                    for message in messages
+                ]
+                == [
+                    "assistant.state.changed",
+                    "assistant.response.delta",
+                    "assistant.response.completed",
+                    "plan.proposed",
+                ]
+                for messages in proposed.values()
+            )
+            assert all(
+                messages[-1]["payload"]["changes"]["state"] == "awaiting_confirmation"
+                for messages in proposed.values()
+            )
+
+            android.send_json(_answer("android:phone"))
+            resolved: dict[str, list[dict[str, object]]] = {
+                client_id: [websocket.receive_json() for _ in range(5)]
+                for client_id, websocket in sockets.items()
+            }
+            expected = [
+                "plan.resolved",
+                "assistant.state.changed",
+                "assistant.response.delta",
+                "assistant.response.completed",
+                "assistant.state.changed",
+            ]
+            assert all(
+                [
+                    str(message["payload"]["changes"]["event_type"])
+                    for message in messages
+                ]
+                == expected
+                for messages in resolved.values()
+            )
+            assert all(
+                messages[-1]["payload"]["changes"]["state"] == "verified"
+                for messages in resolved.values()
+            )
+
+            panel.send_json(_answer("panel:living", 2))
+            duplicate = panel.receive_json()
+
+    assert duplicate["type"] == "error"
+    assert duplicate["payload"]["code"] == "already_resolved"
+    assert wyss.confirmations == 1

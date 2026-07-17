@@ -60,3 +60,5 @@ rate_limit = 12
 heartbeat_seconds = 12.0
 snapshot_fallback = false
 lights_enabled = false
+conversation_enabled = false
+conversation_streaming = true

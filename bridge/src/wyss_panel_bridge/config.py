@@ -55,6 +55,8 @@ class Settings:
     v2_heartbeat_seconds: float = 12.0
     v2_snapshot_fallback: bool = False
     v2_lights_enabled: bool = False
+    v2_conversation_enabled: bool = False
+    v2_conversation_streaming: bool = True
 
     @classmethod
     def load(cls, path: Path) -> Settings:
@@ -91,4 +93,6 @@ class Settings:
             v2_heartbeat_seconds=float(v2.get("heartbeat_seconds", 12.0)),
             v2_snapshot_fallback=bool(v2.get("snapshot_fallback", False)),
             v2_lights_enabled=bool(v2.get("lights_enabled", False)),
+            v2_conversation_enabled=bool(v2.get("conversation_enabled", False)),
+            v2_conversation_streaming=bool(v2.get("conversation_streaming", True)),
         )
