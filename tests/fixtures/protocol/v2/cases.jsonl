@@ -1,0 +1,18 @@
+# id<TAB>expected<TAB>raw JSON message; order is significant for replay/revision cases
+valid_hello	accept	{"v":2,"type":"session.hello","message_id":"msg-hello","source":"panel:living","payload":{"firmware":"2.0.0","capabilities":["ui.core","light.fast"],"last_event_id":0}}
+valid_snapshot	accept	{"v":2,"type":"projection.snapshot","message_id":"msg-snapshot","source":"edge:home","payload":{"projection_version":7,"assistant":{"state":"idle"},"home":{"entities":[]},"timers":[]}}
+delta_revision_8	accept	{"v":2,"type":"projection.delta","message_id":"msg-delta-8","source":"edge:home","correlation_id":"corr-1","payload":{"aggregate":"home","revision":8,"event_id":81,"changes":{"on":true}}}
+stale_delta_revision_7	stale_revision	{"v":2,"type":"projection.delta","message_id":"msg-delta-7","source":"edge:home","payload":{"aggregate":"home","revision":7,"event_id":82,"changes":{"on":false}}}
+valid_error	accept	{"v":2,"type":"error","message_id":"msg-error","source":"edge:home","payload":{"code":"snapshot_required","message":"Snapshot requerido"}}
+replay_original	accept	{"v":2,"type":"session.heartbeat","message_id":"msg-replay","source":"panel:living","payload":{}}
+replay_duplicate	replay	{"v":2,"type":"session.heartbeat","message_id":"msg-replay","source":"panel:living","payload":{}}
+unsupported_version	unsupported_version	{"v":3,"type":"session.heartbeat","message_id":"msg-v3","source":"panel:living","payload":{}}
+unknown_envelope_field	invalid_message	{"v":2,"type":"session.heartbeat","message_id":"msg-extra","source":"panel:living","payload":{},"unexpected":true}
+duplicate_message_id	invalid_message	{"v":2,"type":"session.heartbeat","message_id":"first","message_id":"second","source":"panel:living","payload":{}}
+unknown_type	invalid_message	{"v":2,"type":"provider.raw","message_id":"msg-unknown","source":"edge:home","payload":{}}
+snapshot_unknown_payload	invalid_message	{"v":2,"type":"projection.snapshot","message_id":"msg-snapshot-extra","source":"edge:home","payload":{"projection_version":8,"secrets":[]}}
+invalid_revision	invalid_message	{"v":2,"type":"projection.delta","message_id":"msg-bad-revision","source":"edge:home","payload":{"aggregate":"home","revision":-1,"event_id":83,"changes":{}}}
+invalid_error_code	invalid_message	{"v":2,"type":"error","message_id":"msg-bad-error","source":"edge:home","payload":{"code":"stack_trace","message":"no"}}
+invalid_payload_type	invalid_message	{"v":2,"type":"session.heartbeat","message_id":"msg-array","source":"panel:living","payload":[]}
+oversized_message	message_too_large	@generate:oversized
+excessive_depth	invalid_message	@generate:deep

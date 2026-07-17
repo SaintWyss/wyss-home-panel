@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wyss.local/schemas/protocol-v2-envelope.schema.json",
+  "title": "Wyss Home Protocol v2 envelope",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["v", "type", "message_id", "source", "payload"],
+  "properties": {
+    "v": {"const": 2},
+    "type": {
+      "enum": [
+        "session.hello", "session.welcome", "session.heartbeat",
+        "home.command", "assistant.intent", "plan.answer", "capability.command",
+        "assistant.state.changed", "assistant.response.delta",
+        "assistant.response.completed", "plan.proposed", "plan.resolved",
+        "execution.updated", "home.entity.changed", "spotify.state.changed",
+        "weather.forecast.changed", "calendar.agenda.changed", "reminder.changed",
+        "timer.changed", "timer.completed", "camera.state.changed",
+        "notification.delivered", "system.health.changed", "projection.snapshot",
+        "projection.delta", "error"
+      ]
+    },
+    "message_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9:._-]{0,127}$"},
+    "correlation_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9:._-]{0,127}$"},
+    "causation_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9:._-]{0,127}$"},
+    "source": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9:._-]{0,127}$"},
+    "sent_at": {"type": "string", "format": "date-time"},
+    "payload": {"type": "object"}
+  }
+}
