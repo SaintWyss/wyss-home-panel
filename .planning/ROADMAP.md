@@ -189,7 +189,7 @@ Este milestone lleva el baseline v1 hasta un sistema doméstico v2.0.0 coherente
   2. **[Física]** Con la cámara real, el owner ve disponibilidad y un snapshot redimensionado efímero; no queda retención ni credencial en firmware, proyecciones o logs.
   3. **[Automatizada + física]** Credencial inválida, offline, timeout, SSRF y destino no autorizado fallan cerrados y no permiten pivote de red.
   4. **[Automatizada]** Revocar credencial y deshabilitar el adapter conserva el shell y las demás capacidades operativas.
-**Plans**: TBD
+**Plans**: 0/TBD; blocked before implementation by O-03 hardware identification
 **UI hint**: yes
 
 ### Phase 15: PR-14 — Acceso remoto privado y operación móvil
@@ -201,7 +201,7 @@ Este milestone lleva el baseline v1 hasta un sistema doméstico v2.0.0 coherente
   2. **[Física/externa]** Desde datos móviles y con VPN activa, un dispositivo autorizado opera el sistema mediante ACL y DNS privados; un dispositivo revocado es rechazado.
   3. **[Física/externa]** Pérdida de VPN y rollback vuelven a LAN-only, y un scan externo confirma que no hay listeners públicos ni port forwarding.
   4. **[Automatizada]** La automatización de configuración es idempotente y no persiste claves privadas en el repositorio o logs.
-**Plans**: TBD
+**Plans**: 0/TBD; blocked before implementation by O-02 operator decision
 
 ### Phase 16: PR-15 — OTA, provisioning y recovery de producción
 **Goal**: El operador actualiza, restaura y rescata la placa sin perder configuración ni realizar cambios irreversibles.

@@ -21,12 +21,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-17)
 
 **Core value:** Toda acción doméstica debe pasar por una única autoridad de política y ejecución de Wyss, conservar coherencia observable entre clientes y fallar de forma segura.
-**Current focus:** Phase 01/03/04/05/06/07/08/09/10/11/12/13 external gates; Phase 14 automation next
+**Current focus:** Phase 14/15 gated before code by O-03/O-02; Phase 16 automation next
 
 ## Current Position
 
 Phase: 01, 03, 04, 05, 06, 07, 08, 09, 10, 11, 12 and 13 physical/external gates pending; 02 complete
-Plan: Continue automated roadmap work from PR-13
+Plan: Preserve Phase 14/15 gates and continue automated roadmap work from PR-15
 Status: Continuing autonomous roadmap work
 Last activity: 2026-07-18 -- Phase 13 timer automation and panel build verified
 
@@ -107,6 +107,10 @@ None yet.
 - Phase 13 has strict authoritative deadlines, monotonic refresh, private cache/export/import,
   durable completion dedupe, 100-timer stress and panel UI. Wyss real and Android physical remain
   external; Home Edge deliberately does not run a second scheduler.
+- Phase 14 cannot start adapter work until O-03 identifies actual camera hardware, protocol,
+  authentication and endpoints. Guessing RTSP/ONVIF/vendor defaults would violate the gate.
+- Phase 15 cannot start VPN automation until O-02 decides whether remote access is enabled and
+  selects Tailscale or WireGuard. No listener, port forwarding or VPN key was created.
 - Gates O-01..O-07 require explicit operator decisions at Phases 5, 8, 9/11, 12, 14, 15 and 20.
 - Android, Spotify, Google Calendar, camera hardware and private remote network are external dependencies; simulations cannot close their physical criteria.
 - Secure Boot, Flash Encryption and eFuses remain untouched without separate explicit authorization.
@@ -120,5 +124,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-07-18T01:05:57Z
-Stopped at: Phase 13 automation/build complete; Wyss and Android physical pending
-Resume file: .planning/phases/13-pr-12-temporizadores/13-VERIFICATION.md
+Stopped at: Phase 14/15 gated externally; Phase 16 automation is next
+Resume file: .planning/phases/15-pr-14-acceso-remoto/15-VERIFICATION.md
