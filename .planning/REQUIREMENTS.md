@@ -149,8 +149,8 @@ La trazabilidad de cada requisito v2.0.0 se define en `ROADMAP.md` y se actualiz
 | CAL-02 | Phase 11 — PR-10 | Pending |
 | REM-01 | Phase 12 — PR-11 | Automated complete; Wyss real lifecycle pending |
 | REM-02 | Phase 12 — PR-11 | Automated complete; O-04/Android physical pending |
-| TIMER-01 | Phase 13 — PR-12 | Pending |
-| TIMER-02 | Phase 13 — PR-12 | Pending |
+| TIMER-01 | Phase 13 — PR-12 | Automated complete; Wyss/clients physical pending |
+| TIMER-02 | Phase 13 — PR-12 | Automated complete; Android physical pending |
 | CAM-01 | Phase 14 — PR-13 | Pending |
 | CAM-02 | Phase 14 — PR-13 | Pending |
 | REMOTE-01 | Phase 15 — PR-14 | Pending |

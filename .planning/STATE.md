@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0.0
 milestone_name: final
 status: executing
-stopped_at: Phase 01/03/04/05/06/07/08/09/10/11/12 physical or external evidence pending
-last_updated: "2026-07-18T00:54:32Z"
-last_activity: 2026-07-18 -- Phase 12 reminder automation and panel build verified
+stopped_at: Phase 01/03/04/05/06/07/08/09/10/11/12/13 physical or external evidence pending
+last_updated: "2026-07-18T01:05:57Z"
+last_activity: 2026-07-18 -- Phase 13 timer automation and panel build verified
 progress:
   total_phases: 20
   completed_phases: 1
-  total_plans: 34
-  completed_plans: 32
+  total_plans: 36
+  completed_plans: 34
   percent: 5
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-17)
 
 **Core value:** Toda acción doméstica debe pasar por una única autoridad de política y ejecución de Wyss, conservar coherencia observable entre clientes y fallar de forma segura.
-**Current focus:** Phase 01/03/04/05/06/07/08/09/10/11/12 external gates; Phase 13 automation next
+**Current focus:** Phase 01/03/04/05/06/07/08/09/10/11/12/13 external gates; Phase 14 automation next
 
 ## Current Position
 
-Phase: 01, 03, 04, 05, 06, 07, 08, 09, 10, 11 and 12 physical/external gates pending; 02 complete
-Plan: Continue automated roadmap work from PR-12
+Phase: 01, 03, 04, 05, 06, 07, 08, 09, 10, 11, 12 and 13 physical/external gates pending; 02 complete
+Plan: Continue automated roadmap work from PR-13
 Status: Continuing autonomous roadmap work
-Last activity: 2026-07-18 -- Phase 12 reminder automation and panel build verified
+Last activity: 2026-07-18 -- Phase 13 timer automation and panel build verified
 
 Progress: [█░░░░░░░░░] 5% of roadmap phases complete
 
@@ -55,6 +55,7 @@ Progress: [█░░░░░░░░░] 5% of roadmap phases complete
 | 10 | 2/2 automated | Not tracked | Not tracked |
 | 11 | 2/2 automated | Not tracked | Not tracked |
 | 12 | 2/2 automated | Not tracked | Not tracked |
+| 13 | 2/2 automated | Not tracked | Not tracked |
 
 **Recent Trend:**
 
@@ -103,6 +104,9 @@ None yet.
 - Phase 12 has a strict Wyss reminder projection, private restart-safe cache, durable notification
   outbox, retry/dedupe/deep-link tests and panel UI. O-04 and a physical Android notification
   channel remain external; no mechanism was selected or enabled without that gate.
+- Phase 13 has strict authoritative deadlines, monotonic refresh, private cache/export/import,
+  durable completion dedupe, 100-timer stress and panel UI. Wyss real and Android physical remain
+  external; Home Edge deliberately does not run a second scheduler.
 - Gates O-01..O-07 require explicit operator decisions at Phases 5, 8, 9/11, 12, 14, 15 and 20.
 - Android, Spotify, Google Calendar, camera hardware and private remote network are external dependencies; simulations cannot close their physical criteria.
 - Secure Boot, Flash Encryption and eFuses remain untouched without separate explicit authorization.
@@ -115,6 +119,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-18T00:54:32Z
-Stopped at: Phase 12 automation/build complete; O-04 and Android physical pending
-Resume file: .planning/phases/12-pr-11-recordatorios-notificaciones/12-VERIFICATION.md
+Last session: 2026-07-18T01:05:57Z
+Stopped at: Phase 13 automation/build complete; Wyss and Android physical pending
+Resume file: .planning/phases/13-pr-12-temporizadores/13-VERIFICATION.md

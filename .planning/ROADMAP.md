@@ -177,7 +177,7 @@ Este milestone lleva el baseline v1 hasta un sistema doméstico v2.0.0 coherente
   2. **[Automatizada]** Reinicios de procesos/panel y ajustes de reloj recuperan el deadline correcto sin timers perdidos o fantasmas.
   3. **[Automatizada + física]** Cien timers emiten exactamente un `timer.completed` cada uno y Android físico recibe una sola notificación por vencimiento.
   4. **[Automatizada]** Exportar, volver al scheduler anterior y reimportar timers activos preserva identidad, deadline y estado.
-**Plans**: TBD
+**Plans**: 2/2 automated; Wyss/Android physical pending
 **UI hint**: yes
 
 ### Phase 14: PR-13 — Cámaras
