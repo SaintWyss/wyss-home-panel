@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import time
 from dataclasses import replace
 from pathlib import Path
 
@@ -643,6 +644,40 @@ def test_pc_android_and_panel_receive_same_seven_day_weather_projection(
     assert all(len(projection["days"]) == 7 for projection in projections)
     assert all(projection["current"]["condition"] == "despejado" for projection in projections)
     assert weather.calls == 1
+
+
+def test_connected_panel_refreshes_weather_without_reconnecting(tmp_path: Path) -> None:
+    settings = replace(
+        _settings(tmp_path, enabled=True),
+        v2_weather_enabled=True,
+        v2_weather_refresh_seconds=0.02,
+        v2_weather_max_stale_seconds=1.0,
+    )
+    weather = FakeWeather()
+    token = _pair(settings)[0]
+
+    with TestClient(_app(settings, weather=weather)) as client:
+        with client.websocket_connect(
+            "/v2/client",
+            headers=_headers(token),
+            subprotocols=["wyss-v2"],
+        ) as websocket:
+            websocket.send_json(_hello())
+            assert websocket.receive_json()["type"] == "session.welcome"
+            assert websocket.receive_json()["type"] == "projection.snapshot"
+            time.sleep(0.05)
+            websocket.send_json(
+                {
+                    "v": 2,
+                    "type": "session.heartbeat",
+                    "message_id": "heartbeat:1",
+                    "source": "panel:living",
+                    "payload": {},
+                }
+            )
+            assert websocket.receive_json()["type"] == "session.heartbeat"
+
+    assert weather.calls >= 2
 
 
 def test_spotify_flag_rolls_back_to_shell_without_calling_provider(tmp_path: Path) -> None:

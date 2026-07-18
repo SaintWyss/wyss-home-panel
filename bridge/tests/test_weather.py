@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import sqlite3
 from dataclasses import replace
 from pathlib import Path
 
@@ -185,3 +186,31 @@ def test_sqlite_weather_cache_round_trips_private_file(tmp_path: Path) -> None:
 
     assert cache.load() == expected
     assert path.stat().st_mode & 0o777 == 0o600
+
+
+@pytest.mark.asyncio
+async def test_corrupt_cache_degrades_to_explicit_provider_failure(tmp_path: Path) -> None:
+    path = tmp_path / "weather.sqlite3"
+    cache = SqliteWeatherCache(path)
+    with sqlite3.connect(path) as connection:
+        connection.execute(
+            "INSERT INTO weather_cache (singleton, payload_json) VALUES (1, ?)",
+            ("{invalid",),
+        )
+    gateway = FakeWeather(_forecast(1000))
+    gateway.failure = WeatherError("provider_unavailable", "offline")
+    service = WeatherService(
+        gateway,
+        cache,
+        SqliteEventStore(tmp_path / "events.sqlite3"),
+        refresh_seconds=60,
+        max_stale_seconds=7200,
+        now=lambda: 1000,
+    )
+
+    event = await service.ensure_snapshot()
+
+    assert event is not None
+    assert event.payload["available"] is False
+    assert event.payload["days"] == []
+    assert event.payload["error_code"] == "provider_unavailable"

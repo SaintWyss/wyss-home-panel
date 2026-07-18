@@ -386,12 +386,45 @@ void BridgeClient::dispatch(application::PanelService& service, const char* json
         }
         service.receive_media(std::move(state));
     };
+    auto weather = [&](JsonObjectConst value) {
+        domain::WeatherState state;
+        state.location = value["location"] | "";
+        state.timezone = value["timezone"] | "";
+        state.observed_at = value["observed_at"] | "";
+        state.age_seconds = value["age_seconds"] | 0U;
+        state.available = value["available"] | false;
+        state.stale = value["stale"] | false;
+        state.error_code = value["error_code"] | "";
+        JsonObjectConst current = value["current"];
+        if (current["temperature"].is<float>()) {
+            state.temperature = current["temperature"].as<float>();
+        }
+        state.condition = current["condition"] | "";
+        if (current["wind_kmh"].is<float>()) {
+            state.wind_kmh = current["wind_kmh"].as<float>();
+        }
+        for (JsonObjectConst item : value["days"].as<JsonArrayConst>()) {
+            if (state.days.size() >= 7U) break;
+            domain::WeatherDay day;
+            day.date = item["date"] | "";
+            day.condition = item["condition"] | "";
+            day.temperature_min = item["temperature_min"] | 0.0F;
+            day.temperature_max = item["temperature_max"] | 0.0F;
+            if (item["precipitation_probability"].is<unsigned>()) {
+                day.precipitation_probability = static_cast<std::uint8_t>(
+                    std::clamp(item["precipitation_probability"].as<int>(), 0, 100));
+            }
+            state.days.push_back(std::move(day));
+        }
+        service.receive_weather(std::move(state));
+    };
 
     if (std::strcmp(type, "projection.snapshot") == 0) {
         JsonObjectConst payload = document["payload"];
         replace_devices(payload["home"]["entities"].as<JsonArrayConst>());
         assistant(payload["assistant"].as<JsonObjectConst>(), "");
         spotify(payload["spotify"].as<JsonObjectConst>());
+        weather(payload["weather"].as<JsonObjectConst>());
     } else if (std::strcmp(type, "projection.delta") == 0) {
         JsonObjectConst payload = document["payload"];
         last_event_id_ = payload["event_id"] | last_event_id_;
@@ -403,6 +436,8 @@ void BridgeClient::dispatch(application::PanelService& service, const char* json
             assistant(changes, changes["event_type"] | "");
         } else if (std::strcmp(aggregate, "spotify") == 0) {
             spotify(changes);
+        } else if (std::strcmp(aggregate, "weather") == 0) {
+            weather(changes);
         }
     } else if (std::strcmp(type, "execution.updated") == 0) {
         JsonObjectConst payload = document["payload"];

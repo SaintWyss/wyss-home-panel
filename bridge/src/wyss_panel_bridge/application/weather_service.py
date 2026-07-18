@@ -49,7 +49,10 @@ class WeatherService:
         async with self._lock:
             current_time = self._now()
             if self._current is None:
-                self._current = self._cache.load()
+                try:
+                    self._current = self._cache.load()
+                except RuntimeError:
+                    self._current = None
             if (
                 self._current is not None
                 and current_time - self._last_attempt < self._refresh_seconds

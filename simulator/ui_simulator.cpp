@@ -215,6 +215,17 @@ int main(int argc, char** argv) {
         Recorder recorder(
             framebuffer, display, output_dir,
             manifest.empty() ? std::map<std::string, std::string>{} : read_manifest(manifest));
+        service.receive_weather({"Resistencia",
+                                 "America/Argentina/Cordoba",
+                                 "",
+                                 0,
+                                 false,
+                                 false,
+                                 std::nullopt,
+                                 "sin_datos",
+                                 std::nullopt,
+                                 {},
+                                 "provider_unavailable"});
         recorder.capture("inicio_offline");
 
         service.set_connection(wyss::domain::ConnectionState::Online);
@@ -224,6 +235,43 @@ int main(int argc, char** argv) {
              {"light.ambient", "Ambiente", true, true, 24, 0x3366CCU, 7},
              {"scene.movie", "Cine", true, false, 0, std::nullopt, 3},
              {"scene.night", "Noche", false, false, 0, std::nullopt, 1}});
+        service.receive_weather(
+            {"Resistencia",
+             "America/Argentina/Cordoba",
+             "2026-07-17T17:45",
+             10'800,
+             true,
+             true,
+             21.0F,
+             "lluvia",
+             18.0F,
+             {{"2026-07-17", "lluvia", 15.0F, 22.0F, 80},
+              {"2026-07-18", "lluvia", 16.0F, 23.0F, 70},
+              {"2026-07-19", "nublado", 14.0F, 24.0F, 40},
+              {"2026-07-20", "nublado", 13.0F, 21.0F, 30},
+              {"2026-07-21", "despejado", 12.0F, 22.0F, 10},
+              {"2026-07-22", "despejado", 13.0F, 25.0F, 10},
+              {"2026-07-23", "despejado", 15.0F, 28.0F, 5}},
+             "provider_unavailable"});
+        recorder.capture("inicio_clima_cache");
+        service.receive_weather(
+            {"Resistencia",
+             "America/Argentina/Cordoba",
+             "2026-07-17T20:45",
+             210,
+             true,
+             false,
+             28.5F,
+             "despejado",
+             13.0F,
+             {{"2026-07-17", "despejado", 15.0F, 29.0F, 10},
+              {"2026-07-18", "parcialmente_nublado", 16.0F, 27.0F, 20},
+              {"2026-07-19", "lluvia", 14.0F, 23.0F, 70},
+              {"2026-07-20", "lluvia", 13.0F, 21.0F, 60},
+              {"2026-07-21", "nublado", 12.0F, 22.0F, 30},
+              {"2026-07-22", "despejado", 13.0F, 25.0F, 10},
+              {"2026-07-23", "despejado", 15.0F, 28.0F, 5}},
+             ""});
         recorder.capture("inicio_online");
 
         view.show_page(ManualPage::Hogar);

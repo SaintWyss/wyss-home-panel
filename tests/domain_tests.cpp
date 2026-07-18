@@ -43,6 +43,7 @@ class View final : public wyss::ports::ViewPort {
         ++device_renders;
     }
     void render_media(const wyss::domain::MediaState& value) override { media = value; }
+    void render_weather(const wyss::domain::WeatherState& value) override { weather = value; }
     void render_execution(const wyss::domain::ExecutionUpdate& value) override {
         execution = value.state;
     }
@@ -55,6 +56,7 @@ class View final : public wyss::ports::ViewPort {
     wyss::domain::ExecutionState execution{wyss::domain::ExecutionState::Idle};
     std::vector<wyss::domain::DeviceState> devices;
     wyss::domain::MediaState media;
+    wyss::domain::WeatherState weather;
     std::string toast;
     bool toast_error{false};
     unsigned device_renders{0};
@@ -181,6 +183,29 @@ void media_controls_are_validated_and_forwarded_without_provider_details() {
     assert(view.toast_error);
     assert(commands.last_media_action == "pause");
 }
+
+void weather_projection_is_forwarded_without_local_freshness_invention() {
+    Clock clock;
+    Commands commands;
+    View view;
+    wyss::application::PanelService service(clock, commands, view);
+    wyss::domain::WeatherState weather{"Resistencia",
+                                       "America/Argentina/Cordoba",
+                                       "2026-07-17T20:45",
+                                       7'201,
+                                       true,
+                                       true,
+                                       19.5F,
+                                       "lluvia",
+                                       8.0F,
+                                       {{"2026-07-17", "lluvia", 15.0F, 22.0F, 80}},
+                                       "provider_unavailable"};
+    service.receive_weather(weather);
+    assert(view.weather.stale);
+    assert(view.weather.age_seconds == 7'201);
+    assert(view.weather.days.size() == 1);
+    assert(view.weather.error_code == "provider_unavailable");
+}
 }  // namespace
 
 int main() {
@@ -192,5 +217,6 @@ int main() {
     policy_accepts_only_well_formed_scene_and_color_commands();
     shared_plan_resolution_clears_modal_authority_and_revision_is_forwarded();
     media_controls_are_validated_and_forwarded_without_provider_details();
+    weather_projection_is_forwarded_without_local_freshness_invention();
     return 0;
 }

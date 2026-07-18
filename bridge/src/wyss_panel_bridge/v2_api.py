@@ -415,8 +415,29 @@ def create_v2_router(settings: Settings, runtime: V2Runtime) -> APIRouter:
                 messages.extend(_delta(event) for event in delivery.events)
             await hub.finish_initial(connection, messages, delivery.latest_event_id)
 
+            weather_deadline = (
+                asyncio.get_running_loop().time() + settings.v2_weather_refresh_seconds
+                if settings.v2_weather_enabled
+                else None
+            )
             while True:
-                raw = await websocket.receive_text()
+                if weather_deadline is None:
+                    raw = await websocket.receive_text()
+                else:
+                    timeout = max(0.0, weather_deadline - asyncio.get_running_loop().time())
+                    try:
+                        raw = await asyncio.wait_for(websocket.receive_text(), timeout=timeout)
+                    except TimeoutError:
+                        await runtime.weather.ensure_snapshot()
+                        weather_deadline = (
+                            asyncio.get_running_loop().time() + settings.v2_weather_refresh_seconds
+                        )
+                        continue
+                    if asyncio.get_running_loop().time() >= weather_deadline:
+                        await runtime.weather.ensure_snapshot()
+                        weather_deadline = (
+                            asyncio.get_running_loop().time() + settings.v2_weather_refresh_seconds
+                        )
                 if not identity_service.authenticate(client_id, token):
                     await websocket.close(code=4403, reason="device_revoked")
                     return

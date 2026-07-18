@@ -77,6 +77,28 @@ struct MediaCommand {
     std::uint64_t issued_at_ms{0};
 };
 
+struct WeatherDay {
+    std::string date;
+    std::string condition;
+    float temperature_min{0};
+    float temperature_max{0};
+    std::optional<std::uint8_t> precipitation_probability;
+};
+
+struct WeatherState {
+    std::string location;
+    std::string timezone;
+    std::string observed_at;
+    std::uint32_t age_seconds{0};
+    bool available{false};
+    bool stale{false};
+    std::optional<float> temperature;
+    std::string condition;
+    std::optional<float> wind_kmh;
+    std::vector<WeatherDay> days;
+    std::string error_code;
+};
+
 struct Intent {
     std::string request_id;
     std::string text;

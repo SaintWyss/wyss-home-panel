@@ -27,6 +27,7 @@ class LvglPanelView final : public ports::ViewPort {
     void render_connection(domain::ConnectionState state) override;
     void render_devices(std::span<const domain::DeviceState> devices) override;
     void render_media(const domain::MediaState& state) override;
+    void render_weather(const domain::WeatherState& state) override;
     void render_execution(const domain::ExecutionUpdate& update) override;
     void render_plan(const domain::Plan& plan) override;
     void render_toast(std::string_view message, bool error) override;
@@ -85,6 +86,9 @@ class LvglPanelView final : public ports::ViewPort {
     lv_obj_t* selected_name_{nullptr};
     lv_obj_t* availability_{nullptr};
     lv_obj_t* home_summary_{nullptr};
+    lv_obj_t* weather_current_{nullptr};
+    lv_obj_t* weather_meta_{nullptr};
+    lv_obj_t* sleeping_weather_{nullptr};
     lv_obj_t* brightness_{nullptr};
     lv_obj_t* brightness_label_{nullptr};
     lv_obj_t* media_title_{nullptr};
@@ -102,6 +106,7 @@ class LvglPanelView final : public ports::ViewPort {
     std::array<lv_obj_t*, 3> scene_labels_{};
     std::array<lv_obj_t*, 4> color_buttons_{};
     std::array<lv_obj_t*, 4> media_buttons_{};
+    std::array<lv_obj_t*, 7> weather_days_{};
     std::array<std::string, 3> device_entities_{};
     std::array<std::string, 3> scene_entities_{};
     lv_obj_t* conversation_state_{nullptr};
@@ -121,6 +126,10 @@ class LvglPanelView final : public ports::ViewPort {
     char execution_text_[96]{};
     char selected_text_[64]{};
     char home_text_[64]{};
+    char weather_current_text_[128]{};
+    char weather_meta_text_[128]{};
+    char sleeping_weather_text_[192]{};
+    char weather_day_text_[7][48]{};
     char device_text_[3][64]{};
     char scene_text_[3][40]{};
 };

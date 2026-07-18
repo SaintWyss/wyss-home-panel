@@ -104,6 +104,37 @@ std::string ascii_safe(std::string_view text) {
     }
     return output;
 }
+
+const char* weather_condition(std::string_view condition) {
+    if (condition == "despejado") return "Despejado";
+    if (condition == "parcialmente_nublado") return "Parcialmente nublado";
+    if (condition == "nublado") return "Nublado";
+    if (condition == "niebla") return "Niebla";
+    if (condition == "llovizna") return "Llovizna";
+    if (condition == "lluvia") return "Lluvia";
+    if (condition == "nieve") return "Nieve";
+    if (condition == "tormenta") return "Tormenta";
+    return "Condicion desconocida";
+}
+
+const char* weather_error(std::string_view error) {
+    if (error == "provider_unavailable") return "Proveedor temporalmente fuera de linea";
+    if (error == "cache_expired") return "Ultimo dato vencido";
+    if (error == "invalid_forecast") return "Respuesta meteorologica invalida";
+    return "Sin datos validos";
+}
+
+void format_age(char* output, std::size_t size, std::uint32_t age_seconds) {
+    if (age_seconds < 60U) {
+        std::snprintf(output, size, "menos de 1 min");
+    } else if (age_seconds < 3'600U) {
+        std::snprintf(output, size, "%lu min",
+                      static_cast<unsigned long>(age_seconds / 60U));
+    } else {
+        std::snprintf(output, size, "%lu h",
+                      static_cast<unsigned long>(age_seconds / 3'600U));
+    }
+}
 }  // namespace
 
 lv_obj_t* LvglPanelView::label(lv_obj_t* parent, const char* text, const lv_font_t* font,
@@ -192,15 +223,18 @@ void LvglPanelView::begin(application::PanelService& service, std::string primar
     lv_obj_align(home_summary_, LV_ALIGN_BOTTOM_MID, 0, -6);
 
     lv_obj_t* status_card = panel(pages_[0], 400, 18, 380, 250);
-    label(status_card, "AHORA", &lv_font_montserrat_12, kCyan);
-    lv_obj_t* current = label(status_card, "Sin alertas pendientes", &lv_font_montserrat_20, kText);
-    lv_obj_set_pos(current, 0, 32);
-    lv_obj_t* next = label(status_card, "PROXIMO\nAgenda todavia no sincronizada",
-                           &lv_font_montserrat_14, kMuted);
-    lv_obj_set_pos(next, 0, 82);
-    lv_obj_t* timer =
-        label(status_card, "TEMPORIZADORES\nNinguno activo", &lv_font_montserrat_14, kMuted);
-    lv_obj_set_pos(timer, 0, 142);
+    label(status_card, "CLIMA - RESISTENCIA", &lv_font_montserrat_12, kCyan);
+    weather_current_ =
+        label(status_card, "Clima sin sincronizar", &lv_font_montserrat_20, kText);
+    lv_obj_set_pos(weather_current_, 0, 30);
+    weather_meta_ = label(status_card, "Esperando proveedor", &lv_font_montserrat_12, kMuted);
+    lv_obj_set_pos(weather_meta_, 0, 66);
+    for (unsigned index = 0; index < weather_days_.size(); ++index) {
+        weather_days_[index] = label(status_card, "--\n--/--", &lv_font_montserrat_12, kMuted);
+        lv_obj_set_pos(weather_days_[index], static_cast<int>(index) * 49, 108);
+        lv_obj_set_width(weather_days_[index], 45);
+        lv_obj_set_style_text_align(weather_days_[index], LV_TEXT_ALIGN_CENTER, 0);
+    }
 
     lv_obj_t* home_quick_title =
         label(pages_[0], "ACCIONES RAPIDAS", &lv_font_montserrat_12, kMuted);
@@ -454,10 +488,12 @@ void LvglPanelView::begin(application::PanelService& service, std::string primar
         label(sleeping_core, "WYSS\nDURMIENDO", &lv_font_montserrat_20, kText);
     lv_obj_set_style_text_align(sleeping_label, LV_TEXT_ALIGN_CENTER, 0);
     lv_obj_center(sleeping_label);
-    lv_obj_t* sleeping_context = label(
+    sleeping_weather_ = label(
         sleeping_layer_, "Clima sin sincronizar   -   Agenda sin sincronizar   -   Sin timers",
         &lv_font_montserrat_14, kMuted);
-    lv_obj_align(sleeping_context, LV_ALIGN_BOTTOM_MID, 0, -112);
+    lv_obj_set_width(sleeping_weather_, 740);
+    lv_obj_set_style_text_align(sleeping_weather_, LV_TEXT_ALIGN_CENTER, 0);
+    lv_obj_align(sleeping_weather_, LV_ALIGN_BOTTOM_MID, 0, -112);
     lv_obj_t* manual = lv_btn_create(sleeping_layer_);
     lv_obj_set_size(manual, ui::tokens::manual_button.width, ui::tokens::manual_button.height);
     lv_obj_set_pos(manual, ui::tokens::manual_button.x, ui::tokens::manual_button.y);
@@ -650,6 +686,68 @@ void LvglPanelView::render_media(const domain::MediaState& state) {
         std::snprintf(media_volume_text_, sizeof(media_volume_text_), "-- %%");
     }
     lv_label_set_text_static(media_volume_label_, media_volume_text_);
+}
+
+void LvglPanelView::render_weather(const domain::WeatherState& state) {
+    char age[24]{};
+    format_age(age, sizeof(age), state.age_seconds);
+    const std::uint32_t state_color = !state.available ? kRed : (state.stale ? kAmber : kText);
+
+    if (!state.available || !state.temperature) {
+        std::snprintf(weather_current_text_, sizeof(weather_current_text_),
+                      "Clima no disponible");
+        std::snprintf(weather_meta_text_, sizeof(weather_meta_text_), "%s",
+                      weather_error(state.error_code));
+        std::snprintf(sleeping_weather_text_, sizeof(sleeping_weather_text_),
+                      "Resistencia - clima no disponible");
+    } else {
+        const char* condition = weather_condition(state.condition);
+        std::snprintf(weather_current_text_, sizeof(weather_current_text_), "%.1f C - %s",
+                      static_cast<double>(*state.temperature), condition);
+        if (state.wind_kmh) {
+            std::snprintf(weather_meta_text_, sizeof(weather_meta_text_), "%s hace %s - viento %.0f km/h",
+                          state.stale ? "CACHE" : "Actualizado", age,
+                          static_cast<double>(*state.wind_kmh));
+        } else {
+            std::snprintf(weather_meta_text_, sizeof(weather_meta_text_), "%s hace %s",
+                          state.stale ? "CACHE" : "Actualizado", age);
+        }
+        std::snprintf(sleeping_weather_text_, sizeof(sleeping_weather_text_),
+                      "Resistencia - %.0f C - %s - %s hace %s",
+                      static_cast<double>(*state.temperature), condition,
+                      state.stale ? "CACHE" : "actualizado", age);
+    }
+    lv_label_set_text_static(weather_current_, weather_current_text_);
+    lv_obj_set_style_text_color(weather_current_, color(state_color), 0);
+    lv_label_set_text_static(weather_meta_, weather_meta_text_);
+    lv_obj_set_style_text_color(weather_meta_, color(state.stale ? kAmber : kMuted), 0);
+    lv_label_set_text_static(sleeping_weather_, sleeping_weather_text_);
+    lv_obj_set_style_text_color(sleeping_weather_, color(state_color), 0);
+
+    for (unsigned index = 0; index < weather_days_.size(); ++index) {
+        if (state.available && index < state.days.size()) {
+            const auto& day = state.days[index];
+            const std::string_view date = day.date;
+            const std::string_view day_number = date.size() >= 10U ? date.substr(8U, 2U) : date;
+            if (day.precipitation_probability) {
+                std::snprintf(weather_day_text_[index], sizeof(weather_day_text_[index]),
+                              "%.*s\n%.0f/%.0f\n%u%%", static_cast<int>(day_number.size()),
+                              day_number.data(), static_cast<double>(day.temperature_min),
+                              static_cast<double>(day.temperature_max),
+                              *day.precipitation_probability);
+            } else {
+                std::snprintf(weather_day_text_[index], sizeof(weather_day_text_[index]),
+                              "%.*s\n%.0f/%.0f\n--", static_cast<int>(day_number.size()),
+                              day_number.data(), static_cast<double>(day.temperature_min),
+                              static_cast<double>(day.temperature_max));
+            }
+        } else {
+            std::snprintf(weather_day_text_[index], sizeof(weather_day_text_[index]), "--\n--/--\n--");
+        }
+        lv_label_set_text_static(weather_days_[index], weather_day_text_[index]);
+        lv_obj_set_style_text_color(weather_days_[index],
+                                    color(state.stale ? kAmber : kMuted), 0);
+    }
 }
 
 void LvglPanelView::refresh_home_controls() {

@@ -30,6 +30,7 @@ class ViewPort {
     virtual void render_connection(domain::ConnectionState state) = 0;
     virtual void render_devices(std::span<const domain::DeviceState> devices) = 0;
     virtual void render_media(const domain::MediaState& state) = 0;
+    virtual void render_weather(const domain::WeatherState& state) = 0;
     virtual void render_execution(const domain::ExecutionUpdate& update) = 0;
     virtual void render_plan(const domain::Plan& plan) = 0;
     virtual void render_toast(std::string_view message, bool error) = 0;

@@ -42,6 +42,10 @@ void PanelService::receive_media(domain::MediaState state) {
     view_.render_media(media_);
 }
 
+void PanelService::receive_weather(domain::WeatherState state) {
+    view_.render_weather(state);
+}
+
 void PanelService::media_action(std::string action, std::optional<std::uint8_t> value,
                                 std::string device_id) {
     const bool plain = action == "play" || action == "pause" || action == "previous" ||

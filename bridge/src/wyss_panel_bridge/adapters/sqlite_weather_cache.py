@@ -34,7 +34,10 @@ class SqliteWeatherCache:
             ).fetchone()
         if row is None:
             return None
-        decoded = json.loads(str(row[0]))
+        try:
+            decoded = json.loads(str(row[0]))
+        except (json.JSONDecodeError, TypeError) as error:
+            raise RuntimeError("cache meteorológico corrupto") from error
         if not isinstance(decoded, dict):
             raise RuntimeError("cache meteorológico corrupto")
         raw = cast(dict[str, Any], decoded)
