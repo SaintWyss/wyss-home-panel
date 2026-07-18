@@ -212,7 +212,7 @@ Este milestone lleva el baseline v1 hasta un sistema doméstico v2.0.0 coherente
   2. **[Física]** En la placa real, imagen válida, firma inválida, corrupción y corte de energía ejercitan A/B, health boot y rollback hasta una imagen conocida.
   3. **[Automatizada + física]** Provisioning, migración, backup, restore y rescate USB son repetibles e idempotentes y conservan configuración verificable.
   4. **[Gate constitucional P8 — operador]** eFuses, Secure Boot y Flash Encryption permanecen sin tocar salvo autorización explícita separada; la fase prueba recuperación sin asumir esa activación.
-**Plans**: TBD
+**Plans**: 2/3 automated; A/B/provisioning physical evidence pending
 
 ### Phase 17: PR-16 — Observabilidad, rendimiento y sostenibilidad
 **Goal**: El operador puede demostrar presupuestos de rendimiento y aislar degradaciones sin filtrar datos sensibles.
