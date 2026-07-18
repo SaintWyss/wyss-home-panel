@@ -28,6 +28,7 @@ dev = [
 
 [project.scripts]
 wyss-panel-bridge = "wyss_panel_bridge.api:main"
+wyss-firmware-release = "wyss_panel_bridge.operations.firmware_release:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/wyss_panel_bridge"]
