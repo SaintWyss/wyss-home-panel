@@ -26,3 +26,14 @@ Yo reviso este registro en cada PR y antes de promover una release. Yo no acepto
 ## Criterio de cierre
 
 Yo cierro un riesgo únicamente cuando existe control implementado, test, evidencia y owner de operación. Yo no lo cierro porque “parece poco probable”.
+
+## Residuales de seguridad antes de release
+
+| Id | Estado | Owner | Impacto residual | Mitigación vigente | Fecha de revisión |
+| --- | --- | --- | --- | --- | --- |
+| R-02 | Mitigado automatizado | Maintainer | Una regresión podría volver a exponer secretos | Gitleaks, redacción, 0600 y CI; 104 commits sin leaks | Cada PR y Phase 20 |
+| R-03 | Bloqueado físico | Operador | Una OTA real podría requerir rescate | Firma/health lógico listo; A/B, backup, restore y USB pendientes | Antes de OTA real |
+| R-07 | Feature ausente | Operador | Hardware/protocolo desconocido podría introducir SSRF | Cámara deshabilitada; no existe adapter ni credencial | Tras resolver O-03 |
+| R-12 | Feature ausente | Operador | Una configuración remota incorrecta podría exponer la LAN | LAN-only, sin port forwarding ni listener público | Tras resolver O-02 |
+| R-17 | Gate externo alto | Repo owner | Push directo podría evitar CI/review | No publicar; aplicar contrato de branch protection tras gate literal | Antes del próximo push |
+| R-18 | Residual medio | Operador | Acceso físico podría extraer token revocable desde NVS | Token por dispositivo, sin OAuth/cámara, revocación; O-06 separado | Antes de producción |

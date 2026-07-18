@@ -276,12 +276,12 @@ Este milestone lleva el baseline v1 hasta un sistema doméstico v2.0.0 coherente
 | 9. PR-08 — Spotify Premium | 3/3 | Automated + panel boot complete; O-07/account pending | - |
 | 10. PR-09 — Clima semanal | 2/2 | Automated + provider + panel boot complete; physical projection pending | - |
 | 11. PR-10 — Google Calendar | 2/2 | Automated + panel boot complete; O-07/account pending | - |
-| 12. PR-11 — Recordatorios y notificaciones Android | 0/TBD | Not started | - |
-| 13. PR-12 — Temporizadores durables | 0/TBD | Not started | - |
-| 14. PR-13 — Cámaras | 0/TBD | Not started | - |
-| 15. PR-14 — Acceso remoto privado y operación móvil | 0/TBD | Not started | - |
-| 16. PR-15 — OTA, provisioning y recovery de producción | 0/TBD | Not started | - |
-| 17. PR-16 — Observabilidad, rendimiento y sostenibilidad | 0/TBD | Not started | - |
-| 18. PR-17 — Hardening y suite adversarial | 0/TBD | Not started | - |
+| 12. PR-11 — Recordatorios y notificaciones Android | 2/2 | Automated complete; O-04/physical pending | - |
+| 13. PR-12 — Temporizadores durables | 2/2 | Automated complete; provider/physical pending | - |
+| 14. PR-13 — Cámaras | gate | Blocked by O-03 hardware/protocol identification | - |
+| 15. PR-14 — Acceso remoto privado y operación móvil | gate | Blocked by O-02 operator decision | - |
+| 16. PR-15 — OTA, provisioning y recovery de producción | 2/2 | Automated signature/health complete; physical recovery pending | - |
+| 17. PR-16 — Observabilidad, rendimiento y sostenibilidad | 2/2 | Automated complete; physical budgets pending | - |
+| 18. PR-17 — Hardening y suite adversarial | 2/2 | Automated complete; remote protection high gate open | - |
 | 19. PR-18 — Beta diaria y soak | 0/TBD | Not started | - |
 | 20. PR-19 — Release v2.0.0 final | 0/TBD | Not started | - |

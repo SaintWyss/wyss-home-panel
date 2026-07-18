@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v2.0.0
 milestone_name: final
 status: executing
-stopped_at: Phase 01/03/04/05/06/07/08/09/10/11/12/13 physical or external evidence pending
-last_updated: "2026-07-18T01:05:57Z"
-last_activity: 2026-07-18 -- Phase 13 timer automation and panel build verified
+stopped_at: Phase 01/03-18 physical or external evidence pending; Phase 19 next
+last_updated: "2026-07-18T01:40:22Z"
+last_activity: 2026-07-18 -- Phase 18 automated hardening verified; branch protection gate open
 progress:
   total_phases: 20
   completed_phases: 1
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-17)
 
 **Core value:** Toda acción doméstica debe pasar por una única autoridad de política y ejecución de Wyss, conservar coherencia observable entre clientes y fallar de forma segura.
-**Current focus:** Phase 14/15 gated; Phase 16/17 physical evidence pending; Phase 18 next
+**Current focus:** Phase 18 branch protection gate open; Phase 19 automated soak next
 
 ## Current Position
 
-Phase: 01, 03, 04, 05, 06, 07, 08, 09, 10, 11, 12 and 13 physical/external gates pending; 02 complete
-Plan: Continue automated roadmap work from PR-17
+Phase: 01 and 03-18 physical/external gates pending; 02 complete
+Plan: Continue automated roadmap work from PR-18
 Status: Continuing autonomous roadmap work
-Last activity: 2026-07-18 -- Phase 13 timer automation and panel build verified
+Last activity: 2026-07-18 -- Phase 18 hardening, SBOM and supply-chain checks verified
 
 Progress: [█░░░░░░░░░] 5% of roadmap phases complete
 
@@ -56,6 +56,11 @@ Progress: [█░░░░░░░░░] 5% of roadmap phases complete
 | 11 | 2/2 automated | Not tracked | Not tracked |
 | 12 | 2/2 automated | Not tracked | Not tracked |
 | 13 | 2/2 automated | Not tracked | Not tracked |
+| 14 | gated O-03 | Not tracked | Not tracked |
+| 15 | gated O-02 | Not tracked | Not tracked |
+| 16 | 2/2 automated | Not tracked | Not tracked |
+| 17 | 2/2 automated | Not tracked | Not tracked |
+| 18 | 2/2 automated | Not tracked | Not tracked |
 
 **Recent Trend:**
 
