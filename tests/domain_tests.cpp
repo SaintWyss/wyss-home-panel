@@ -16,13 +16,17 @@ class Commands final : public wyss::ports::CommandPort {
    public:
     bool send_fast(const wyss::domain::FastCommand& command) override {
         last_action = command.action;
+        fast_commands.push_back(command);
         return succeeds;
     }
     bool send_media(const wyss::domain::MediaCommand& command) override {
         last_media_action = command.action;
         return succeeds;
     }
-    bool send_intent(const wyss::domain::Intent&) override { return succeeds; }
+    bool send_intent(const wyss::domain::Intent&) override {
+        ++intents;
+        return succeeds;
+    }
     bool confirm(std::string_view, bool, wyss::domain::RiskLevel, std::uint64_t revision) override {
         ++confirmations;
         confirmed_revision = revision;
@@ -31,6 +35,8 @@ class Commands final : public wyss::ports::CommandPort {
     bool succeeds{true};
     std::string last_action;
     std::string last_media_action;
+    std::vector<wyss::domain::FastCommand> fast_commands;
+    unsigned intents{0};
     unsigned confirmations{0};
     std::uint64_t confirmed_revision{0};
 };
@@ -145,6 +151,43 @@ void color_targets_only_the_selected_light() {
     assert(view.devices[1].on);
     assert(view.devices[1].rgb == 0x3366CCU);
     assert(commands.last_action == "set_color");
+}
+
+void home_quick_actions_use_the_authorized_fast_light_path() {
+    Clock clock;
+    Commands commands;
+    View view;
+    wyss::application::PanelService service(clock, commands, view);
+    service.set_connection(wyss::domain::ConnectionState::Online);
+    service.replace_devices(
+        {light(),
+         {"light.desk", "Desk", true, true, 70, std::nullopt, 1},
+         {"light.offline", "Offline", false, true, 90, std::nullopt, 1},
+         {"scene.movie", "Movie", true, false, 0, std::nullopt, 1}});
+
+    service.quick_action(wyss::domain::HomeQuickAction::NightMode);
+    assert(commands.intents == 0);
+    assert(commands.fast_commands.size() == 2);
+    for (const auto& command : commands.fast_commands) {
+        assert(command.action == "set_brightness");
+        assert(command.brightness == 20);
+        assert(command.entity_id.starts_with("light."));
+    }
+
+    commands.fast_commands.clear();
+    service.quick_action(wyss::domain::HomeQuickAction::AllOff);
+    assert(commands.fast_commands.size() == 2);
+    for (const auto& command : commands.fast_commands) {
+        assert(command.action == "turn_off");
+        assert(!command.brightness);
+    }
+
+    commands.fast_commands.clear();
+    service.quick_action(wyss::domain::HomeQuickAction::Leaving);
+    assert(commands.fast_commands.size() == 2);
+    for (const auto& command : commands.fast_commands) {
+        assert(command.action == "turn_off");
+    }
 }
 
 void policy_accepts_only_well_formed_scene_and_color_commands() {
@@ -289,6 +332,7 @@ int main() {
     timeout_rolls_back_without_idle_redraws();
     policy_rejects_unknown_edge_actions();
     color_targets_only_the_selected_light();
+    home_quick_actions_use_the_authorized_fast_light_path();
     policy_accepts_only_well_formed_scene_and_color_commands();
     shared_plan_resolution_clears_modal_authority_and_revision_is_forwarded();
     media_controls_are_validated_and_forwarded_without_provider_details();

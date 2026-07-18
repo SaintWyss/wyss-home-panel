@@ -113,6 +113,28 @@ void PanelService::fast_action(std::string entity_id, std::string action,
     }
 }
 
+void PanelService::quick_action(domain::HomeQuickAction action) {
+    std::vector<std::string> targets;
+    targets.reserve(devices_.size());
+    for (const auto& device : devices_) {
+        if (device.available && device.entity_id.starts_with("light.")) {
+            targets.push_back(device.entity_id);
+        }
+    }
+    if (targets.empty()) {
+        view_.render_toast("No hay luces disponibles para esa acción", true);
+        return;
+    }
+
+    for (const auto& entity_id : targets) {
+        if (action == domain::HomeQuickAction::NightMode) {
+            fast_action(entity_id, "set_brightness", 20U);
+        } else {
+            fast_action(entity_id, "turn_off");
+        }
+    }
+}
+
 void PanelService::submit_intent(std::string text) {
     if (text.empty()) {
         return;

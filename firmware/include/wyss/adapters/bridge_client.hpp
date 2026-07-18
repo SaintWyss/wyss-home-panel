@@ -30,6 +30,7 @@ class BridgeClient final : public ports::CommandPort {
 
    private:
     static constexpr std::size_t kMaxMessageBytes = 4096;
+    static constexpr std::size_t kNetworkTaskStackBytes = 16384;
     struct Message {
         char text[kMaxMessageBytes];
     };

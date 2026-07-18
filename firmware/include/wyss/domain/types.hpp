@@ -11,6 +11,7 @@ namespace wyss::domain {
 
 enum class RiskLevel : std::uint8_t { A = 0, B = 1, C = 2, D = 3 };
 enum class ConnectionState : std::uint8_t { Offline, Discovering, Pairing, Online, Degraded };
+enum class HomeQuickAction : std::uint8_t { NightMode = 0, AllOff = 1, Leaving = 2 };
 enum class ExecutionState : std::uint8_t {
     Idle,
     Optimistic,

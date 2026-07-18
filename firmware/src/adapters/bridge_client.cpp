@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <cstring>
+#include <new>
 #include <optional>
 #include <string>
 #include <vector>
@@ -83,19 +84,40 @@ BridgeClient::BridgeClient(const ports::ConfigStorePort& config) : config_(confi
 BridgeClient::~BridgeClient() {
     if (task_ != nullptr) {
         vTaskDelete(task_);
+        task_ = nullptr;
     }
-    if (outbound_ != nullptr) vQueueDelete(outbound_);
-    if (inbound_ != nullptr) vQueueDelete(inbound_);
+    auto release_queue = [](QueueHandle_t& queue) {
+        if (queue == nullptr) return;
+        Message* message = nullptr;
+        while (xQueueReceive(queue, &message, 0) == pdTRUE) {
+            delete message;
+            message = nullptr;
+        }
+        vQueueDelete(queue);
+        queue = nullptr;
+    };
+    release_queue(outbound_);
+    release_queue(inbound_);
 }
 
 bool BridgeClient::begin() {
+    if (task_ != nullptr) return true;
+    if (WiFi.status() != WL_CONNECTED) return false;
     const auto endpoint = parse_endpoint(config_.bridge_url());
     if (!endpoint) {
         return false;
     }
-    outbound_ = xQueueCreate(6, sizeof(Message));
-    inbound_ = xQueueCreate(6, sizeof(Message));
+    outbound_ = xQueueCreate(6, sizeof(Message*));
+    inbound_ = xQueueCreate(6, sizeof(Message*));
     if (outbound_ == nullptr || inbound_ == nullptr) {
+        if (outbound_ != nullptr) {
+            vQueueDelete(outbound_);
+            outbound_ = nullptr;
+        }
+        if (inbound_ != nullptr) {
+            vQueueDelete(inbound_);
+            inbound_ = nullptr;
+        }
         return false;
     }
 
@@ -124,18 +146,36 @@ bool BridgeClient::begin() {
 #endif
     );
     state_.store(domain::ConnectionState::Discovering);
-    return xTaskCreatePinnedToCore(task_entry, "wyss-network", 12288, this, 4, &task_, 0) == pdPASS;
+    if (xTaskCreatePinnedToCore(task_entry, "wyss-network", kNetworkTaskStackBytes, this, 4,
+                                &task_, 0) == pdPASS) {
+        return true;
+    }
+    vQueueDelete(outbound_);
+    vQueueDelete(inbound_);
+    outbound_ = nullptr;
+    inbound_ = nullptr;
+    state_.store(domain::ConnectionState::Offline);
+    return false;
 }
 
 void BridgeClient::task_entry(void* context) { static_cast<BridgeClient*>(context)->run(); }
 
 void BridgeClient::run() {
-    Message message{};
+    Message* message = nullptr;
     for (;;) {
+        if (WiFi.status() != WL_CONNECTED) {
+            state_.store(domain::ConnectionState::Offline);
+            vTaskDelay(pdMS_TO_TICKS(250));
+            continue;
+        }
         socket_.loop();
         while (xQueueReceive(outbound_, &message, 0) == pdTRUE) {
-            if (socket_.isConnected()) {
-                socket_.sendTXT(message.text);
+            if (message != nullptr) {
+                if (socket_.isConnected()) {
+                    socket_.sendTXT(message->text);
+                }
+                delete message;
+                message = nullptr;
             }
         }
         vTaskDelay(pdMS_TO_TICKS(2));
@@ -172,10 +212,11 @@ void BridgeClient::handle_socket_event(WStype_t type, std::uint8_t* payload, std
     } else if (type == WStype_DISCONNECTED) {
         state_.store(domain::ConnectionState::Offline);
     } else if (type == WStype_TEXT && payload != nullptr && length < kMaxMessageBytes) {
-        Message message{};
-        std::memcpy(message.text, payload, length);
-        message.text[length] = '\0';
-        xQueueSend(inbound_, &message, 0);
+        auto* message = new (std::nothrow) Message{};
+        if (message == nullptr) return;
+        std::memcpy(message->text, payload, length);
+        message->text[length] = '\0';
+        if (xQueueSend(inbound_, &message, 0) != pdTRUE) delete message;
     }
 }
 
@@ -183,10 +224,13 @@ bool BridgeClient::enqueue_json(const char* json, std::size_t length) {
     if (outbound_ == nullptr || length == 0 || length >= kMaxMessageBytes) {
         return false;
     }
-    Message message{};
-    std::memcpy(message.text, json, length);
-    message.text[length] = '\0';
-    return xQueueSend(outbound_, &message, 0) == pdTRUE;
+    auto* message = new (std::nothrow) Message{};
+    if (message == nullptr) return false;
+    std::memcpy(message->text, json, length);
+    message->text[length] = '\0';
+    if (xQueueSend(outbound_, &message, 0) == pdTRUE) return true;
+    delete message;
+    return false;
 }
 
 bool BridgeClient::send_fast(const domain::FastCommand& command) {
@@ -291,9 +335,14 @@ void BridgeClient::poll(application::PanelService& service) {
         rendered_state_ = state;
         service.set_connection(state);
     }
-    Message message{};
+    if (inbound_ == nullptr) return;
+    Message* message = nullptr;
     for (unsigned count = 0; count < 6 && xQueueReceive(inbound_, &message, 0) == pdTRUE; ++count) {
-        dispatch(service, message.text);
+        if (message != nullptr) {
+            dispatch(service, message->text);
+            delete message;
+            message = nullptr;
+        }
     }
 }
 

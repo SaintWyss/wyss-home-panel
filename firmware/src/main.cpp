@@ -2,6 +2,7 @@
 #include <WiFi.h>
 
 #include <esp_display_panel.hpp>
+#include <cstdint>
 #include <memory>
 
 #include "lvgl_v8_port.h"
@@ -23,7 +24,9 @@ wyss::adapters::LvglPanelView view;
 std::unique_ptr<wyss::adapters::BridgeClient> bridge;
 std::unique_ptr<wyss::application::PanelService> service;
 bool configured = false;
+bool bridge_started = false;
 bool backlight_sleeping = false;
+std::uint32_t bridge_retry_after_ms = 0;
 
 void start_display() {
     board = new Board();
@@ -50,7 +53,14 @@ void start_network() {
     WiFi.setAutoReconnect(true);
     WiFi.setSleep(false);
     WiFi.begin(config.wifi_ssid().data(), config.wifi_password().data());
-    bridge->begin();
+}
+
+void maybe_start_bridge() {
+    if (bridge_started || bridge == nullptr || WiFi.status() != WL_CONNECTED) return;
+    const std::uint32_t now = millis();
+    if (static_cast<std::int32_t>(now - bridge_retry_after_ms) < 0) return;
+    bridge_started = bridge->begin();
+    if (!bridge_started) bridge_retry_after_ms = now + 1000;
 }
 }  // namespace
 
@@ -82,6 +92,7 @@ void loop() {
         ESP.restart();
     }
     if (configured && service != nullptr && bridge != nullptr) {
+        maybe_start_bridge();
         lvgl_port_lock(-1);
         bridge->poll(*service);
         service->tick();
