@@ -41,6 +41,7 @@ from wyss_panel_bridge.adapters.sqlite_timers import (
 )
 from wyss_panel_bridge.adapters.sqlite_weather_cache import SqliteWeatherCache
 from wyss_panel_bridge.adapters.tuya import TuyaGateway
+from wyss_panel_bridge.adapters.wyss import WyssGateway, WyssUnixGateway
 from wyss_panel_bridge.adapters.wyss_calendar import WyssCalendarGateway
 from wyss_panel_bridge.adapters.wyss_media import WyssMediaGateway
 from wyss_panel_bridge.adapters.wyss_reminders import WyssReminderGateway
@@ -58,21 +59,35 @@ from wyss_panel_bridge.application.weather_service import WeatherService
 from wyss_panel_bridge.config import Settings
 from wyss_panel_bridge.ports import WyssGatewayPort
 from wyss_panel_bridge.ports_v2 import (
-    CalendarPort,
+    CalendarPort as CalendarPort,
+)
+from wyss_panel_bridge.ports_v2 import (
     CalendarStorePort,
-    MediaPort,
     NotificationOutboxPort,
-    NotificationPort,
-    ReminderPort,
     ReminderStorePort,
-    SpeechPort,
     TimerNotificationOutboxPort,
-    TimerPort,
     TimerStorePort,
     WeatherCachePort,
-    WeatherPort,
 )
 from wyss_panel_bridge.ports_v2 import LightPort as LightPort
+from wyss_panel_bridge.ports_v2 import (
+    MediaPort as MediaPort,
+)
+from wyss_panel_bridge.ports_v2 import (
+    NotificationPort as NotificationPort,
+)
+from wyss_panel_bridge.ports_v2 import (
+    ReminderPort as ReminderPort,
+)
+from wyss_panel_bridge.ports_v2 import (
+    SpeechPort as SpeechPort,
+)
+from wyss_panel_bridge.ports_v2 import (
+    TimerPort as TimerPort,
+)
+from wyss_panel_bridge.ports_v2 import (
+    WeatherPort as WeatherPort,
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -97,6 +112,14 @@ def build_light_gateway(settings: Settings) -> LightPort:
     if settings.provider == "tuya":
         return TuyaGateway.from_config(config, settings.primary_entity)
     raise RuntimeError(f"Yo no conozco el proveedor {settings.provider}")
+
+
+def build_orchestrator_gateway(settings: Settings) -> WyssGatewayPort:
+    if settings.wyss_transport == "unix":
+        return WyssUnixGateway(settings.wyss_socket_path)
+    if settings.wyss_transport == "http_v1":
+        return WyssGateway(settings.wyss_url, settings.wyss_token)
+    raise RuntimeError("Yo no conozco el transporte configurado para Wyss")
 
 
 def build_v2_runtime(

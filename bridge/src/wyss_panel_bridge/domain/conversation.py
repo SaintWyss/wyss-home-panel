@@ -22,6 +22,8 @@ class ConfirmationResult:
     text: str
     state: TerminalState
     policy_reevaluated: bool
+    outcome: str = "resolved"
+    revision: int | None = None
 
 
 class ConversationError(ValueError):

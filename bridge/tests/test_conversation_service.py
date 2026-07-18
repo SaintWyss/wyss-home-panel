@@ -36,6 +36,8 @@ class FakeWyss:
         self.target = target
         self.confirmations = 0
         self.turns = 0
+        self.resolved = False
+        self.forced_outcome: str | None = None
 
     async def submit_intent(self, request_id: str, text: str) -> Plan | None:
         return (await self.submit_turn(request_id, text, "legacy")).plan
@@ -43,7 +45,10 @@ class FakeWyss:
     async def answer_plan(self, plan_id: str, accepted: bool) -> None:
         return None
 
-    async def submit_turn(self, request_id: str, text: str, source: str) -> ConversationTurn:
+    async def submit_turn(
+        self, request_id: str, text: str, source: str, input_kind: str = "text"
+    ) -> ConversationTurn:
+        del input_kind
         self.turns += 1
         plan = None
         if self.risk is not None:
@@ -66,6 +71,20 @@ class FakeWyss:
     ) -> ConfirmationResult:
         self.confirmations += 1
         await asyncio.sleep(0)
+        if self.resolved:
+            return ConfirmationResult(
+                "El plan ya fue resuelto", "failed", False, "already_resolved", 2
+            )
+        if self.forced_outcome is not None:
+            return ConfirmationResult(
+                "La confirmación venció", "failed", False, self.forced_outcome, 2
+            )
+        required = "s" if self.risk == RiskLevel.B else "CONFIRMAR"
+        if accepted and confirmation != required:
+            message = "Confirmación inválida" if self.risk == RiskLevel.B else "Escribí CONFIRMAR"
+            return ConfirmationResult(message, "failed", True, "confirmation_required", 1)
+        if self.reevaluated:
+            self.resolved = True
         return ConfirmationResult("Plan ejecutado", "verified", self.reevaluated)
 
 
@@ -146,8 +165,8 @@ async def test_b_confirmation_is_ttl_cas_and_first_valid_answer_wins(tmp_path: P
         await service.submit("android:phone", "request:b:2", "Otro plan", "text")
 
     results = await asyncio.gather(
-        service.answer("android:phone", "plan:study", "approve", "CONFIRMAR", 1),
-        service.answer("panel:living", "plan:study", "approve", "CONFIRMAR", 1),
+        service.answer("android:phone", "plan:study", "approve", "s", 1),
+        service.answer("panel:living", "plan:study", "approve", "s", 1),
         return_exceptions=True,
     )
 
@@ -155,7 +174,7 @@ async def test_b_confirmation_is_ttl_cas_and_first_valid_answer_wins(tmp_path: P
     assert overlapping.value.code == "confirmation_required"
     loser = next(result for result in results if isinstance(result, ConversationError))
     assert loser.code == "already_resolved"
-    assert gateway.confirmations == 1
+    assert gateway.confirmations == 2
     event_types = [event.event_type for event in store.after(0, 30)]
     assert event_types.count("plan.resolved") == 1
     assert event_types[-1] == "assistant.state.changed"
@@ -171,12 +190,13 @@ async def test_expired_or_unconfirmed_plan_never_reaches_wyss_execution(tmp_path
     with pytest.raises(ConversationError, match="CONFIRMAR") as missing_word:
         await service.answer("panel:living", "plan:study", "approve", "confirmar", 1)
     clock.value = 5_001
+    gateway.forced_outcome = "expired"
     with pytest.raises(ConversationError, match="venció") as expired:
         await service.answer("android:phone", "plan:study", "approve", "CONFIRMAR", 1)
 
     assert missing_word.value.code == "confirmation_required"
     assert expired.value.code == "confirmation_required"
-    assert gateway.confirmations == 0
+    assert gateway.confirmations == 2
 
 
 @pytest.mark.asyncio
@@ -207,7 +227,7 @@ async def test_risk_d_and_missing_policy_reevaluation_fail_closed(tmp_path: Path
     service, store = _service(tmp_path / "reeval.sqlite3", gateway, clock)
     await service.submit("pc:desk", "request:reeval", "Prepará estudio", "text")
     with pytest.raises(ConversationError, match="reevaluación") as no_reevaluation:
-        await service.answer("panel:living", "plan:study", "approve", "CONFIRMAR", 1)
+        await service.answer("panel:living", "plan:study", "approve", "s", 1)
 
     assert no_reevaluation.value.code == "policy_rejected"
     assert "plan.resolved" not in {event.event_type for event in store.after(0, 30)}
@@ -230,10 +250,12 @@ async def test_calendar_mutations_always_cross_wyss_plan_policy_and_confirmation
 
     await service.submit("panel:living", f"request:{hash(intent)}", intent, "text")
     proposed = next(event for event in store.after(0, 20) if event.event_type == "plan.proposed")
-    await service.answer("panel:living", "plan:study", "approve", "CONFIRMAR", 1)
+    await service.answer("panel:living", "plan:study", "approve", "s", 1)
 
     assert proposed.payload["risk"] == "B"
-    assert proposed.payload["steps"] == [{"description": "Ajustar", "target": "calendar.primary"}]
+    assert proposed.payload["steps"] == [
+        {"description": "Ajustar", "target": "calendar.primary", "parameters": {}}
+    ]
     assert gateway.confirmations == 1
 
 
@@ -254,10 +276,12 @@ async def test_reminder_mutations_cross_wyss_plan_policy_and_confirmation(
 
     await service.submit("android:phone", f"request:{hash(intent)}", intent, "text")
     proposed = next(event for event in store.after(0, 20) if event.event_type == "plan.proposed")
-    await service.answer("android:phone", "plan:study", "approve", "CONFIRMAR", 1)
+    await service.answer("android:phone", "plan:study", "approve", "s", 1)
 
     assert proposed.payload["risk"] == "B"
-    assert proposed.payload["steps"] == [{"description": "Ajustar", "target": "reminder.primary"}]
+    assert proposed.payload["steps"] == [
+        {"description": "Ajustar", "target": "reminder.primary", "parameters": {}}
+    ]
     assert gateway.confirmations == 1
 
 
@@ -280,7 +304,9 @@ async def test_timer_mutations_cross_wyss_plan_policy_and_confirmation(
 
     await service.submit("panel:living", f"request:{hash(intent)}", intent, "text")
     proposed = next(event for event in store.after(0, 20) if event.event_type == "plan.proposed")
-    await service.answer("panel:living", "plan:study", "approve", "CONFIRMAR", 1)
+    await service.answer("panel:living", "plan:study", "approve", "s", 1)
 
-    assert proposed.payload["steps"] == [{"description": "Ajustar", "target": "timer.primary"}]
+    assert proposed.payload["steps"] == [
+        {"description": "Ajustar", "target": "timer.primary", "parameters": {}}
+    ]
     assert gateway.confirmations == 1

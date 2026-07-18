@@ -8,7 +8,7 @@ import os
 import time
 from contextlib import suppress
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import uvicorn
 from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
@@ -19,7 +19,6 @@ from wyss_panel_bridge.adapters.legacy_devices import (
     LegacyDeviceGateway,
     ProjectedLegacyDeviceGateway,
 )
-from wyss_panel_bridge.adapters.wyss import WyssGateway
 from wyss_panel_bridge.application.session_service import SessionService
 from wyss_panel_bridge.composition import (
     CalendarPort,
@@ -31,6 +30,7 @@ from wyss_panel_bridge.composition import (
     TimerPort,
     WeatherPort,
     build_light_gateway,
+    build_orchestrator_gateway,
     build_v2_runtime,
 )
 from wyss_panel_bridge.config import Settings
@@ -71,7 +71,7 @@ def create_app(
         openapi_url=None,
     )
     light_gateway = light_gateway or build_light_gateway(settings)
-    orchestrator = orchestrator_gateway or WyssGateway(settings.wyss_url, settings.wyss_token)
+    orchestrator = orchestrator_gateway or build_orchestrator_gateway(settings)
     runtime = (
         build_v2_runtime(
             settings,
@@ -105,7 +105,7 @@ def create_app(
         started = time.monotonic()
         correlation = request.headers.get("x-correlation-id", "http:anonymous")
         try:
-            response = await call_next(request)
+            response = cast(Response, await call_next(request))
         except Exception:
             if runtime is not None:
                 runtime.observability.observe(

@@ -21,7 +21,7 @@ EventSink = Callable[[ProjectionEvent], Awaitable[None]]
 @dataclass(slots=True)
 class _PendingPlan:
     plan: Plan
-    revision: int = 1
+    revision: int
     resolved: bool = False
 
 
@@ -95,10 +95,9 @@ class ConversationService:
         text: str,
         input_kind: str,
     ) -> None:
-        del input_kind
         await self._state(request_id, "thinking", "Wyss está pensando", "thinking")
         try:
-            turn = await self._gateway.submit_turn(request_id, text, source)
+            turn = await self._gateway.submit_turn(request_id, text, source, input_kind)
         except RuntimeError as error:
             await self._state(request_id, "failed", str(error), "provider-failed")
             raise ConversationError("provider_unavailable", str(error)) from error
@@ -113,7 +112,7 @@ class ConversationService:
             if plan.expires_at_ms <= self._now_ms():
                 await self._state(request_id, "failed", "El plan ya venció", "expired")
                 raise ConversationError("confirmation_required", "El plan ya venció")
-            self._pending[plan.plan_id] = _PendingPlan(plan)
+            self._pending[plan.plan_id] = _PendingPlan(plan, plan.revision)
             await self._publish(
                 "plan.proposed",
                 {
@@ -123,11 +122,15 @@ class ConversationService:
                     "summary": plan.summary,
                     "risk": plan.risk.name,
                     "steps": [
-                        {"description": step.description, "target": step.target}
+                        {
+                            "description": step.description,
+                            "target": step.target,
+                            "parameters": dict(step.parameters),
+                        }
                         for step in plan.steps
                     ],
                     "expires_in_ms": min(plan.expires_at_ms - self._now_ms(), 300_000),
-                    "plan_revision": 1,
+                    "plan_revision": plan.revision,
                 },
                 f"conversation:{request_id}:plan",
                 request_id,
@@ -160,24 +163,9 @@ class ConversationService:
         accepted = decision == "approve"
         if decision not in {"approve", "reject"}:
             raise ConversationError("invalid_message", "Decisión inválida")
-        if accepted and confirmation != "CONFIRMAR":
-            raise ConversationError("confirmation_required", "Escribí CONFIRMAR")
         lock = self._locks.setdefault(plan_id, asyncio.Lock())
         async with lock:
             pending = self._pending.get(plan_id)
-            if pending is None or pending.resolved:
-                raise ConversationError("already_resolved", "El plan ya fue resuelto")
-            if expected_revision != pending.revision:
-                raise ConversationError("conflict", "La revisión del plan cambió")
-            if pending.plan.expires_at_ms <= self._now_ms():
-                pending.resolved = True
-                await self._resolve_event(pending, "expired", source)
-                await self._state(plan_id, "failed", "La confirmación venció", "expired")
-                raise ConversationError("confirmation_required", "La confirmación venció")
-            if pending.plan.risk == RiskLevel.D:
-                pending.resolved = True
-                await self._resolve_event(pending, "rejected", source)
-                raise ConversationError("policy_rejected", "La política D no admite bypass")
             try:
                 result = await self._gateway.confirm_turn(
                     plan_id,
@@ -188,12 +176,43 @@ class ConversationService:
                 )
             except RuntimeError as error:
                 raise ConversationError("provider_unavailable", str(error)) from error
+            if result.outcome != "resolved":
+                if pending is not None and result.outcome in {
+                    "already_resolved",
+                    "expired",
+                    "policy_rejected",
+                }:
+                    pending.resolved = True
+                error_code = {
+                    "already_resolved": "already_resolved",
+                    "conflict": "conflict",
+                    "expired": "confirmation_required",
+                    "policy_rejected": "policy_rejected",
+                    "degraded": "provider_unavailable",
+                    "confirmation_required": "confirmation_required",
+                    "in_progress": "conflict",
+                }.get(result.outcome, "provider_unavailable")
+                raise ConversationError(error_code, result.text)
             if not result.policy_reevaluated:
                 raise ConversationError(
                     "policy_rejected", "Wyss no acreditó la reevaluación de política"
                 )
-            pending.resolved = True
-            await self._resolve_event(pending, decision, source)
+            if pending is not None:
+                pending.resolved = True
+                await self._resolve_event(pending, decision, source)
+            else:
+                await self._publish(
+                    "plan.resolved",
+                    {
+                        "plan_id": plan_id,
+                        "decision": decision,
+                        "resolved_by": source,
+                        "plan_revision": result.revision or expected_revision + 1,
+                        "policy_reevaluated": True,
+                    },
+                    f"conversation:{plan_id}:resolved:{result.revision or expected_revision + 1}",
+                    plan_id,
+                )
             if not accepted:
                 await self._state(plan_id, "idle", result.text, "rejected")
                 return

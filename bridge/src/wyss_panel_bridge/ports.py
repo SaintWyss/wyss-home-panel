@@ -19,7 +19,9 @@ class OrchestratorGateway(Protocol):
 
 
 class WyssGatewayPort(OrchestratorGateway, Protocol):
-    async def submit_turn(self, request_id: str, text: str, source: str) -> ConversationTurn: ...
+    async def submit_turn(
+        self, request_id: str, text: str, source: str, input_kind: str = "text"
+    ) -> ConversationTurn: ...
 
     async def confirm_turn(
         self,

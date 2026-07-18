@@ -69,6 +69,7 @@ class FakeConversationWyss:
     def __init__(self) -> None:
         self.confirmations = 0
         self.turns = 0
+        self.resolved = False
 
     async def submit_intent(self, request_id: str, text: str) -> Plan | None:
         return (await self.submit_turn(request_id, text, "legacy")).plan
@@ -76,7 +77,10 @@ class FakeConversationWyss:
     async def answer_plan(self, plan_id: str, accepted: bool) -> None:
         return None
 
-    async def submit_turn(self, request_id: str, text: str, source: str) -> ConversationTurn:
+    async def submit_turn(
+        self, request_id: str, text: str, source: str, input_kind: str = "text"
+    ) -> ConversationTurn:
+        del input_kind
         self.turns += 1
         return ConversationTurn(
             "Preparé un plan seguro",
@@ -99,6 +103,11 @@ class FakeConversationWyss:
         source: str,
     ) -> ConfirmationResult:
         self.confirmations += 1
+        if self.resolved:
+            return ConfirmationResult(
+                "El plan ya fue resuelto", "failed", False, "already_resolved", 2
+            )
+        self.resolved = True
         return ConfirmationResult("Plan verificado", "verified", True)
 
 
@@ -408,7 +417,7 @@ def _answer(source: str, number: int = 1) -> dict[str, object]:
         "payload": {
             "plan_id": "plan:shared",
             "decision": "approve",
-            "confirmation": "CONFIRMAR",
+            "confirmation": "s",
             "expected_revision": 1,
         },
     }
@@ -1067,7 +1076,7 @@ def test_conversation_and_confirmation_converge_live_on_all_three_clients(
 
     assert duplicate["type"] == "error"
     assert duplicate["payload"]["code"] == "already_resolved"
-    assert wyss.confirmations == 1
+    assert wyss.confirmations == 2
 
 
 def test_voice_client_transcribes_without_implicit_send_then_submits_reviewed_text(
