@@ -316,6 +316,15 @@ int main(int argc, char** argv) {
               {"event-4", "Planificacion", "2026-07-20T09:00:00-03:00",
                "2026-07-20T10:00:00-03:00", false, false}},
              ""});
+        service.receive_reminders(
+            {"America/Argentina/Cordoba",
+             45,
+             true,
+             false,
+             false,
+             {{"reminder-1", "Tomar medicacion", "2026-07-18T10:00:00-03:00", "FREQ=DAILY"},
+              {"reminder-2", "Regar las plantas", "2026-07-19T19:00:00-03:00", ""}},
+             ""});
         view.show_page(ManualPage::Agenda);
         recorder.capture("agenda");
         view.show_page(ManualPage::Sistema);

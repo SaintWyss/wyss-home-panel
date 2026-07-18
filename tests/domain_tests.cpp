@@ -45,6 +45,9 @@ class View final : public wyss::ports::ViewPort {
     void render_media(const wyss::domain::MediaState& value) override { media = value; }
     void render_weather(const wyss::domain::WeatherState& value) override { weather = value; }
     void render_agenda(const wyss::domain::AgendaState& value) override { agenda = value; }
+    void render_reminders(const wyss::domain::ReminderState& value) override {
+        reminders = value;
+    }
     void render_execution(const wyss::domain::ExecutionUpdate& value) override {
         execution = value.state;
     }
@@ -59,6 +62,7 @@ class View final : public wyss::ports::ViewPort {
     wyss::domain::MediaState media;
     wyss::domain::WeatherState weather;
     wyss::domain::AgendaState agenda;
+    wyss::domain::ReminderState reminders;
     std::string toast;
     bool toast_error{false};
     unsigned device_renders{0};
@@ -176,7 +180,17 @@ void media_controls_are_validated_and_forwarded_without_provider_details() {
     View view;
     wyss::application::PanelService service(clock, commands, view);
     service.set_connection(wyss::domain::ConnectionState::Online);
-    service.receive_media({true, true, true, "spotify:track:test", "Tema", "Artista"});
+    service.receive_media(
+        {true,
+         true,
+         true,
+         "spotify:track:test",
+         "Tema",
+         "Artista",
+         0,
+         0,
+         false,
+         wyss::domain::MediaDevice{"desk", "Escritorio", "Computer", true, false, true, 25}});
     assert(view.media.playing);
 
     service.media_action("pause");
@@ -229,6 +243,25 @@ void calendar_projection_is_forwarded_without_oauth_or_local_authority() {
     assert(view.agenda.events.size() == 1);
     assert(view.agenda.events.front().title == "Reunion");
 }
+
+void reminder_projection_is_forwarded_without_local_scheduler_authority() {
+    Clock clock;
+    Commands commands;
+    View view;
+    wyss::application::PanelService service(clock, commands, view);
+    wyss::domain::ReminderState reminders{
+        "America/Argentina/Cordoba",
+        15,
+        true,
+        false,
+        false,
+        {{"reminder-1", "Tomar medicacion", "2026-07-18T10:00:00-03:00", "FREQ=DAILY"}},
+        ""};
+    service.receive_reminders(reminders);
+    assert(view.reminders.available);
+    assert(!view.reminders.notifications_enabled);
+    assert(view.reminders.items.front().recurrence == "FREQ=DAILY");
+}
 }  // namespace
 
 int main() {
@@ -242,5 +275,6 @@ int main() {
     media_controls_are_validated_and_forwarded_without_provider_details();
     weather_projection_is_forwarded_without_local_freshness_invention();
     calendar_projection_is_forwarded_without_oauth_or_local_authority();
+    reminder_projection_is_forwarded_without_local_scheduler_authority();
     return 0;
 }

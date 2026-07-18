@@ -50,6 +50,10 @@ void PanelService::receive_agenda(domain::AgendaState state) {
     view_.render_agenda(state);
 }
 
+void PanelService::receive_reminders(domain::ReminderState state) {
+    view_.render_reminders(state);
+}
+
 void PanelService::media_action(std::string action, std::optional<std::uint8_t> value,
                                 std::string device_id) {
     const bool plain = action == "play" || action == "pause" || action == "previous" ||

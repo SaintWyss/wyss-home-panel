@@ -519,7 +519,7 @@ void validate_payload(const std::string& type, const JsonValue& payload) {
   } else if (type == "projection.snapshot") {
     const std::unordered_set<std::string> allowed = {
         "projection_version", "assistant", "home", "spotify", "weather",
-        "agenda",             "timers",    "cameras",
+        "agenda",             "reminders", "timers", "cameras",
     };
     if (!subset_keys(payload, allowed) || !payload.object.contains("projection_version") ||
         !non_negative_integer(required(payload, "projection_version"))) {

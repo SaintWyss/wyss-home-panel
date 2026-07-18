@@ -444,6 +444,30 @@ void BridgeClient::dispatch(application::PanelService& service, const char* json
         }
         service.receive_agenda(std::move(state));
     };
+    auto reminders = [&](JsonObjectConst value) {
+        domain::ReminderState state;
+        state.timezone = value["timezone"] | "";
+        state.age_seconds = value["age_seconds"] | 0U;
+        state.available = value["available"] | false;
+        state.stale = value["stale"] | false;
+        state.notifications_enabled = value["notifications_enabled"] | false;
+        state.error_code = value["error_code"] | "";
+        for (JsonObjectConst item : value["items"].as<JsonArrayConst>()) {
+            if (state.items.size() >= 8U) break;
+            const char* status = item["status"] | "active";
+            if (std::strcmp(status, "active") != 0) continue;
+            domain::ReminderItem reminder;
+            reminder.reminder_id = item["reminder_id"] | "";
+            reminder.text = item["text"] | "";
+            reminder.due_at = item["due_at"] | "";
+            reminder.recurrence = item["recurrence"] | "";
+            if (!reminder.reminder_id.empty() && !reminder.text.empty() &&
+                !reminder.due_at.empty()) {
+                state.items.push_back(std::move(reminder));
+            }
+        }
+        service.receive_reminders(std::move(state));
+    };
 
     if (std::strcmp(type, "projection.snapshot") == 0) {
         JsonObjectConst payload = document["payload"];
@@ -452,6 +476,7 @@ void BridgeClient::dispatch(application::PanelService& service, const char* json
         spotify(payload["spotify"].as<JsonObjectConst>());
         weather(payload["weather"].as<JsonObjectConst>());
         agenda(payload["agenda"].as<JsonObjectConst>());
+        reminders(payload["reminders"].as<JsonObjectConst>());
     } else if (std::strcmp(type, "projection.delta") == 0) {
         JsonObjectConst payload = document["payload"];
         last_event_id_ = payload["event_id"] | last_event_id_;
@@ -467,6 +492,8 @@ void BridgeClient::dispatch(application::PanelService& service, const char* json
             weather(changes);
         } else if (std::strcmp(aggregate, "agenda") == 0) {
             agenda(changes);
+        } else if (std::strcmp(aggregate, "reminders") == 0) {
+            reminders(changes);
         }
     } else if (std::strcmp(type, "execution.updated") == 0) {
         JsonObjectConst payload = document["payload"];

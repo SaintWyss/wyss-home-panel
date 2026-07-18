@@ -118,6 +118,23 @@ struct AgendaState {
     std::string error_code;
 };
 
+struct ReminderItem {
+    std::string reminder_id;
+    std::string text;
+    std::string due_at;
+    std::string recurrence;
+};
+
+struct ReminderState {
+    std::string timezone;
+    std::uint32_t age_seconds{0};
+    bool available{false};
+    bool stale{false};
+    bool notifications_enabled{false};
+    std::vector<ReminderItem> items;
+    std::string error_code;
+};
+
 struct Intent {
     std::string request_id;
     std::string text;
