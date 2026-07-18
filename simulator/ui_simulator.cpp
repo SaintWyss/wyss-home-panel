@@ -95,6 +95,19 @@ void write_ppm(const fs::path& path, const std::vector<std::uint8_t>& bytes) {
                  static_cast<std::streamsize>(bytes.size()));
 }
 
+void require_fixed_touch_surface(lv_obj_t* object) {
+    constexpr auto gesture_flags = static_cast<lv_obj_flag_t>(
+        LV_OBJ_FLAG_SCROLL_ELASTIC | LV_OBJ_FLAG_SCROLL_MOMENTUM | LV_OBJ_FLAG_SCROLL_CHAIN);
+    if (lv_obj_get_scroll_dir(object) != LV_DIR_NONE ||
+        lv_obj_has_flag_any(object, gesture_flags)) {
+        throw std::runtime_error("la interfaz conserva un objeto desplazable por tacto");
+    }
+    const auto child_count = lv_obj_get_child_cnt(object);
+    for (std::uint32_t index = 0; index < child_count; ++index) {
+        require_fixed_touch_surface(lv_obj_get_child(object, static_cast<std::int32_t>(index)));
+    }
+}
+
 std::map<std::string, std::string> read_manifest(const fs::path& path) {
     std::ifstream input(path);
     if (!input) {
@@ -207,6 +220,7 @@ int main(int argc, char** argv) {
         wyss::adapters::LvglPanelView view;
         wyss::application::PanelService service(clock, commands, view);
         view.begin(service, "light.living");
+        require_fixed_touch_surface(lv_scr_act());
         view.show_page(static_cast<ManualPage>(255));
         if (view.page() != ManualPage::Inicio) {
             throw std::runtime_error("una pagina manual invalida no volvio a Inicio");
