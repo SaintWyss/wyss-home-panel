@@ -76,6 +76,9 @@ timers_enabled = true
 timer_cache_db = "private/timer-cache.sqlite3"
 timer_notification_db = "private/timer-notification-outbox.sqlite3"
 timer_refresh_seconds = 2
+observability_enabled = true
+observability_max_samples = 1024
+max_pending_events = 128
 """.strip(),
         encoding="utf-8",
     )
@@ -131,6 +134,9 @@ timer_refresh_seconds = 2
     assert settings.v2_timer_cache_db == Path("private/timer-cache.sqlite3")
     assert settings.v2_timer_notification_db == Path("private/timer-notification-outbox.sqlite3")
     assert settings.v2_timer_refresh_seconds == 2
+    assert settings.v2_observability_enabled is True
+    assert settings.v2_observability_max_samples == 1024
+    assert settings.v2_max_pending_events == 128
     assert settings.wyss_url == "http://127.0.0.1:8000"
 
 

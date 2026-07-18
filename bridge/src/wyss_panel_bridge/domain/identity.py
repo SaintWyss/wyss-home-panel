@@ -25,6 +25,7 @@ ALLOWED_CAPABILITIES = frozenset(
         "pc.spotify.control",
         "edge.device.execute",
         "edge.publish_state",
+        "ops.read_metrics",
     }
 )
 

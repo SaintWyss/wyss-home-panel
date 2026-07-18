@@ -49,6 +49,7 @@ from wyss_panel_bridge.application.calendar_service import CalendarService
 from wyss_panel_bridge.application.conversation_service import ConversationService
 from wyss_panel_bridge.application.light_service import LightService
 from wyss_panel_bridge.application.media_service import MediaService
+from wyss_panel_bridge.application.observability import ObservabilityRegistry
 from wyss_panel_bridge.application.projection_service import ProjectionCoordinator
 from wyss_panel_bridge.application.reminder_service import ReminderService
 from wyss_panel_bridge.application.timer_service import TimerService
@@ -86,6 +87,7 @@ class V2Runtime:
     calendar: CalendarService
     reminders: ReminderService
     timers: TimerService
+    observability: ObservabilityRegistry
 
 
 def build_light_gateway(settings: Settings) -> LightPort:
@@ -221,6 +223,9 @@ def build_v2_runtime(
         notifications_enabled=settings.v2_notifications_enabled,
         refresh_seconds=settings.v2_timer_refresh_seconds,
     )
+    observability = ObservabilityRegistry(
+        max_samples=settings.v2_observability_max_samples,
+    )
     return V2Runtime(
         events,
         projections,
@@ -232,4 +237,5 @@ def build_v2_runtime(
         calendar_service,
         reminder_service,
         timer_service,
+        observability,
     )

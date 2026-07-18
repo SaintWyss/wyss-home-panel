@@ -5,12 +5,14 @@ import hashlib
 import hmac
 import json
 import os
+import time
 from contextlib import suppress
 from pathlib import Path
 from typing import Any
 
 import uvicorn
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
+from fastapi.responses import Response
 
 from wyss_panel_bridge import __version__
 from wyss_panel_bridge.adapters.legacy_devices import (
@@ -97,6 +99,30 @@ def create_app(
         if runtime is None:
             raise RuntimeError("El runtime v2 no fue construido")
         app.include_router(create_v2_router(settings, runtime))
+
+    @app.middleware("http")
+    async def observe_http(request: Request, call_next: Any) -> Response:
+        started = time.monotonic()
+        correlation = request.headers.get("x-correlation-id", "http:anonymous")
+        try:
+            response = await call_next(request)
+        except Exception:
+            if runtime is not None:
+                runtime.observability.observe(
+                    "http.request",
+                    (time.monotonic() - started) * 1000,
+                    correlation_id=correlation,
+                    status="error",
+                )
+            raise
+        if runtime is not None:
+            runtime.observability.observe(
+                "http.request",
+                (time.monotonic() - started) * 1000,
+                correlation_id=correlation,
+                status="ok" if response.status_code < 500 else "error",
+            )
+        return response
 
     @app.get("/health")
     async def health() -> dict[str, str]:

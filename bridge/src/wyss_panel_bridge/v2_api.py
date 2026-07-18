@@ -65,9 +65,12 @@ class _Connection:
 
 
 class _ClientHub:
-    def __init__(self) -> None:
+    def __init__(self, max_pending: int = 256) -> None:
+        if max_pending <= 0:
+            raise ValueError("límite pending inválido")
         self._connections: dict[str, _Connection] = {}
         self._lock = asyncio.Lock()
+        self._max_pending = max_pending
 
     async def register(
         self,
@@ -111,13 +114,19 @@ class _ClientHub:
     async def broadcast(self, event: ProjectionEvent) -> None:
         async with self._lock:
             ready: list[_Connection] = []
+            overflow: list[_Connection] = []
             for connection in self._connections.values():
                 if event.event_id <= connection.last_event_id:
                     continue
                 if connection.ready:
                     ready.append(connection)
+                elif len(connection.pending) >= self._max_pending:
+                    overflow.append(connection)
                 else:
                     connection.pending.append(event)
+        for connection in overflow:
+            await connection.websocket.close(code=4413, reason="backpressure")
+            await self.remove(connection)
         if ready:
             results = await asyncio.gather(
                 *(self._send_event(connection, event) for connection in ready),
@@ -229,7 +238,7 @@ def create_v2_router(settings: Settings, runtime: V2Runtime) -> APIRouter:
     identities = SqliteIdentityStore(settings.v2_identity_db)
     identity_service = IdentityService(identities)
     ingress_limit = ClientRateLimiter(settings.v2_rate_limit, 1.0)
-    hub = _ClientHub()
+    hub = _ClientHub(settings.v2_max_pending_events)
     runtime.lights.set_event_sink(hub.broadcast)
     runtime.conversation.set_event_sink(hub.broadcast)
     runtime.media.set_event_sink(hub.broadcast)
@@ -237,6 +246,17 @@ def create_v2_router(settings: Settings, runtime: V2Runtime) -> APIRouter:
     runtime.calendar.set_event_sink(hub.broadcast)
     runtime.reminders.set_event_sink(hub.broadcast)
     runtime.timers.set_event_sink(hub.broadcast)
+
+    @router.get("/v2/ops/metrics")
+    async def metrics(request: Request) -> JSONResponse:
+        if not settings.v2_observability_enabled:
+            return _no_store(
+                {"code": "policy_rejected", "message": "Observabilidad desactivada"}, 403
+            )
+        client_id, token = _bearer(request)
+        if not identity_service.authenticate(client_id, token, "ops.read_metrics"):
+            return _no_store({"code": "forbidden", "message": "Falta permiso ops"}, 403)
+        return _no_store(runtime.observability.snapshot())
 
     @router.get("/v2/voice/config")
     async def voice_config() -> JSONResponse:

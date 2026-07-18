@@ -923,6 +923,32 @@ def test_spotify_flag_rolls_back_to_shell_without_calling_provider(tmp_path: Pat
     assert not settings.v2_weather_cache_db.exists()
 
 
+def test_metrics_require_ops_capability_and_contain_only_bounded_dimensions(
+    tmp_path: Path,
+) -> None:
+    settings = replace(
+        _settings(tmp_path, enabled=True),
+        v2_observability_enabled=True,
+    )
+    denied_token = _pair(settings)[0]
+    allowed_token = _pair_as(settings, "pc:ops", "ops.read_metrics")
+
+    with TestClient(_app(settings)) as client:
+        client.get("/health", headers={"x-correlation-id": "health:1"})
+        denied = client.get("/v2/ops/metrics", headers=_headers(denied_token))
+        allowed = client.get(
+            "/v2/ops/metrics",
+            headers=_headers_as("pc:ops", allowed_token),
+        )
+
+    assert denied.status_code == 403
+    assert allowed.status_code == 200
+    payload = allowed.json()
+    assert payload["metrics"]["http.request"]["count"] >= 2
+    assert payload["traces"][-1]["correlation_id"] in {"http:anonymous", "health:1"}
+    assert "authorization" not in json.dumps(payload).lower()
+
+
 def test_light_migration_flag_rolls_back_to_read_only_v2_without_deleting_state(
     tmp_path: Path,
 ) -> None:

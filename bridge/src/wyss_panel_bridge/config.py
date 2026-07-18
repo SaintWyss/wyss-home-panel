@@ -85,6 +85,9 @@ class Settings:
     v2_timer_cache_db: Path = Path("bridge/data/timer-cache.sqlite3")
     v2_timer_notification_db: Path = Path("bridge/data/timer-notification-outbox.sqlite3")
     v2_timer_refresh_seconds: float = 1
+    v2_observability_enabled: bool = False
+    v2_observability_max_samples: int = 512
+    v2_max_pending_events: int = 256
 
     @classmethod
     def load(cls, path: Path) -> Settings:
@@ -152,6 +155,12 @@ class Settings:
         timer_refresh = float(v2.get("timer_refresh_seconds", 1))
         if timer_refresh <= 0:
             raise RuntimeError("Yo recibí un intervalo de timers inválido")
+        observability_max_samples = int(v2.get("observability_max_samples", 512))
+        if not 32 <= observability_max_samples <= 4096:
+            raise RuntimeError("Yo recibí una retención de métricas inválida")
+        max_pending_events = int(v2.get("max_pending_events", 256))
+        if not 16 <= max_pending_events <= 1024:
+            raise RuntimeError("Yo recibí un límite de backpressure inválido")
         return cls(
             host=str(bridge.get("host", "0.0.0.0")),
             port=int(bridge.get("port", 8443)),
@@ -217,4 +226,7 @@ class Settings:
                 )
             ),
             v2_timer_refresh_seconds=timer_refresh,
+            v2_observability_enabled=bool(v2.get("observability_enabled", False)),
+            v2_observability_max_samples=observability_max_samples,
+            v2_max_pending_events=max_pending_events,
         )

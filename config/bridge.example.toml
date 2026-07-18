@@ -90,3 +90,6 @@ timers_enabled = false
 timer_cache_db = "bridge/data/timer-cache.sqlite3"
 timer_notification_db = "bridge/data/timer-notification-outbox.sqlite3"
 timer_refresh_seconds = 1
+observability_enabled = false
+observability_max_samples = 512
+max_pending_events = 256
