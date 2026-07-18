@@ -7,6 +7,7 @@
 namespace wyss::application {
 namespace {
 constexpr std::uint64_t kOptimisticTimeoutMs = 2500;
+constexpr std::uint64_t kQuickActionIntervalMs = 100;
 }
 
 PanelService::PanelService(ports::Clock& clock, ports::CommandPort& commands,
@@ -15,6 +16,9 @@ PanelService::PanelService(ports::Clock& clock, ports::CommandPort& commands,
 
 void PanelService::set_connection(domain::ConnectionState state) {
     connection_ = state;
+    if (state != domain::ConnectionState::Online) {
+        queued_quick_actions_.clear();
+    }
     view_.render_connection(state);
 }
 
@@ -114,6 +118,10 @@ void PanelService::fast_action(std::string entity_id, std::string action,
 }
 
 void PanelService::quick_action(domain::HomeQuickAction action) {
+    if (connection_ != domain::ConnectionState::Online) {
+        view_.render_toast("Wyss está sin conexión", true);
+        return;
+    }
     std::vector<std::string> targets;
     targets.reserve(devices_.size());
     for (const auto& device : devices_) {
@@ -126,13 +134,17 @@ void PanelService::quick_action(domain::HomeQuickAction action) {
         return;
     }
 
-    for (const auto& entity_id : targets) {
+    queued_quick_actions_.clear();
+    for (auto& entity_id : targets) {
         if (action == domain::HomeQuickAction::NightMode) {
-            fast_action(entity_id, "set_brightness", 20U);
+            queued_quick_actions_.push_back(
+                {std::move(entity_id), "set_brightness", 20U});
         } else {
-            fast_action(entity_id, "turn_off");
+            queued_quick_actions_.push_back({std::move(entity_id), "turn_off", std::nullopt});
         }
     }
+    next_quick_action_at_ms_ = clock_.now_ms();
+    dispatch_quick_action();
 }
 
 void PanelService::submit_intent(std::string text) {
@@ -188,7 +200,10 @@ void PanelService::receive_execution(domain::ExecutionUpdate update) {
     view_.render_execution(update);
 }
 
-void PanelService::tick() { rollback_expired(); }
+void PanelService::tick() {
+    rollback_expired();
+    dispatch_quick_action();
+}
 
 const std::vector<domain::DeviceState>& PanelService::devices() const noexcept { return devices_; }
 
@@ -221,6 +236,16 @@ void PanelService::apply_optimistic(const domain::FastCommand& command) {
         found->on = true;
         found->rgb = command.rgb;
     }
+}
+
+void PanelService::dispatch_quick_action() {
+    if (queued_quick_actions_.empty() || clock_.now_ms() < next_quick_action_at_ms_) {
+        return;
+    }
+    auto action = std::move(queued_quick_actions_.front());
+    queued_quick_actions_.pop_front();
+    fast_action(std::move(action.entity_id), std::move(action.action), action.brightness);
+    next_quick_action_at_ms_ = clock_.now_ms() + kQuickActionIntervalMs;
 }
 
 void PanelService::rollback_expired() {

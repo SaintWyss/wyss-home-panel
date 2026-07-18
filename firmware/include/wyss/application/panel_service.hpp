@@ -44,8 +44,15 @@ class PanelService final {
         std::uint64_t expires_at_ms;
     };
 
+    struct QueuedQuickAction {
+        std::string entity_id;
+        std::string action;
+        std::optional<std::uint8_t> brightness;
+    };
+
     [[nodiscard]] std::string next_request_id();
     void apply_optimistic(const domain::FastCommand& command);
+    void dispatch_quick_action();
     void rollback(std::string_view entity_id, std::string_view message);
     void rollback_expired();
 
@@ -55,6 +62,8 @@ class PanelService final {
     domain::ConnectionState connection_{domain::ConnectionState::Offline};
     std::vector<domain::DeviceState> devices_;
     std::unordered_map<std::string, OptimisticState> optimistic_;
+    std::deque<QueuedQuickAction> queued_quick_actions_;
+    std::uint64_t next_quick_action_at_ms_{0};
     std::optional<domain::Plan> pending_plan_;
     domain::MediaState media_;
     std::uint32_t sequence_{0};

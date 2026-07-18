@@ -167,6 +167,9 @@ void home_quick_actions_use_the_authorized_fast_light_path() {
 
     service.quick_action(wyss::domain::HomeQuickAction::NightMode);
     assert(commands.intents == 0);
+    assert(commands.fast_commands.size() == 1);
+    clock.now += 100;
+    service.tick();
     assert(commands.fast_commands.size() == 2);
     for (const auto& command : commands.fast_commands) {
         assert(command.action == "set_brightness");
@@ -176,6 +179,9 @@ void home_quick_actions_use_the_authorized_fast_light_path() {
 
     commands.fast_commands.clear();
     service.quick_action(wyss::domain::HomeQuickAction::AllOff);
+    assert(commands.fast_commands.size() == 1);
+    clock.now += 100;
+    service.tick();
     assert(commands.fast_commands.size() == 2);
     for (const auto& command : commands.fast_commands) {
         assert(command.action == "turn_off");
@@ -184,6 +190,9 @@ void home_quick_actions_use_the_authorized_fast_light_path() {
 
     commands.fast_commands.clear();
     service.quick_action(wyss::domain::HomeQuickAction::Leaving);
+    assert(commands.fast_commands.size() == 1);
+    clock.now += 100;
+    service.tick();
     assert(commands.fast_commands.size() == 2);
     for (const auto& command : commands.fast_commands) {
         assert(command.action == "turn_off");
