@@ -152,6 +152,7 @@ El Home Edge materializa esta vista sólo desde el event log ordenado. Un reduce
     "spotify":{},
     "weather":{"days":[]},
     "agenda":{"next":[]},
+    "reminders":{"items":[]},
     "timers":[],
     "cameras":[]
   }

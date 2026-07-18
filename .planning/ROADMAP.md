@@ -153,7 +153,7 @@ Este milestone lleva el baseline v1 hasta un sistema doméstico v2.0.0 coherente
   2. **[Externa + física]** Con una cuenta real, el owner ve agenda diaria/semanal y crea, edita o elimina un evento desde los clientes previstos, pasando por plan, policy y confirmación.
   3. **[Automatizada + externa]** Sync incremental, paginación, recurrencia, all-day, timezone, token vencido e invalidación de cursor convergen sin duplicar ni perder eventos.
   4. **[Automatizada]** Revocar write scope conserva lectura/cache explícito y ningún token aparece en clientes o logs.
-**Plans**: TBD
+**Plans**: 2/2 automated; O-07 and account physical pending
 **UI hint**: yes
 
 ### Phase 12: PR-11 — Recordatorios y notificaciones Android
@@ -165,7 +165,7 @@ Este milestone lleva el baseline v1 hasta un sistema doméstico v2.0.0 coherente
   2. **[Automatizada]** Recordatorios únicos o recurrentes sobreviven reinicio y permiten completar o posponer sin perder su próxima ocurrencia.
   3. **[Física]** Tras pérdida y recuperación de conectividad, Android físico entrega una sola notificación y su deep link abre el recordatorio correcto; permisos negados se muestran sin borrar el dato.
   4. **[Automatizada]** Desactivar push conserva el recordatorio autoritativo en Wyss y permite reanudar entrega sin duplicación.
-**Plans**: TBD
+**Plans**: 2/2 automated; O-04 and Android physical pending
 **UI hint**: yes
 
 ### Phase 13: PR-12 — Temporizadores durables
