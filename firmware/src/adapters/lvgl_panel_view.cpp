@@ -39,6 +39,17 @@ void prepare_layer(lv_obj_t* object) {
     lv_obj_clear_flag(object, LV_OBJ_FLAG_SCROLLABLE);
 }
 
+void disable_touch_scroll(lv_obj_t* object) {
+    constexpr auto gesture_flags = static_cast<lv_obj_flag_t>(
+        LV_OBJ_FLAG_SCROLL_ELASTIC | LV_OBJ_FLAG_SCROLL_MOMENTUM | LV_OBJ_FLAG_SCROLL_CHAIN);
+    lv_obj_set_scroll_dir(object, LV_DIR_NONE);
+    lv_obj_clear_flag(object, gesture_flags);
+    const auto child_count = lv_obj_get_child_cnt(object);
+    for (std::uint32_t index = 0; index < child_count; ++index) {
+        disable_touch_scroll(lv_obj_get_child(object, static_cast<std::int32_t>(index)));
+    }
+}
+
 lv_obj_t* panel(lv_obj_t* parent, int x, int y, int width, int height) {
     lv_obj_t* object = lv_obj_create(parent);
     lv_obj_set_size(object, width, height);
@@ -553,6 +564,7 @@ void LvglPanelView::begin(application::PanelService& service, std::string primar
     lv_obj_set_style_pad_ver(toast_, 10, 0);
     lv_obj_align(toast_, LV_ALIGN_BOTTOM_MID, 0, -14);
     lv_obj_add_flag(toast_, LV_OBJ_FLAG_HIDDEN);
+    disable_touch_scroll(screen);
     show_page(ui::ManualPage::Inicio);
     set_mode(ui::ShellMode::Manual);
 }
