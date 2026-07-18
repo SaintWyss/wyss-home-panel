@@ -30,6 +30,7 @@ class LvglPanelView final : public ports::ViewPort {
     void render_weather(const domain::WeatherState& state) override;
     void render_agenda(const domain::AgendaState& state) override;
     void render_reminders(const domain::ReminderState& state) override;
+    void render_timers(const domain::TimerState& state) override;
     void render_execution(const domain::ExecutionUpdate& update) override;
     void render_plan(const domain::Plan& plan) override;
     void render_toast(std::string_view message, bool error) override;
@@ -95,6 +96,7 @@ class LvglPanelView final : public ports::ViewPort {
     lv_obj_t* agenda_state_{nullptr};
     lv_obj_t* agenda_meta_{nullptr};
     lv_obj_t* reminder_state_{nullptr};
+    lv_obj_t* timer_state_{nullptr};
     lv_obj_t* brightness_{nullptr};
     lv_obj_t* brightness_label_{nullptr};
     lv_obj_t* media_title_{nullptr};
@@ -113,7 +115,7 @@ class LvglPanelView final : public ports::ViewPort {
     std::array<lv_obj_t*, 4> color_buttons_{};
     std::array<lv_obj_t*, 4> media_buttons_{};
     std::array<lv_obj_t*, 7> weather_days_{};
-    std::array<lv_obj_t*, 5> agenda_events_{};
+    std::array<lv_obj_t*, 4> agenda_events_{};
     std::array<std::string, 3> device_entities_{};
     std::array<std::string, 3> scene_entities_{};
     lv_obj_t* conversation_state_{nullptr};
@@ -138,12 +140,14 @@ class LvglPanelView final : public ports::ViewPort {
     char sleeping_weather_part_[128]{"Clima sin sincronizar"};
     char sleeping_agenda_part_[128]{"Agenda sin sincronizar"};
     char sleeping_reminder_part_[128]{"Recordatorios sin sincronizar"};
-    char sleeping_summary_text_[404]{};
+    char sleeping_timer_part_[128]{"Timers sin sincronizar"};
+    char sleeping_summary_text_[536]{};
     char weather_day_text_[7][48]{};
     char agenda_state_text_[192]{};
     char agenda_meta_text_[160]{};
-    char agenda_event_text_[5][224]{};
+    char agenda_event_text_[4][224]{};
     char reminder_state_text_[224]{};
+    char timer_state_text_[224]{};
     char device_text_[3][64]{};
     char scene_text_[3][40]{};
 };

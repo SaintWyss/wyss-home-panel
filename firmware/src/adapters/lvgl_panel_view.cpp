@@ -421,9 +421,13 @@ void LvglPanelView::begin(application::PanelService& service, std::string primar
     }
     reminder_state_ = label(agenda, "RECORDATORIOS  Sin sincronizar", &lv_font_montserrat_12,
                             kAmber);
-    lv_obj_set_pos(reminder_state_, 0, 334);
+    lv_obj_set_pos(reminder_state_, 0, 292);
     lv_obj_set_width(reminder_state_, 700);
     lv_label_set_long_mode(reminder_state_, LV_LABEL_LONG_DOT);
+    timer_state_ = label(agenda, "TIMERS  Sin sincronizar", &lv_font_montserrat_12, kAmber);
+    lv_obj_set_pos(timer_state_, 0, 328);
+    lv_obj_set_width(timer_state_, 700);
+    lv_label_set_long_mode(timer_state_, LV_LABEL_LONG_DOT);
 
     lv_obj_t* system = panel(pages_[4], 20, 18, 760, 370);
     label(system, "SISTEMA", &lv_font_montserrat_12, kCyan);
@@ -861,9 +865,36 @@ void LvglPanelView::render_reminders(const domain::ReminderState& state) {
     refresh_sleeping_summary();
 }
 
+void LvglPanelView::render_timers(const domain::TimerState& state) {
+    const std::uint32_t state_color = !state.available ? kRed : (state.stale ? kAmber : kMuted);
+    if (!state.available) {
+        std::snprintf(timer_state_text_, sizeof(timer_state_text_), "TIMERS  No disponibles");
+        std::snprintf(sleeping_timer_part_, sizeof(sleeping_timer_part_),
+                      "timers no disponibles");
+    } else if (state.items.empty()) {
+        std::snprintf(timer_state_text_, sizeof(timer_state_text_), "TIMERS  Sin timers activos");
+        std::snprintf(sleeping_timer_part_, sizeof(sleeping_timer_part_), "sin timers activos");
+    } else {
+        const auto label = ascii_safe(state.items.front().label);
+        const auto remaining = state.items.front().remaining_seconds;
+        std::snprintf(timer_state_text_, sizeof(timer_state_text_),
+                      "TIMERS  %u activos - %s %02u:%02u",
+                      static_cast<unsigned>(state.items.size()), label.c_str(),
+                      static_cast<unsigned>(remaining / 60U),
+                      static_cast<unsigned>(remaining % 60U));
+        std::snprintf(sleeping_timer_part_, sizeof(sleeping_timer_part_), "%s %02u:%02u",
+                      label.c_str(), static_cast<unsigned>(remaining / 60U),
+                      static_cast<unsigned>(remaining % 60U));
+    }
+    lv_label_set_text_static(timer_state_, timer_state_text_);
+    lv_obj_set_style_text_color(timer_state_, color(state_color), 0);
+    refresh_sleeping_summary();
+}
+
 void LvglPanelView::refresh_sleeping_summary() {
-    std::snprintf(sleeping_summary_text_, sizeof(sleeping_summary_text_), "%s   -   %s   -   %s",
-                  sleeping_weather_part_, sleeping_agenda_part_, sleeping_reminder_part_);
+    std::snprintf(sleeping_summary_text_, sizeof(sleeping_summary_text_),
+                  "%s   -   %s   -   %s   -   %s", sleeping_weather_part_,
+                  sleeping_agenda_part_, sleeping_reminder_part_, sleeping_timer_part_);
     lv_label_set_text_static(sleeping_weather_, sleeping_summary_text_);
 }
 

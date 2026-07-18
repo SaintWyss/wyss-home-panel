@@ -48,6 +48,7 @@ class View final : public wyss::ports::ViewPort {
     void render_reminders(const wyss::domain::ReminderState& value) override {
         reminders = value;
     }
+    void render_timers(const wyss::domain::TimerState& value) override { timers = value; }
     void render_execution(const wyss::domain::ExecutionUpdate& value) override {
         execution = value.state;
     }
@@ -63,6 +64,7 @@ class View final : public wyss::ports::ViewPort {
     wyss::domain::WeatherState weather;
     wyss::domain::AgendaState agenda;
     wyss::domain::ReminderState reminders;
+    wyss::domain::TimerState timers;
     std::string toast;
     bool toast_error{false};
     unsigned device_renders{0};
@@ -262,6 +264,23 @@ void reminder_projection_is_forwarded_without_local_scheduler_authority() {
     assert(!view.reminders.notifications_enabled);
     assert(view.reminders.items.front().recurrence == "FREQ=DAILY");
 }
+
+void timer_projection_is_forwarded_without_local_deadline_authority() {
+    Clock clock;
+    Commands commands;
+    View view;
+    wyss::application::PanelService service(clock, commands, view);
+    wyss::domain::TimerState timers{15,
+                                    true,
+                                    false,
+                                    {{"timer-1", "Horno", "running", 600, 300,
+                                      "2026-07-18T01:05:00Z", "horno"}},
+                                    ""};
+    service.receive_timers(timers);
+    assert(view.timers.available);
+    assert(view.timers.items.front().remaining_seconds == 300);
+    assert(view.timers.items.front().deadline_at == "2026-07-18T01:05:00Z");
+}
 }  // namespace
 
 int main() {
@@ -276,5 +295,6 @@ int main() {
     weather_projection_is_forwarded_without_local_freshness_invention();
     calendar_projection_is_forwarded_without_oauth_or_local_authority();
     reminder_projection_is_forwarded_without_local_scheduler_authority();
+    timer_projection_is_forwarded_without_local_deadline_authority();
     return 0;
 }

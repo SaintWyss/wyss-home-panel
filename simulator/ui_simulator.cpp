@@ -325,6 +325,12 @@ int main(int argc, char** argv) {
              {{"reminder-1", "Tomar medicacion", "2026-07-18T10:00:00-03:00", "FREQ=DAILY"},
               {"reminder-2", "Regar las plantas", "2026-07-19T19:00:00-03:00", ""}},
              ""});
+        service.receive_timers(
+            {30,
+             true,
+             false,
+             {{"timer-1", "Horno", "running", 600, 300, "2026-07-18T01:05:00Z", "horno"}},
+             ""});
         view.show_page(ManualPage::Agenda);
         recorder.capture("agenda");
         view.show_page(ManualPage::Sistema);

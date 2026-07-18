@@ -33,6 +33,7 @@ class ViewPort {
     virtual void render_weather(const domain::WeatherState& state) = 0;
     virtual void render_agenda(const domain::AgendaState& state) = 0;
     virtual void render_reminders(const domain::ReminderState& state) = 0;
+    virtual void render_timers(const domain::TimerState& state) = 0;
     virtual void render_execution(const domain::ExecutionUpdate& update) = 0;
     virtual void render_plan(const domain::Plan& plan) = 0;
     virtual void render_toast(std::string_view message, bool error) = 0;

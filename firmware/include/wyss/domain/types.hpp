@@ -135,6 +135,24 @@ struct ReminderState {
     std::string error_code;
 };
 
+struct TimerItem {
+    std::string timer_id;
+    std::string label;
+    std::string status;
+    std::uint32_t duration_seconds{0};
+    std::uint32_t remaining_seconds{0};
+    std::string deadline_at;
+    std::string preset;
+};
+
+struct TimerState {
+    std::uint32_t age_seconds{0};
+    bool available{false};
+    bool stale{false};
+    std::vector<TimerItem> items;
+    std::string error_code;
+};
+
 struct Intent {
     std::string request_id;
     std::string text;

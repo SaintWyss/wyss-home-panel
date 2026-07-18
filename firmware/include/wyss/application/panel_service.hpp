@@ -22,6 +22,7 @@ class PanelService final {
     void receive_weather(domain::WeatherState state);
     void receive_agenda(domain::AgendaState state);
     void receive_reminders(domain::ReminderState state);
+    void receive_timers(domain::TimerState state);
     void media_action(std::string action, std::optional<std::uint8_t> value = std::nullopt,
                       std::string device_id = {});
     void fast_action(std::string entity_id, std::string action,
