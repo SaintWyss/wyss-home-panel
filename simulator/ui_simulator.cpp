@@ -97,7 +97,8 @@ void write_ppm(const fs::path& path, const std::vector<std::uint8_t>& bytes) {
 
 void require_fixed_touch_surface(lv_obj_t* object) {
     constexpr auto gesture_flags = static_cast<lv_obj_flag_t>(
-        LV_OBJ_FLAG_SCROLL_ELASTIC | LV_OBJ_FLAG_SCROLL_MOMENTUM | LV_OBJ_FLAG_SCROLL_CHAIN);
+        LV_OBJ_FLAG_SCROLL_ELASTIC | LV_OBJ_FLAG_SCROLL_MOMENTUM | LV_OBJ_FLAG_SCROLL_CHAIN |
+        LV_OBJ_FLAG_SCROLL_ON_FOCUS | LV_OBJ_FLAG_SCROLL_WITH_ARROW);
     if (lv_obj_get_scroll_dir(object) != LV_DIR_NONE ||
         lv_obj_has_flag_any(object, gesture_flags)) {
         throw std::runtime_error("la interfaz conserva un objeto desplazable por tacto");

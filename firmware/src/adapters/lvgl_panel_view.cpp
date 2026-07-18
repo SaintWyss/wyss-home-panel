@@ -41,9 +41,11 @@ void prepare_layer(lv_obj_t* object) {
 
 void disable_touch_scroll(lv_obj_t* object) {
     constexpr auto gesture_flags = static_cast<lv_obj_flag_t>(
-        LV_OBJ_FLAG_SCROLL_ELASTIC | LV_OBJ_FLAG_SCROLL_MOMENTUM | LV_OBJ_FLAG_SCROLL_CHAIN);
+        LV_OBJ_FLAG_SCROLL_ELASTIC | LV_OBJ_FLAG_SCROLL_MOMENTUM | LV_OBJ_FLAG_SCROLL_CHAIN |
+        LV_OBJ_FLAG_SCROLL_ON_FOCUS | LV_OBJ_FLAG_SCROLL_WITH_ARROW);
     lv_obj_set_scroll_dir(object, LV_DIR_NONE);
     lv_obj_clear_flag(object, gesture_flags);
+    lv_obj_scroll_to(object, 0, 0, LV_ANIM_OFF);
     const auto child_count = lv_obj_get_child_cnt(object);
     for (std::uint32_t index = 0; index < child_count; ++index) {
         disable_touch_scroll(lv_obj_get_child(object, static_cast<std::int32_t>(index)));
