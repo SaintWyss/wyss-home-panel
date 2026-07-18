@@ -229,8 +229,27 @@ class TuyaGateway:
             response = await asyncio.to_thread(managed.device.set_multiple_values, values)
         except Exception as error:
             raise RuntimeError("Yo no pude comunicarme con el foco Tuya") from error
-        if not isinstance(response, dict) or response.get("Error"):
-            raise RuntimeError("Yo no recibí confirmación válida del foco Tuya")
+        if isinstance(response, dict):
+            if response.get("Error") or response.get("Err"):
+                raise RuntimeError("Yo no recibí confirmación válida del foco Tuya")
+            return
+
+        # Algunos focos Tuya aplican un write de un único DP pero no devuelven ACK.
+        # Sólo lo aceptamos si una lectura posterior confirma exactamente el valor pedido.
+        for attempt in range(3):
+            try:
+                status = await asyncio.to_thread(managed.device.status)
+            except Exception:
+                status = None
+            if isinstance(status, dict) and not status.get("Error") and not status.get("Err"):
+                raw_dps = status.get("dps")
+                if isinstance(raw_dps, Mapping) and all(
+                    self._dp(raw_dps, key, object()) == value for key, value in values.items()
+                ):
+                    return
+            if attempt < 2:
+                await asyncio.sleep(0.1)
+        raise RuntimeError("Yo no recibí confirmación válida del foco Tuya")
 
     async def _read(self, managed: _ManagedLight) -> DeviceState:
         config = managed.config
