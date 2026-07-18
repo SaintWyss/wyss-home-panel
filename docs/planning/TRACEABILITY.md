@@ -11,7 +11,7 @@ Yo actualizo esta matriz en cada PR. Yo no marco una fila como completa sin enla
 | RF-03 Luces | PR-05 | domain/contract/protocol | LEDVANCE real | Baseline existente; migración pendiente |
 | RF-04 Spotify | PR-08 | `test_media_adapters` + `test_media_service` + `test_v2_api` | Cuenta Premium real | Automatizado; O-07/cuenta pendiente |
 | RF-05 Clima | PR-09 | provider/cache/timezone | Panel real | Planificado |
-| RF-06 Calendar | PR-10 | OAuth/sync/CRUD/policy | Calendar real | Planificado |
+| RF-06 Calendar | PR-10 | `test_calendar` + conversación + v2 API + UI visual | Calendar real | Automatizado; O-07/cuenta/física pendiente |
 | RF-07 Temporizadores | PR-12 | clock/recovery/idempotency | Android notification | Planificado |
 | RF-08 Cámaras | PR-13 | adapter/SSRF/no-retention | Cámara real | Hardware pendiente |
 | RF-09 Modo dormido | PR-04 | UI state/screenshot | FPS/brillo/energía | Planificado |

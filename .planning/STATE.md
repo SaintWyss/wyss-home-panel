@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0.0
 milestone_name: final
 status: executing
-stopped_at: Phase 01/03/04/05/06/07/08/09/10 physical or external evidence pending
-last_updated: "2026-07-18T00:11:47Z"
-last_activity: 2026-07-18 -- Phase 10 weather automation, real provider, panel boot and rollback verified
+stopped_at: Phase 01/03/04/05/06/07/08/09/10/11 physical or external evidence pending
+last_updated: "2026-07-18T00:41:05Z"
+last_activity: 2026-07-18 -- Phase 11 Calendar automation, panel boot and rollback verified
 progress:
   total_phases: 20
   completed_phases: 1
-  total_plans: 30
-  completed_plans: 28
+  total_plans: 32
+  completed_plans: 30
   percent: 5
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-17)
 
 **Core value:** Toda acción doméstica debe pasar por una única autoridad de política y ejecución de Wyss, conservar coherencia observable entre clientes y fallar de forma segura.
-**Current focus:** Phase 01/03/04/05/06/07/08/09/10 external gates; Phase 11 automation next
+**Current focus:** Phase 01/03/04/05/06/07/08/09/10/11 external gates; Phase 12 automation next
 
 ## Current Position
 
-Phase: 01, 03, 04, 05, 06, 07, 08, 09 and 10 physical/external gates pending; 02 complete
-Plan: Continue automated roadmap work from PR-10
+Phase: 01, 03, 04, 05, 06, 07, 08, 09, 10 and 11 physical/external gates pending; 02 complete
+Plan: Continue automated roadmap work from PR-11
 Status: Continuing autonomous roadmap work
-Last activity: 2026-07-18 -- Phase 10 weather automation, real provider, panel boot and rollback verified
+Last activity: 2026-07-18 -- Phase 11 Calendar automation, panel boot and rollback verified
 
 Progress: [█░░░░░░░░░] 5% of roadmap phases complete
 
@@ -36,7 +36,7 @@ Progress: [█░░░░░░░░░] 5% of roadmap phases complete
 
 **Velocity:**
 
-- Total plans completed: 23
+- Total plans completed: 30
 - GSD-lite: timing por plan no se registra para evitar ceremonia innecesaria.
 
 **By Phase:**
@@ -53,6 +53,7 @@ Progress: [█░░░░░░░░░] 5% of roadmap phases complete
 | 08 | 3/3 automated | Not tracked | Not tracked |
 | 09 | 3/3 automated | Not tracked | Not tracked |
 | 10 | 2/2 automated | Not tracked | Not tracked |
+| 11 | 2/2 automated | Not tracked | Not tracked |
 
 **Recent Trend:**
 
@@ -95,6 +96,9 @@ None yet.
 - Phase 10 has a real Open-Meteo response, seven-day projection, durable explicit cache, traffic
   budget, visual regression and physical panel boot/rollback. The tested panel lacked v2 NVS
   provisioning, so real weather in manual and sleeping modes remains physical evidence pending.
+- Phase 11 has exact read/write scope gates, bounded sanitized projection, durable incremental
+  sync/resync, mutation confirmation tests, Agenda UI and physical panel boot/rollback. O-07,
+  a real Google account, v2 NVS and three physical clients remain external evidence pending.
 - Gates O-01..O-07 require explicit operator decisions at Phases 5, 8, 9/11, 12, 14, 15 and 20.
 - Android, Spotify, Google Calendar, camera hardware and private remote network are external dependencies; simulations cannot close their physical criteria.
 - Secure Boot, Flash Encryption and eFuses remain untouched without separate explicit authorization.
@@ -107,6 +111,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-18T00:11:47Z
-Stopped at: Phase 10 automated/provider/panel boot complete; physical projection pending
-Resume file: .planning/phases/10-pr-09-clima-semanal/10-VERIFICATION.md
+Last session: 2026-07-18T00:41:05Z
+Stopped at: Phase 11 automated/panel boot complete; O-07 and real account pending
+Resume file: .planning/phases/11-pr-10-google-calendar/11-VERIFICATION.md

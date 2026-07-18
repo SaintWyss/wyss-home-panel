@@ -44,11 +44,15 @@ Yo fijo Resistencia, Chaco mediante coordenadas configurables y zona `America/Ar
 
 **Autoridad:** Google Calendar.
 
-**Adapter:** Google Calendar API.
+**Adapter:** `WyssCalendarGateway` sobre la API interna autenticada de Wyss; sólo Wyss integra la
+API Google Calendar y conserva OAuth.
 
-**Ports:** `CalendarQueryPort` y `CalendarCommandPort`.
+**Ports:** `CalendarPort` y `CalendarStorePort`.
 
-Yo implemento OAuth con acceso offline y scopes separados de lectura/escritura. Yo consulto agenda incremental mediante sync token, manejo zonas horarias y eventos all-day, y recupero de tokens de sincronización inválidos mediante resync controlado.
+Yo uso `calendar.events.owned.readonly` para lectura o `calendar.events.owned` para escritura, nunca
+ambos ni scopes más amplios. Yo consulto una ventana semanal incremental mediante sync token,
+manejo paginación, recurrencia, timezone y eventos all-day, y recupero cursores inválidos mediante
+resync atómico. Home Edge persiste sólo agenda sanitizada y cursor opaco.
 
 Yo convierto crear, editar y eliminar en planes de Wyss. Yo clasifico lectura como A, creación/edición normal como B y eliminaciones o cambios masivos como C; la política real conserva la última palabra.
 

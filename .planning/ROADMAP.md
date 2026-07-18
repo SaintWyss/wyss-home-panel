@@ -275,7 +275,7 @@ Este milestone lleva el baseline v1 hasta un sistema doméstico v2.0.0 coherente
 | 8. PR-07 — Push-to-talk PC y Android | 3/3 | Automated complete; O-01 and physical pending | - |
 | 9. PR-08 — Spotify Premium | 3/3 | Automated + panel boot complete; O-07/account pending | - |
 | 10. PR-09 — Clima semanal | 2/2 | Automated + provider + panel boot complete; physical projection pending | - |
-| 11. PR-10 — Google Calendar | 0/TBD | Not started | - |
+| 11. PR-10 — Google Calendar | 2/2 | Automated + panel boot complete; O-07/account pending | - |
 | 12. PR-11 — Recordatorios y notificaciones Android | 0/TBD | Not started | - |
 | 13. PR-12 — Temporizadores durables | 0/TBD | Not started | - |
 | 14. PR-13 — Cámaras | 0/TBD | Not started | - |
