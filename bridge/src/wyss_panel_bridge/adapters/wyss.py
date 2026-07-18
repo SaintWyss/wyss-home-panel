@@ -95,7 +95,10 @@ class WyssGateway:
             revision=max(1, int(raw.get("revision", 1))),
         )
 
-    async def answer_plan(self, plan_id: str, accepted: bool) -> None:
+    async def answer_plan(
+        self, plan_id: str, accepted: bool, risk: int, expected_revision: int
+    ) -> None:
+        del risk, expected_revision
         response = await self._client.post(
             f"/api/confirm/{plan_id}", json={"confirmed": accepted, "source": "home-panel"}
         )
@@ -197,8 +200,19 @@ class WyssUnixGateway:
         )
         return ConversationTurn(text_result[:1000], state, plan)
 
-    async def answer_plan(self, plan_id: str, accepted: bool) -> None:
-        await self.confirm_turn(plan_id, accepted, "s" if accepted else "", 1, "home-panel")
+    async def answer_plan(
+        self, plan_id: str, accepted: bool, risk: int, expected_revision: int
+    ) -> None:
+        confirmation = "CONFIRMAR" if accepted and risk == int(RiskLevel.C) else "s"
+        result = await self.confirm_turn(
+            plan_id,
+            accepted,
+            confirmation if accepted else "",
+            expected_revision,
+            "home-panel",
+        )
+        if result.outcome != "resolved":
+            raise RuntimeError("La autoridad Wyss rechazó la respuesta del plan")
 
     async def confirm_turn(
         self,

@@ -31,11 +31,23 @@ class FakeDevices:
 
 
 class FakeWyss:
-    async def submit_intent(self, request_id: str, text: str) -> Plan | None:
-        return Plan("plan-1", text, RiskLevel.B, (PlanStep("Apagar", "light.living"),), 5000)
+    def __init__(self) -> None:
+        self.answer: tuple[str, bool, int, int] | None = None
 
-    async def answer_plan(self, plan_id: str, accepted: bool) -> None:
-        return None
+    async def submit_intent(self, request_id: str, text: str) -> Plan | None:
+        return Plan(
+            "plan-1",
+            text,
+            RiskLevel.B,
+            (PlanStep("Apagar", "light.living"),),
+            5000,
+            revision=7,
+        )
+
+    async def answer_plan(
+        self, plan_id: str, accepted: bool, risk: int, expected_revision: int
+    ) -> None:
+        self.answer = (plan_id, accepted, risk, expected_revision)
 
 
 @pytest.mark.asyncio
@@ -96,9 +108,10 @@ async def test_v1_compatibility_path_accepts_verified_rgb_color() -> None:
 
 @pytest.mark.asyncio
 async def test_intent_becomes_a_confirmable_plan() -> None:
+    gateway = FakeWyss()
     service = SessionService(
         FakeDevices(),
-        FakeWyss(),
+        gateway,
         frozenset({"light.living"}),
         now_ms=lambda: 1000,
     )
@@ -109,3 +122,11 @@ async def test_intent_becomes_a_confirmable_plan() -> None:
     assert responses[0]["risk"] == 1
     assert responses[0]["steps"][0]["target"] == "light.living"
     assert responses[0]["expires_in_ms"] == 4000
+    assert responses[0]["revision"] == 7
+
+    answered = await service.handle(
+        {"v": 1, "type": "plan.answer", "plan_id": "plan-1", "accepted": True}
+    )
+
+    assert answered[0]["state"] == "executing"
+    assert gateway.answer == ("plan-1", True, int(RiskLevel.B), 7)

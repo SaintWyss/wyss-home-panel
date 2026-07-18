@@ -183,6 +183,10 @@ class ConversationService:
                     "policy_rejected",
                 }:
                     pending.resolved = True
+                if pending is not None and result.outcome in {"expired", "policy_rejected"}:
+                    terminal = "expired" if result.outcome == "expired" else "rejected"
+                    await self._resolve_event(pending, terminal, source)
+                    await self._state(plan_id, "failed", result.text, terminal)
                 error_code = {
                     "already_resolved": "already_resolved",
                     "conflict": "conflict",

@@ -74,7 +74,9 @@ class FakeConversationWyss:
     async def submit_intent(self, request_id: str, text: str) -> Plan | None:
         return (await self.submit_turn(request_id, text, "legacy")).plan
 
-    async def answer_plan(self, plan_id: str, accepted: bool) -> None:
+    async def answer_plan(
+        self, plan_id: str, accepted: bool, risk: int, expected_revision: int
+    ) -> None:
         return None
 
     async def submit_turn(

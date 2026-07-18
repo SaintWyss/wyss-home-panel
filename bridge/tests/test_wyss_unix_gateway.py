@@ -114,3 +114,28 @@ async def test_unix_gateway_fails_closed_without_exposing_transport_error(tmp_pa
         await gateway.submit_turn("request:2", "hola", "panel:living")
 
     assert "missing.sock" not in str(captured.value)
+
+
+@pytest.mark.asyncio
+async def test_legacy_answer_preserves_c_risk_and_authority_revision(tmp_path: Path) -> None:
+    stub = UnixRpcStub(
+        tmp_path / "wyss-home.sock",
+        [
+            {
+                "outcome": "resolved",
+                "status": "verified",
+                "policy_reevaluated": True,
+                "revision": 8,
+            }
+        ],
+    )
+    server = await asyncio.start_unix_server(stub.handle, stub.socket_path)
+    try:
+        await WyssUnixGateway(stub.socket_path).answer_plan("pending:c", True, int(RiskLevel.C), 7)
+    finally:
+        server.close()
+        await server.wait_closed()
+
+    params = stub.requests[0]["params"]
+    assert params["confirmation"] == "CONFIRMAR"
+    assert params["expected_revision"] == 7

@@ -42,7 +42,9 @@ class FixtureWyss:
             5_000,
         )
 
-    async def answer_plan(self, plan_id: str, accepted: bool) -> None:
+    async def answer_plan(
+        self, plan_id: str, accepted: bool, risk: int, expected_revision: int
+    ) -> None:
         return None
 
 

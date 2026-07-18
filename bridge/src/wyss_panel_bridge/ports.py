@@ -15,7 +15,9 @@ class DeviceGateway(Protocol):
 class OrchestratorGateway(Protocol):
     async def submit_intent(self, request_id: str, text: str) -> Plan | None: ...
 
-    async def answer_plan(self, plan_id: str, accepted: bool) -> None: ...
+    async def answer_plan(
+        self, plan_id: str, accepted: bool, risk: int, expected_revision: int
+    ) -> None: ...
 
 
 class WyssGatewayPort(OrchestratorGateway, Protocol):

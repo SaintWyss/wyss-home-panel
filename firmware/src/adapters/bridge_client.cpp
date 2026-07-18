@@ -308,7 +308,6 @@ bool BridgeClient::confirm(std::string_view plan_id, bool accepted, domain::Risk
                            std::uint64_t revision) {
     JsonDocument document;
 #if WYSS_PROTOCOL_V2_CLIENT
-    (void)risk;
     document["v"] = 2;
     document["type"] = "plan.answer";
     document["message_id"] = String("panel:answer:") + String(++sequence_);
@@ -316,7 +315,8 @@ bool BridgeClient::confirm(std::string_view plan_id, bool accepted, domain::Risk
     JsonObject payload = document["payload"].to<JsonObject>();
     payload["plan_id"] = plan_id;
     payload["decision"] = accepted ? "approve" : "reject";
-    payload["confirmation"] = accepted ? "CONFIRMAR" : "";
+    payload["confirmation"] =
+        accepted ? (risk == domain::RiskLevel::C ? "CONFIRMAR" : "s") : "";
     payload["expected_revision"] = revision;
 #else
     document["v"] = 1;

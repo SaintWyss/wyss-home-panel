@@ -42,7 +42,9 @@ class FakeWyss:
     async def submit_intent(self, request_id: str, text: str) -> Plan | None:
         return (await self.submit_turn(request_id, text, "legacy")).plan
 
-    async def answer_plan(self, plan_id: str, accepted: bool) -> None:
+    async def answer_plan(
+        self, plan_id: str, accepted: bool, risk: int, expected_revision: int
+    ) -> None:
         return None
 
     async def submit_turn(
@@ -184,7 +186,7 @@ async def test_b_confirmation_is_ttl_cas_and_first_valid_answer_wins(tmp_path: P
 async def test_expired_or_unconfirmed_plan_never_reaches_wyss_execution(tmp_path: Path) -> None:
     clock = Clock()
     gateway = FakeWyss(RiskLevel.C)
-    service, _ = _service(tmp_path / "events.sqlite3", gateway, clock)
+    service, store = _service(tmp_path / "events.sqlite3", gateway, clock)
     await service.submit("pc:desk", "request:c", "Acción sensible", "text")
 
     with pytest.raises(ConversationError, match="CONFIRMAR") as missing_word:
@@ -197,6 +199,13 @@ async def test_expired_or_unconfirmed_plan_never_reaches_wyss_execution(tmp_path
     assert missing_word.value.code == "confirmation_required"
     assert expired.value.code == "confirmation_required"
     assert gateway.confirmations == 2
+    terminal = store.after(0, 30)[-2:]
+    assert [event.event_type for event in terminal] == [
+        "plan.resolved",
+        "assistant.state.changed",
+    ]
+    assert terminal[0].payload["decision"] == "expired"
+    assert terminal[1].payload["state"] == "failed"
 
 
 @pytest.mark.asyncio
