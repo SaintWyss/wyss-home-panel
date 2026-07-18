@@ -249,17 +249,14 @@ void LvglPanelView::begin(application::PanelService& service, std::string primar
         label(pages_[0], "ACCIONES RAPIDAS", &lv_font_montserrat_12, kMuted);
     lv_obj_set_pos(home_quick_title, 20, 290);
     constexpr const char* quick_labels[] = {"Modo noche", "Apagar todo", "Estoy saliendo"};
-    constexpr const char* quick_intents[] = {"Activa el modo noche en casa",
-                                             "Apaga todas las luces de la casa",
-                                             "Prepara la casa porque estoy saliendo"};
     for (unsigned index = 0; index < 3; ++index) {
         const auto bounds = ui::tokens::quick_actions[index];
         lv_obj_t* button = lv_btn_create(pages_[0]);
         lv_obj_set_size(button, bounds.width, bounds.height);
         lv_obj_set_pos(button, bounds.x, bounds.y);
         style_button(button, kSurface);
-        lv_obj_add_event_cb(button, on_quick_intent, LV_EVENT_CLICKED,
-                            const_cast<char*>(quick_intents[index]));
+        lv_obj_add_event_cb(button, on_quick_action, LV_EVENT_CLICKED,
+                            reinterpret_cast<void*>(static_cast<std::uintptr_t>(index)));
         lv_obj_t* button_label = label(button, quick_labels[index], &lv_font_montserrat_14, kText);
         lv_obj_center(button_label);
     }
@@ -1161,10 +1158,11 @@ void LvglPanelView::on_tab(lv_event_t* event) {
     }
 }
 
-void LvglPanelView::on_quick_intent(lv_event_t* event) {
+void LvglPanelView::on_quick_action(lv_event_t* event) {
     if (g_view != nullptr) {
-        g_view->service_->submit_intent(static_cast<const char*>(lv_event_get_user_data(event)));
-        g_view->set_mode(ui::ShellMode::Conversation);
+        const auto action = static_cast<domain::HomeQuickAction>(
+            reinterpret_cast<std::uintptr_t>(lv_event_get_user_data(event)));
+        g_view->service_->quick_action(action);
     }
 }
 

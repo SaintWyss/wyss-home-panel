@@ -49,7 +49,7 @@ class LvglPanelView final : public ports::ViewPort {
     static void on_media_volume(lv_event_t* event);
     static void on_media_volume_release(lv_event_t* event);
     static void on_tab(lv_event_t* event);
-    static void on_quick_intent(lv_event_t* event);
+    static void on_quick_action(lv_event_t* event);
     static void on_submit(lv_event_t* event);
     static void on_plan_answer(lv_event_t* event);
     static void on_text_focus(lv_event_t* event);
