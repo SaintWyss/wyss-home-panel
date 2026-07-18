@@ -157,8 +157,8 @@ La trazabilidad de cada requisito v2.0.0 se define en `ROADMAP.md` y se actualiz
 | REMOTE-02 | Phase 15 — PR-14 | Blocked by O-02 and external mobile/VPN evidence |
 | OTA-01 | Phase 16 — PR-15 | Signature/manifest/health automated; A/B physical pending |
 | OTA-02 | Phase 16 — PR-15 | Existing provisioning path; backup/restore physical pending |
-| OBS-01 | Phase 17 — PR-16 | Pending |
-| OBS-02 | Phase 17 — PR-16 | Pending |
+| OBS-01 | Phase 17 — PR-16 | Automated latency/size complete; physical metrics pending |
+| OBS-02 | Phase 17 — PR-16 | Automated complete; production alert exercise pending |
 | SEC-01 | Phase 18 — PR-17 | Pending |
 | SEC-02 | Phase 18 — PR-17 | Pending |
 | SOAK-01 | Phase 19 — PR-18 | Pending |

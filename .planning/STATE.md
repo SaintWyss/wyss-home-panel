@@ -21,12 +21,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-17)
 
 **Core value:** Toda acción doméstica debe pasar por una única autoridad de política y ejecución de Wyss, conservar coherencia observable entre clientes y fallar de forma segura.
-**Current focus:** Phase 14/15 gated; Phase 16 physical recovery pending; Phase 17 automation next
+**Current focus:** Phase 14/15 gated; Phase 16/17 physical evidence pending; Phase 18 next
 
 ## Current Position
 
 Phase: 01, 03, 04, 05, 06, 07, 08, 09, 10, 11, 12 and 13 physical/external gates pending; 02 complete
-Plan: Continue automated roadmap work from PR-16
+Plan: Continue automated roadmap work from PR-17
 Status: Continuing autonomous roadmap work
 Last activity: 2026-07-18 -- Phase 13 timer automation and panel build verified
 
@@ -114,6 +114,9 @@ None yet.
 - Phase 16 verifies Ed25519 manifest/checksum/board/commit, durable health promotion and
   interrupted rollback. Actual A/B writes, power cuts, NVS backup/restore and USB rescue remain
   physical; partitions, bootloader, NVS and eFuses were not touched.
+- Phase 17 has bounded percentile metrics, redacted correlation traces, capability-protected
+  export, module health and handshake backpressure. Energy/FPS/startup/traffic on hardware remain
+  physical measurements rather than estimated values.
 - Gates O-01..O-07 require explicit operator decisions at Phases 5, 8, 9/11, 12, 14, 15 and 20.
 - Android, Spotify, Google Calendar, camera hardware and private remote network are external dependencies; simulations cannot close their physical criteria.
 - Secure Boot, Flash Encryption and eFuses remain untouched without separate explicit authorization.
@@ -127,5 +130,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-07-18T01:05:57Z
-Stopped at: Phase 16 automated verifier complete; physical A/B/recovery pending
-Resume file: .planning/phases/16-pr-15-ota-recovery/16-VERIFICATION.md
+Stopped at: Phase 17 automated observability complete; physical budgets pending
+Resume file: .planning/phases/17-pr-16-observabilidad/17-VERIFICATION.md

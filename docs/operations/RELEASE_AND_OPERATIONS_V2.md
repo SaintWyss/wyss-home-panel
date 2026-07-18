@@ -24,6 +24,9 @@ Yo mantengo TOML no sensible, `.env`/secret store sensible y schema versionado f
 
 Yo expongo health por módulo: Wyss daemon, Home Edge, panel, luces, Spotify, Calendar, clima, push y cámaras. Yo publico métricas de latencia, reconexión, cola, errores, heap y versión. Yo correlaciono cada acción por `correlation_id` sin loguear contenido sensible.
 
+El procedimiento concreto de lectura, alertas, aislamiento y rollback está en
+[`OBSERVABILITY_RUNBOOK.md`](OBSERVABILITY_RUNBOOK.md).
+
 Yo uso logs estructurados con niveles, rotación y redacción. Yo mantengo auditoría de negocio en Wyss y logs técnicos separados.
 
 ## Actualización de firmware

@@ -223,7 +223,7 @@ Este milestone lleva el baseline v1 hasta un sistema doméstico v2.0.0 coherente
   2. **[Automatizada]** Métricas y traces correlacionan un flujo entre clientes, Edge y Wyss sin registrar secretos, audio, OAuth o credenciales domésticas.
   3. **[Automatizada]** `doctor`, backpressure, caches acotados y alertas detectan y aíslan fallos inducidos sin agotar memoria ni tumbar funciones esenciales.
   4. **[Automatizada]** Los runbooks reproducen diagnóstico y rollback de módulos no críticos manteniendo health básico.
-**Plans**: TBD
+**Plans**: 2/2 automated; hardware energy/FPS/startup metrics pending
 
 ### Phase 18: PR-17 — Hardening y suite adversarial
 **Goal**: Las fronteras domésticas conocidas resisten abuso y ningún riesgo crítico o alto queda abierto.
