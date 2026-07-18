@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0.0
 milestone_name: final
 status: executing
-stopped_at: Phase 20 release candidate preparation complete; publication and physical gates pending
-last_updated: "2026-07-18T02:00:00Z"
-last_activity: 2026-07-18 -- 51/51 executable evidence audit passed; only explicit gates remain
+stopped_at: main protected and application upload authorized; physical/external gates pending
+last_updated: "2026-07-18T02:18:31Z"
+last_activity: 2026-07-18 -- main advanced to tested commit and five required checks enforced
 progress:
   total_phases: 20
   completed_phases: 1
   total_plans: 41
-  completed_plans: 38
+  completed_plans: 39
   percent: 5
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-17)
 
 **Core value:** Toda acción doméstica debe pasar por una única autoridad de política y ejecución de Wyss, conservar coherencia observable entre clientes y fallar de forma segura.
-**Current focus:** Generate and verify blocked local candidate; do not publish until all gates pass
+**Current focus:** Validate the tested application on the connected panel without changing NVS
 
 ## Current Position
 
 Phase: 01 and 03-20 physical/external gates pending; 02 complete
-Plan: Hold publication; preserve functional screen and collect authorized evidence
+Plan: Preserve protected main, upload only the application partition and collect physical evidence
 Status: Continuing autonomous roadmap work
-Last activity: 2026-07-18 -- Requirement evidence audit passes 51/51 with no automated gap
+Last activity: 2026-07-18 -- GitHub protection VERIFIED for all five required contexts
 
 Progress: [█░░░░░░░░░] 5% of roadmap phases complete
 
@@ -36,14 +36,14 @@ Progress: [█░░░░░░░░░] 5% of roadmap phases complete
 
 **Velocity:**
 
-- Total plans completed: 30
+- Total plans completed: 39
 - GSD-lite: timing por plan no se registra para evitar ceremonia innecesaria.
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 01 | 2/4 | Not tracked | Not tracked |
+| 01 | 3/4 | Not tracked | Not tracked |
 | 02 | 3/3 | Not tracked | Not tracked |
 | 03 | 3/3 automated | Not tracked | Not tracked |
 | 04 | 3/3 automated | Not tracked | Not tracked |
@@ -86,7 +86,8 @@ None yet.
 
 ### Blockers/Concerns
 
-- Phase 1 requires the exact panel, real light and verified factory backup for physical baseline evidence.
+- Phase 1 CI and remote protection are complete. It still requires the exact panel, real light and
+  verified factory backup for physical baseline evidence.
 - Phase 3 requires a real panel/Android/PC client to close the physical revocation criterion.
 - Phase 4 requires PC, Android and panel reales sobre el mismo commit para cerrar convergencia.
 - Phase 5 requires touch/FPS/energy/temperature measurements and the O-05 operator ADR on the
@@ -129,8 +130,8 @@ None yet.
   ghost state. It does not substitute the required 72-hour physical soak, real network/power faults
   or v1 upgrade/backup/restore/downgrade matrix.
 - Phase 20 aligns version 2.0.0 and prepares deterministic firmware/wheel/SBOM checksums with a
-  fail-closed `BLOCKED_CANDIDATE` manifest. Signing, remote CI/protection, tag/publication and the
-  complete physical smoke remain mandatory gates.
+  fail-closed `BLOCKED_CANDIDATE` manifest. Remote CI/protection is complete; signing, tag/release
+  publication and the complete physical smoke remain mandatory gates.
 - The executable requirement audit covers 51/51 entries: 45 automated passes, 2 physical-only
   requirements and 4 implementation gates for camera/VPN. Every remaining item is classified as
   physical, external or authorization; CI rejects generic unclassified pending work.
@@ -146,6 +147,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-18T02:00:00Z
-Stopped at: Phase 20 release preparation complete; release blocked by explicit gates
-Resume file: .planning/phases/20-pr-19-release-v2-final/20-VERIFICATION.md
+Last session: 2026-07-18T02:18:31Z
+Stopped at: protected main; connected-panel application upload authorized
+Resume file: .planning/phases/01-pr-00-baseline-reproducible-y-protecci-n/01-04-PLAN.md
