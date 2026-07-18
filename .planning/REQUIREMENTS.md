@@ -163,9 +163,9 @@ La trazabilidad de cada requisito v2.0.0 se define en `ROADMAP.md` y se actualiz
 | SEC-02 | Phase 18 — PR-17 | Blocked by remote branch protection authorization |
 | SOAK-01 | Phase 19 — PR-18 | 1000/500/100 and provider/process faults automated; 72 h physical pending |
 | SOAK-02 | Phase 19 — PR-18 | Automated restart/dedupe complete; v1 upgrade/restore/rollback physical pending |
-| REL-01 | Phase 20 — PR-19 | Pending |
-| REL-02 | Phase 20 — PR-19 | Pending |
-| REL-03 | Phase 20 — PR-19 | Pending |
+| REL-01 | Phase 20 — PR-19 | 51/51 mapped and local gates ready; physical requirements/remote CI pending |
+| REL-02 | Phase 20 — PR-19 | Versions/checksums/SBOM/changelog/docs ready; real signature/tag/publication pending |
+| REL-03 | Phase 20 — PR-19 | Blocked by physical hardware, accounts and operator gates |
 
 **Coverage:**
 - v2.0.0 requirements: 51 total
@@ -175,4 +175,4 @@ La trazabilidad de cada requisito v2.0.0 se define en `ROADMAP.md` y se actualiz
 
 ---
 *Requirements defined: 2026-07-17*
-*Last updated: 2026-07-18 after Phase 19 automated verification*
+*Last updated: 2026-07-18 after Phase 20 release preparation*

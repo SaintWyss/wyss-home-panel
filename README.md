@@ -2,9 +2,9 @@
 
 Yo convierto una Waveshare ESP32-S3-Touch-LCD-7 Rev. 1.2 (800×480, N16R8) en la superficie física de Wyss para el hogar. Yo respondo al tacto antes de esperar la red, mantengo las credenciales sensibles en la netbook y exijo confirmación cuando la política de Wyss lo decide.
 
-## Resultado
+## Baseline v1 preservado
 
-Yo entrego una base completa v1.0.0 con:
+Yo preservo una base completa v1.0.0 con:
 
 - firmware ESP32-S3 con LVGL, doble framebuffer, tareas separadas por núcleo y actualización diferencial;
 - puente local TLS para Tuya LAN o Home Assistant;
@@ -122,4 +122,6 @@ Yo publico el proyecto bajo Apache-2.0 y mantengo las dependencias de terceros b
 
 Yo documenté el producto final que conecta Wyss PC, Android y esta pantalla como una sola experiencia de clase Jarvis. Yo mantengo a [`SaintWyss/Wyss`](https://github.com/SaintWyss/Wyss) como autoridad de planes, política, voz y auditoría; yo convierto este repositorio en el edge doméstico y cuerpo físico de Wyss.
 
-Yo no declaro esa versión implementada todavía. Yo concentro la especificación, arquitectura UML, protocolo, UX, integraciones, seguridad, pruebas, operación, roadmap por PR y trazabilidad en el [índice de producto v2](docs/README.md).
+La implementación automatizada de v2.0.0 está integrada y conserva el camino v1. La promoción
+final continúa retenida hasta completar los gates físicos/externos, el soak de 72 horas, la firma
+de artefactos y el smoke de release documentados en el [índice de producto v2](docs/README.md).

@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0.0
 milestone_name: final
 status: executing
-stopped_at: Phase 01/03-19 physical or external evidence pending; Phase 20 release preparation next
-last_updated: "2026-07-18T01:47:30Z"
-last_activity: 2026-07-18 -- Phase 19 accelerated soak verified; 72 h and physical migration pending
+stopped_at: Phase 20 release candidate preparation complete; publication and physical gates pending
+last_updated: "2026-07-18T02:00:00Z"
+last_activity: 2026-07-18 -- Phase 20 versions/tooling/docs prepared; release remains blocked
 progress:
   total_phases: 20
   completed_phases: 1
-  total_plans: 38
-  completed_plans: 36
+  total_plans: 41
+  completed_plans: 38
   percent: 5
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-17)
 
 **Core value:** Toda acción doméstica debe pasar por una única autoridad de política y ejecución de Wyss, conservar coherencia observable entre clientes y fallar de forma segura.
-**Current focus:** Phase 20 release preparation without publication; physical/external gates remain
+**Current focus:** Generate and verify blocked local candidate; do not publish until all gates pass
 
 ## Current Position
 
-Phase: 01 and 03-19 physical/external gates pending; 02 complete
-Plan: Continue safe release preparation from PR-19 without publishing
+Phase: 01 and 03-20 physical/external gates pending; 02 complete
+Plan: Hold publication; preserve functional screen and collect authorized evidence
 Status: Continuing autonomous roadmap work
-Last activity: 2026-07-18 -- Phase 19 accelerated soak and recovery verified
+Last activity: 2026-07-18 -- Phase 20 candidate tooling, versions and operator docs prepared
 
 Progress: [█░░░░░░░░░] 5% of roadmap phases complete
 
@@ -62,6 +62,7 @@ Progress: [█░░░░░░░░░] 5% of roadmap phases complete
 | 17 | 2/2 automated | Not tracked | Not tracked |
 | 18 | 2/2 automated | Not tracked | Not tracked |
 | 19 | 2/2 automated | Not tracked | Not tracked |
+| 20 | 2/3 automated prep | Not tracked | Not tracked |
 
 **Recent Trend:**
 
@@ -127,6 +128,9 @@ None yet.
   100 timers/notifications, one provider failure and two process restarts with zero duplicates or
   ghost state. It does not substitute the required 72-hour physical soak, real network/power faults
   or v1 upgrade/backup/restore/downgrade matrix.
+- Phase 20 aligns version 2.0.0 and prepares deterministic firmware/wheel/SBOM checksums with a
+  fail-closed `BLOCKED_CANDIDATE` manifest. Signing, remote CI/protection, tag/publication and the
+  complete physical smoke remain mandatory gates.
 - Gates O-01..O-07 require explicit operator decisions at Phases 5, 8, 9/11, 12, 14, 15 and 20.
 - Android, Spotify, Google Calendar, camera hardware and private remote network are external dependencies; simulations cannot close their physical criteria.
 - Secure Boot, Flash Encryption and eFuses remain untouched without separate explicit authorization.
@@ -139,6 +143,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-18T01:47:30Z
-Stopped at: Phase 19 automated soak complete; physical soak/migration pending
-Resume file: .planning/phases/19-pr-18-beta-diaria-y-soak/19-VERIFICATION.md
+Last session: 2026-07-18T02:00:00Z
+Stopped at: Phase 20 release preparation complete; release blocked by explicit gates
+Resume file: .planning/phases/20-pr-19-release-v2-final/20-VERIFICATION.md

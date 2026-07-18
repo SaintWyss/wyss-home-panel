@@ -164,7 +164,7 @@ void BridgeClient::handle_socket_event(WStype_t type, std::uint8_t* payload, std
         hello["v"] = 1;
         hello["type"] = "hello";
         hello["panel_id"] = config_.panel_id();
-        hello["firmware"] = "1.0.0";
+        hello["firmware"] = "2.0.0";
 #endif
         char json[256]{};
         const std::size_t written = serializeJson(hello, json, sizeof(json));

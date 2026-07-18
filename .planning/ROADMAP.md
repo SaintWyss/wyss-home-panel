@@ -257,7 +257,7 @@ Este milestone lleva el baseline v1 hasta un sistema doméstico v2.0.0 coherente
   3. **[Física/externa]** PC, Android físico, panel, luz, Spotify, Calendar, clima, timer, reminder, notificación y cámara completan smoke sobre el mismo commit; cualquier dependencia ausente bloquea el release.
   4. **[Gate O-06 — operador/física]** Antes de v2.0.0, el operador decide cuándo activar Secure Boot/Flash Encryption sólo después de demostrar backup, rescue, OTA rollback y recuperación de claves; activarlos requiere autorización explícita separada.
   5. **[Física]** El downgrade ensayado recupera una versión v1/RC conocida con datos y configuración preservados.
-**Plans**: TBD
+**Plans**: 2/3 automated preparation; signature/publication/physical gates pending
 
 ## Progress
 
@@ -284,4 +284,4 @@ Este milestone lleva el baseline v1 hasta un sistema doméstico v2.0.0 coherente
 | 17. PR-16 — Observabilidad, rendimiento y sostenibilidad | 2/2 | Automated complete; physical budgets pending | - |
 | 18. PR-17 — Hardening y suite adversarial | 2/2 | Automated complete; remote protection high gate open | - |
 | 19. PR-18 — Beta diaria y soak | 2/2 | Automated accelerated complete; 72 h/physical migration pending | - |
-| 20. PR-19 — Release v2.0.0 final | 0/TBD | Not started | - |
+| 20. PR-19 — Release v2.0.0 final | 2/3 | Release candidate tooling/docs ready; publication blocked | - |
