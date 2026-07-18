@@ -20,6 +20,7 @@ los gates físicos, externos, de firma y protección remota siguen abiertos.**
   fuerza `BLOCKED_CANDIDATE` y lista cada gate pendiente.
 - Ninguna clave se buscó, generó o cambió; la firma real requiere una ruta aprobada por el owner.
 - Changelog, matriz de compatibilidad y downgrade seguro están versionados.
-- La trazabilidad conserva 51/51 requisitos mapeados, aunque los que exigen evidencia física no se
-  marcan falsamente como completos.
+- La trazabilidad ejecutable cubre 51/51: 45 con evidencia automatizada aprobada, 2 requisitos
+  intrínsecamente físicos y 4 bloqueados antes de implementar por gates externos de cámara/VPN.
+  Ningún trabajo automatizado pendiente queda oculto como `Pending` genérico.
 - No se creó tag, GitHub Release, push, protección remota ni modificación irreversible del panel.

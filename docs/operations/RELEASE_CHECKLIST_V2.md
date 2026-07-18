@@ -11,7 +11,8 @@ publicarse.
 - [x] wheel, firmware, SBOM y checksums componibles por `tools/prepare_release.py`;
 - [x] candidato marcado `BLOCKED_CANDIDATE` y `RELEASE_BLOCKED` por defecto;
 - [x] compatibilidad, límites, operación, soak y downgrade documentados;
-- [x] 51/51 requisitos mapeados a una fase, sin requisitos huérfanos o duplicados.
+- [x] 51/51 requisitos mapeados y enlazados a test/verificación o gate físico/externo explícito,
+  con contrato ejecutable en CI.
 
 ## Gates que bloquean publicación
 

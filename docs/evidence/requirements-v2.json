@@ -1,0 +1,413 @@
+{
+  "schema_version": 1,
+  "requirements": [
+    {
+      "id": "BASE-01",
+      "phase": "Phase 1 — PR-00",
+      "automated_status": "passed",
+      "tests": ["bridge/tests/test_baseline_runner.py::test_runner_classifies_code_failure"],
+      "verification": ".planning/phases/01-pr-00-baseline-reproducible-y-protecci-n/01-01-SUMMARY.md",
+      "remaining_gates": []
+    },
+    {
+      "id": "BASE-02",
+      "phase": "Phase 1 — PR-00",
+      "automated_status": "passed",
+      "tests": ["bridge/tests/test_protocol_v1_fixtures.py::test_protocol_v1_golden_cases", "tests/protocol_fixture_tests.cpp"],
+      "verification": ".planning/phases/01-pr-00-baseline-reproducible-y-protecci-n/01-01-SUMMARY.md",
+      "remaining_gates": []
+    },
+    {
+      "id": "BASE-03",
+      "phase": "Phase 1 — PR-00",
+      "automated_status": "passed",
+      "tests": ["bridge/tests/test_doctor.py::test_doctor_rejects_inline_secret_without_rendering_it"],
+      "verification": ".planning/phases/01-pr-00-baseline-reproducible-y-protecci-n/01-01-SUMMARY.md",
+      "remaining_gates": []
+    },
+    {
+      "id": "BASE-04",
+      "phase": "Phase 1 — PR-00",
+      "automated_status": "not_applicable",
+      "tests": ["bridge/tests/test_baseline_evidence.py::test_complete_physical_manifest_returns_zero"],
+      "verification": ".planning/phases/01-pr-00-baseline-reproducible-y-protecci-n/01-03-SUMMARY.md",
+      "remaining_gates": [{"id": "PHYSICAL-BASELINE", "kind": "physical", "reason": "Backup de fábrica y métricas de panel/luz deben ligarse al commit candidato."}]
+    },
+    {
+      "id": "BASE-05",
+      "phase": "Phase 1 — PR-00",
+      "automated_status": "passed",
+      "tests": ["bridge/tests/test_quality_gates.py::test_ci_has_all_blocking_jobs", "bridge/tests/test_ci_protection.py::test_remote_protection_requires_all_controls"],
+      "verification": ".planning/phases/01-pr-00-baseline-reproducible-y-protecci-n/01-02-PLAN.md",
+      "remaining_gates": [{"id": "REMOTE-CI-PROTECTION", "kind": "authorization", "reason": "Aplicar branch protection y required checks requiere el gate literal del owner y push remoto."}]
+    },
+    {
+      "id": "ARCH-01",
+      "phase": "Phase 2 — PR-01",
+      "automated_status": "passed",
+      "tests": ["bridge/tests/test_ports_v2.py::test_all_v2_capabilities_have_small_ports"],
+      "verification": ".planning/phases/02-pr-01-contratos-y-arquitectura-v2/02-VERIFICATION.md",
+      "remaining_gates": []
+    },
+    {
+      "id": "ARCH-02",
+      "phase": "Phase 2 — PR-01",
+      "automated_status": "passed",
+      "tests": ["bridge/tests/test_architecture_boundaries.py::test_repository_respects_hexagonal_boundaries"],
+      "verification": ".planning/phases/02-pr-01-contratos-y-arquitectura-v2/02-VERIFICATION.md",
+      "remaining_gates": []
+    },
+    {
+      "id": "PROTO-01",
+      "phase": "Phase 2 — PR-01",
+      "automated_status": "passed",
+      "tests": ["bridge/tests/test_protocol_v2_fixtures.py::test_shared_protocol_v2_fixtures", "tests/protocol_v2_fixture_tests.cpp"],
+      "verification": ".planning/phases/02-pr-01-contratos-y-arquitectura-v2/02-VERIFICATION.md",
+      "remaining_gates": []
+    },
+    {
+      "id": "PROTO-02",
+      "phase": "Phase 2 — PR-01",
+      "automated_status": "passed",
+      "tests": ["bridge/tests/test_protocol_v2_fixtures.py::test_shared_protocol_v2_fixtures", "tests/fixtures/protocol/v2/cases.jsonl"],
+      "verification": ".planning/phases/02-pr-01-contratos-y-arquitectura-v2/02-VERIFICATION.md",
+      "remaining_gates": []
+    },
+    {
+      "id": "PROTO-03",
+      "phase": "Phase 2 — PR-01",
+      "automated_status": "passed",
+      "tests": ["bridge/tests/test_ports_v2.py::test_v1_runtime_does_not_import_v2_contracts", "bridge/tests/test_v2_api.py::test_feature_flag_keeps_v1_and_avoids_v2_state_when_disabled"],
+      "verification": ".planning/phases/02-pr-01-contratos-y-arquitectura-v2/02-VERIFICATION.md",
+      "remaining_gates": []
+    },
+    {
+      "id": "IDENT-01",
+      "phase": "Phase 3 — PR-02",
+      "automated_status": "passed",
+      "tests": ["bridge/tests/test_identity_service.py::test_rotate_invalidates_old_token_and_revoke_is_immediate", "bridge/tests/test_manage_identities_cli.py::test_cli_pair_list_rotate_and_revoke_without_token_leak"],
+      "verification": ".planning/phases/03-pr-02-identidad-pairing-y-event-backbone/03-VERIFICATION.md",
+      "remaining_gates": [{"id": "PHYSICAL-CLIENT-IDENTITY", "kind": "physical", "reason": "Pairing, rotación y rechazo inmediato deben observarse en clientes reales sin cambiar credenciales sin autorización."}]
+    },
+    {
+      "id": "EVENT-01",
+      "phase": "Phase 3 — PR-02",
+      "automated_status": "passed",
+      "tests": ["bridge/tests/test_event_backbone.py::test_resume_requires_snapshot_then_returns_ordered_deltas", "bridge/tests/test_v2_api.py::test_resume_sends_only_events_after_cursor"],
+      "verification": ".planning/phases/03-pr-02-identidad-pairing-y-event-backbone/03-VERIFICATION.md",
+      "remaining_gates": []
+    },
+    {
+      "id": "EVENT-02",
+      "phase": "Phase 3 — PR-02",
+      "automated_status": "passed",
+      "tests": ["bridge/tests/test_event_backbone.py::test_rate_limit_is_per_source_and_recovers_after_window", "bridge/tests/test_event_backbone.py::test_concurrent_appends_preserve_unique_monotonic_revisions"],
+      "verification": ".planning/phases/03-pr-02-identidad-pairing-y-event-backbone/03-VERIFICATION.md",
+      "remaining_gates": []
+    },
+    {
+      "id": "EVENT-03",
+      "phase": "Phase 3 — PR-02",
+      "automated_status": "passed",
+      "tests": ["bridge/tests/test_v2_api.py::test_disabling_v2_preserves_existing_identity_state"],
+      "verification": ".planning/phases/03-pr-02-identidad-pairing-y-event-backbone/03-VERIFICATION.md",
+      "remaining_gates": []
+    },
+    {
+      "id": "SYNC-01",
+      "phase": "Phase 4 — PR-03",
+      "automated_status": "passed",
+      "tests": ["bridge/tests/test_projection_service.py::test_changes_from_each_client_origin_converge_without_parallel_authority", "bridge/tests/test_v2_api.py::test_pc_android_and_panel_receive_each_verified_light_change_live"],
+      "verification": ".planning/phases/04-pr-03-projection-store-y-sincronizacion-multicliente/04-VERIFICATION.md",
+      "remaining_gates": [{"id": "PHYSICAL-THREE-CLIENTS", "kind": "physical", "reason": "Convergencia debe repetirse con PC, Android y panel reales sobre el mismo commit."}]
+    },
+    {
+      "id": "SYNC-02",
+      "phase": "Phase 4 — PR-03",
+      "automated_status": "passed",
+      "tests": ["bridge/tests/test_projection_service.py::test_reducer_is_deterministic_across_rebuilds", "bridge/tests/test_projection_service.py::test_gap_and_stale_revision_fail_closed"],
+      "verification": ".planning/phases/04-pr-03-projection-store-y-sincronizacion-multicliente/04-VERIFICATION.md",
+      "remaining_gates": []
+    },
+    {
+      "id": "SYNC-03",
+      "phase": "Phase 4 — PR-03",
+      "automated_status": "passed",
+      "tests": ["bridge/tests/test_projection_service.py::test_client_cursor_cache_is_bounded_and_not_an_authority"],
+      "verification": ".planning/phases/04-pr-03-projection-store-y-sincronizacion-multicliente/04-VERIFICATION.md",
+      "remaining_gates": []
+    },
+    {
+      "id": "UI-01",
+      "phase": "Phase 5 — PR-04",
+      "automated_status": "passed",
+      "tests": ["tests/ui_design_tests.cpp", "tests/fixtures/ui_visual_manifest.txt"],
+      "verification": ".planning/phases/05-pr-04-shell-visual-wyss-core-y-modo-dormido/05-VERIFICATION.md",
+      "remaining_gates": []
+    },
+    {
+      "id": "UI-02",
+      "phase": "Phase 5 — PR-04",
+      "automated_status": "passed",
+      "tests": ["tests/ui_design_tests.cpp"],
+      "verification": ".planning/phases/05-pr-04-shell-visual-wyss-core-y-modo-dormido/05-VERIFICATION.md",
+      "remaining_gates": [{"id": "PHYSICAL-UI-BUDGETS", "kind": "physical", "reason": "Touch p95, FPS, brillo, energía y temperatura requieren medición del panel exacto y decisión O-05."}]
+    },
+    {
+      "id": "UI-03",
+      "phase": "Phase 5 — PR-04",
+      "automated_status": "passed",
+      "tests": ["tests/ui_design_tests.cpp", "tests/fixtures/ui_visual_manifest.txt"],
+      "verification": ".planning/phases/05-pr-04-shell-visual-wyss-core-y-modo-dormido/05-VERIFICATION.md",
+      "remaining_gates": []
+    },
+    {
+      "id": "LIGHT-01",
+      "phase": "Phase 6 — PR-05",
+      "automated_status": "passed",
+      "tests": ["bridge/tests/test_light_adapters.py::test_tuya_controls_multiple_lights_color_and_scene", "bridge/tests/test_v2_api.py::test_pc_android_and_panel_receive_each_verified_light_change_live"],
+      "verification": ".planning/phases/06-pr-05-luces-completas-y-migracion-del-baseline/06-VERIFICATION.md",
+      "remaining_gates": [{"id": "PHYSICAL-LIGHTS", "kind": "physical", "reason": "Varias luces y las tres superficies deben probarse con entidades LAN reales autorizadas."}]
+    },
+    {
+      "id": "LIGHT-02",
+      "phase": "Phase 6 — PR-05",
+      "automated_status": "passed",
+      "tests": ["bridge/tests/test_light_service.py::test_failure_keeps_last_verified_projection_and_is_durably_audited", "bridge/tests/test_session_service.py::test_fast_command_is_verified_and_idempotent"],
+      "verification": ".planning/phases/06-pr-05-luces-completas-y-migracion-del-baseline/06-VERIFICATION.md",
+      "remaining_gates": [{"id": "PHYSICAL-LIGHT-P95", "kind": "physical", "reason": "La reconciliación LAN menor o igual a 150 ms p95 exige la luz y red reales."}]
+    },
+    {
+      "id": "LIGHT-03",
+      "phase": "Phase 6 — PR-05",
+      "automated_status": "passed",
+      "tests": ["bridge/tests/test_light_service.py::test_five_hundred_changes_leave_no_ghost_state_or_duplicate_audit", "bridge/tests/test_light_adapters.py::test_tuya_serializes_commands_per_entity_and_marks_offline"],
+      "verification": ".planning/phases/06-pr-05-luces-completas-y-migracion-del-baseline/06-VERIFICATION.md",
+      "remaining_gates": [{"id": "PHYSICAL-LIGHT-FAULTS", "kind": "physical", "reason": "Wi-Fi, key inválida, entidad offline y recuperación requieren panel y luz reales."}]
+    },
+    {
+      "id": "CONV-01",
+      "phase": "Phase 7 — PR-06",
+      "automated_status": "passed",
+      "tests": ["bridge/tests/test_conversation_service.py::test_risk_a_projects_thinking_response_and_verified", "bridge/tests/test_v2_api.py::test_conversation_and_confirmation_converge_live_on_all_three_clients"],
+      "verification": ".planning/phases/07-pr-06-conversacion-visual-y-confirmaciones/07-VERIFICATION.md",
+      "remaining_gates": [{"id": "EXTERNAL-WYSS-E2E", "kind": "external", "reason": "El daemon Wyss real y las tres superficies deben ejecutar el ciclo completo."}]
+    },
+    {
+      "id": "CONV-02",
+      "phase": "Phase 7 — PR-06",
+      "automated_status": "passed",
+      "tests": ["bridge/tests/test_conversation_service.py::test_b_confirmation_is_ttl_cas_and_first_valid_answer_wins", "bridge/tests/test_conversation_service.py::test_risk_d_and_missing_policy_reevaluation_fail_closed"],
+      "verification": ".planning/phases/07-pr-06-conversacion-visual-y-confirmaciones/07-VERIFICATION.md",
+      "remaining_gates": []
+    },
+    {
+      "id": "VOICE-01",
+      "phase": "Phase 8 — PR-07",
+      "automated_status": "passed",
+      "tests": ["bridge/tests/test_v2_api.py::test_voice_client_transcribes_without_implicit_send_then_submits_reviewed_text", "bridge/tests/test_voice_service.py::test_transcription_is_editable_and_raw_buffer_is_zeroed"],
+      "verification": ".planning/phases/08-pr-07-push-to-talk-pc-y-android/08-VERIFICATION.md",
+      "remaining_gates": [{"id": "O-01-STT", "kind": "authorization", "reason": "El owner debe seleccionar el STT real y aprobar su operación."}, {"id": "PHYSICAL-MICROPHONES", "kind": "physical", "reason": "PTT debe validarse con micrófonos PC y Android reales."}]
+    },
+    {
+      "id": "VOICE-02",
+      "phase": "Phase 8 — PR-07",
+      "automated_status": "passed",
+      "tests": ["bridge/tests/test_voice_service.py::test_recoverable_failures_never_retain_audio", "bridge/tests/test_v2_api.py::test_voice_permission_and_feature_flag_fail_closed_but_text_remains"],
+      "verification": ".planning/phases/08-pr-07-push-to-talk-pc-y-android/08-VERIFICATION.md",
+      "remaining_gates": [{"id": "PHYSICAL-AUDIO-FAILURES", "kind": "physical", "reason": "Permisos, silencio, ruido e interrupción deben repetirse en PC/Android reales."}]
+    },
+    {
+      "id": "MEDIA-01",
+      "phase": "Phase 9 — PR-08",
+      "automated_status": "passed",
+      "tests": ["bridge/tests/test_media_service.py::test_media_service_projects_state_and_replays_command_once", "bridge/tests/test_v2_api.py::test_pc_android_and_panel_converge_on_spotify_without_provider_tokens"],
+      "verification": ".planning/phases/09-pr-08-spotify-premium/09-VERIFICATION.md",
+      "remaining_gates": [{"id": "O-07-SPOTIFY", "kind": "authorization", "reason": "Scopes OAuth mínimos deben aprobarse."}, {"id": "EXTERNAL-SPOTIFY-PREMIUM", "kind": "external", "reason": "Playback y control requieren una cuenta Premium real."}]
+    },
+    {
+      "id": "MEDIA-02",
+      "phase": "Phase 9 — PR-08",
+      "automated_status": "passed",
+      "tests": ["bridge/tests/test_media_adapters.py::test_wyss_media_maps_provider_failures_without_response_body_leak", "bridge/tests/test_media_service.py::test_media_service_projects_rate_limit_without_losing_track"],
+      "verification": ".planning/phases/09-pr-08-spotify-premium/09-VERIFICATION.md",
+      "remaining_gates": [{"id": "EXTERNAL-SPOTIFY-OAUTH", "kind": "external", "reason": "Expiración, refresh y dispositivo inactivo deben probarse contra OAuth real."}]
+    },
+    {
+      "id": "WEATHER-01",
+      "phase": "Phase 10 — PR-09",
+      "automated_status": "passed",
+      "tests": ["bridge/tests/test_weather.py::test_open_meteo_requests_fixed_location_timezone_and_seven_days", "bridge/tests/test_weather.py::test_weather_service_persists_then_uses_explicit_stale_cache", "bridge/tests/test_v2_api.py::test_pc_android_and_panel_receive_same_seven_day_weather_projection"],
+      "verification": ".planning/phases/10-pr-09-clima-semanal/10-VERIFICATION.md",
+      "remaining_gates": [{"id": "PHYSICAL-WEATHER-PANEL", "kind": "physical", "reason": "La proyección real en modos manual/dormido requiere panel v2 provisionado sobre el commit."}]
+    },
+    {
+      "id": "CAL-01",
+      "phase": "Phase 11 — PR-10",
+      "automated_status": "passed",
+      "tests": ["bridge/tests/test_calendar.py::test_calendar_full_sync_paginates_then_applies_incremental_deletion", "bridge/tests/test_conversation_service.py::test_calendar_mutations_always_cross_wyss_plan_policy_and_confirmation", "bridge/tests/test_v2_api.py::test_pc_android_and_panel_receive_same_calendar_projection"],
+      "verification": ".planning/phases/11-pr-10-google-calendar/11-VERIFICATION.md",
+      "remaining_gates": [{"id": "O-07-CALENDAR", "kind": "authorization", "reason": "Scopes Google read/write mínimos deben aprobarse."}, {"id": "EXTERNAL-GOOGLE-CALENDAR", "kind": "external", "reason": "CRUD y sync deben verificarse con una cuenta Google real."}]
+    },
+    {
+      "id": "CAL-02",
+      "phase": "Phase 11 — PR-10",
+      "automated_status": "passed",
+      "tests": ["bridge/tests/test_calendar.py::test_wyss_calendar_parses_timed_all_day_and_recurring_without_oauth", "bridge/tests/test_calendar.py::test_invalid_cursor_triggers_atomic_full_resync", "bridge/tests/test_calendar.py::test_revoking_write_keeps_read_cache_explicitly_stale"],
+      "verification": ".planning/phases/11-pr-10-google-calendar/11-VERIFICATION.md",
+      "remaining_gates": [{"id": "EXTERNAL-GOOGLE-OAUTH", "kind": "external", "reason": "Token invalidado, recurrencia y paginación deben confirmarse con API/cuenta real."}]
+    },
+    {
+      "id": "REM-01",
+      "phase": "Phase 12 — PR-11",
+      "automated_status": "passed",
+      "tests": ["bridge/tests/test_reminders.py::test_push_disabled_keeps_authoritative_cache_and_pending_delivery", "bridge/tests/test_conversation_service.py::test_reminder_mutations_cross_wyss_plan_policy_and_confirmation"],
+      "verification": ".planning/phases/12-pr-11-recordatorios-notificaciones/12-VERIFICATION.md",
+      "remaining_gates": [{"id": "EXTERNAL-WYSS-REMINDERS", "kind": "external", "reason": "El ciclo durable debe repetirse contra el scheduler Wyss real."}]
+    },
+    {
+      "id": "REM-02",
+      "phase": "Phase 12 — PR-11",
+      "automated_status": "passed",
+      "tests": ["bridge/tests/test_reminders.py::test_reminder_survives_denied_delivery_then_retries_exactly_once"],
+      "verification": ".planning/phases/12-pr-11-recordatorios-notificaciones/12-VERIFICATION.md",
+      "remaining_gates": [{"id": "O-04-NOTIFICATIONS", "kind": "authorization", "reason": "El owner debe elegir el mecanismo de notificación."}, {"id": "PHYSICAL-ANDROID-NOTIFICATION", "kind": "physical", "reason": "Permisos, entrega y deep link requieren Android físico."}]
+    },
+    {
+      "id": "TIMER-01",
+      "phase": "Phase 13 — PR-12",
+      "automated_status": "passed",
+      "tests": ["bridge/tests/test_timers.py::test_active_timer_export_and_import_preserve_identity_deadline_and_state", "bridge/tests/test_conversation_service.py::test_timer_mutations_cross_wyss_plan_policy_and_confirmation"],
+      "verification": ".planning/phases/13-pr-12-temporizadores/13-VERIFICATION.md",
+      "remaining_gates": [{"id": "EXTERNAL-WYSS-TIMERS", "kind": "external", "reason": "Create/pause/resume/cancel debe ejecutarse contra scheduler Wyss real y clientes físicos."}]
+    },
+    {
+      "id": "TIMER-02",
+      "phase": "Phase 13 — PR-12",
+      "automated_status": "passed",
+      "tests": ["bridge/tests/test_timers.py::test_one_hundred_timers_complete_and_notify_exactly_once_across_restart", "bridge/tests/test_timers.py::test_wall_clock_adjustment_does_not_delay_authoritative_refresh"],
+      "verification": ".planning/phases/13-pr-12-temporizadores/13-VERIFICATION.md",
+      "remaining_gates": [{"id": "PHYSICAL-ANDROID-TIMERS", "kind": "physical", "reason": "La entrega exactamente una vez debe observarse en Android físico."}]
+    },
+    {
+      "id": "CAM-01",
+      "phase": "Phase 14 — PR-13",
+      "automated_status": "blocked_external_gate",
+      "tests": [],
+      "verification": ".planning/phases/14-pr-13-camaras/14-VERIFICATION.md",
+      "remaining_gates": [{"id": "O-03-CAMERA-HARDWARE", "kind": "external", "reason": "Faltan marca, modelo, protocolo, autenticación y endpoints de la cámara real."}]
+    },
+    {
+      "id": "CAM-02",
+      "phase": "Phase 14 — PR-13",
+      "automated_status": "blocked_external_gate",
+      "tests": [],
+      "verification": ".planning/phases/14-pr-13-camaras/14-VERIFICATION.md",
+      "remaining_gates": [{"id": "O-03-CAMERA-PROTOCOL", "kind": "external", "reason": "No se puede implementar/auditar un adapter seguro sin protocolo y endpoint identificados."}]
+    },
+    {
+      "id": "REMOTE-01",
+      "phase": "Phase 15 — PR-14",
+      "automated_status": "blocked_external_gate",
+      "tests": [],
+      "verification": ".planning/phases/15-pr-14-acceso-remoto/15-VERIFICATION.md",
+      "remaining_gates": [{"id": "O-02-REMOTE-DECISION", "kind": "authorization", "reason": "El owner debe decidir si habilita remoto y elegir Tailscale o WireGuard."}]
+    },
+    {
+      "id": "REMOTE-02",
+      "phase": "Phase 15 — PR-14",
+      "automated_status": "blocked_external_gate",
+      "tests": [],
+      "verification": ".planning/phases/15-pr-14-acceso-remoto/15-VERIFICATION.md",
+      "remaining_gates": [{"id": "O-02-VPN-MATRIX", "kind": "authorization", "reason": "ACL, revocación, DNS y rollback dependen de la VPN elegida y datos móviles reales."}]
+    },
+    {
+      "id": "OTA-01",
+      "phase": "Phase 16 — PR-15",
+      "automated_status": "passed",
+      "tests": ["bridge/tests/test_firmware_release.py::test_ed25519_manifest_accepts_exact_image_and_rejects_corruption", "bridge/tests/test_firmware_release.py::test_health_failure_and_interrupted_boot_both_rollback"],
+      "verification": ".planning/phases/16-pr-15-ota-recovery/16-VERIFICATION.md",
+      "remaining_gates": [{"id": "PHYSICAL-OTA-AB", "kind": "physical", "reason": "A/B, firma inválida, corrupción y corte de energía deben ensayarse en la placa real."}]
+    },
+    {
+      "id": "OTA-02",
+      "phase": "Phase 16 — PR-15",
+      "automated_status": "passed",
+      "tests": ["bridge/tests/test_firmware_release.py::test_health_ledger_promotes_only_after_every_component_and_is_idempotent", "bridge/tests/test_baseline_evidence.py::test_binding_uses_exact_allowed_source"],
+      "verification": ".planning/phases/16-pr-15-ota-recovery/16-VERIFICATION.md",
+      "remaining_gates": [{"id": "PHYSICAL-RECOVERY", "kind": "physical", "reason": "Backup/restore, provisioning, USB rescue y conservación de NVS requieren ensayo autorizado."}, {"id": "O-06-EFUSES", "kind": "authorization", "reason": "Secure Boot, Flash Encryption y eFuses requieren autorización separada."}]
+    },
+    {
+      "id": "OBS-01",
+      "phase": "Phase 17 — PR-16",
+      "automated_status": "passed",
+      "tests": ["bridge/tests/test_observability.py::test_percentiles_are_exact_bounded_and_do_not_retain_sensitive_correlation", "bridge/tests/test_v2_api.py::test_metrics_require_ops_capability_and_contain_only_bounded_dimensions"],
+      "verification": ".planning/phases/17-pr-16-observabilidad/17-VERIFICATION.md",
+      "remaining_gates": [{"id": "PHYSICAL-OBS-BUDGETS", "kind": "physical", "reason": "FPS, heap, arranque, tráfico, energía y percentiles reales requieren instrumentación de panel/red."}]
+    },
+    {
+      "id": "OBS-02",
+      "phase": "Phase 17 — PR-16",
+      "automated_status": "passed",
+      "tests": ["bridge/tests/test_observability.py::test_initial_sync_backpressure_closes_instead_of_growing_unbounded", "bridge/tests/test_doctor.py::test_doctor_rejects_inline_secret_without_rendering_it"],
+      "verification": ".planning/phases/17-pr-16-observabilidad/17-VERIFICATION.md",
+      "remaining_gates": [{"id": "PHYSICAL-ALERT-EXERCISE", "kind": "physical", "reason": "La alerta y el aislamiento deben ejercitarse en el despliegue doméstico real."}]
+    },
+    {
+      "id": "SEC-01",
+      "phase": "Phase 18 — PR-17",
+      "automated_status": "passed",
+      "tests": ["bridge/tests/test_security_adversarial.py::test_protocol_parser_fuzz_never_escapes_the_closed_error_contract", "bridge/tests/test_generate_sbom.py::test_sbom_is_deterministic_complete_and_contains_only_immutable_firmware_pins"],
+      "verification": ".planning/phases/18-pr-17-hardening-y-suite-adversarial/18-VERIFICATION.md",
+      "remaining_gates": [{"id": "EXTERNAL-SECURITY-SURFACES", "kind": "external", "reason": "Cámara y VPN sólo pueden incorporarse al audit tras resolver O-03/O-02."}]
+    },
+    {
+      "id": "SEC-02",
+      "phase": "Phase 18 — PR-17",
+      "automated_status": "passed",
+      "tests": ["bridge/tests/test_ci_protection.py::test_remote_protection_rejects_force_pushes", "bridge/tests/test_generate_sbom.py::test_sbom_check_rejects_drift"],
+      "verification": ".planning/phases/18-pr-17-hardening-y-suite-adversarial/18-VERIFICATION.md",
+      "remaining_gates": [{"id": "REMOTE-HIGH-BRANCH-PROTECTION", "kind": "authorization", "reason": "El único HIGH externo es main sin protección; requiere aprobación literal y aplicación remota."}]
+    },
+    {
+      "id": "SOAK-01",
+      "phase": "Phase 19 — PR-18",
+      "automated_status": "passed",
+      "tests": ["bridge/tests/test_soak.py::test_full_accelerated_soak_is_exactly_once_and_recovers"],
+      "verification": ".planning/phases/19-pr-18-beta-diaria-y-soak/19-VERIFICATION.md",
+      "remaining_gates": [{"id": "PHYSICAL-SOAK-72H", "kind": "physical", "reason": "Faltan 72 horas continuas y fallos reales de red/energía sobre el mismo commit."}]
+    },
+    {
+      "id": "SOAK-02",
+      "phase": "Phase 19 — PR-18",
+      "automated_status": "passed",
+      "tests": ["bridge/tests/test_soak.py::test_full_accelerated_soak_is_exactly_once_and_recovers", "bridge/tests/test_timers.py::test_active_timer_export_and_import_preserve_identity_deadline_and_state"],
+      "verification": ".planning/phases/19-pr-18-beta-diaria-y-soak/19-VERIFICATION.md",
+      "remaining_gates": [{"id": "PHYSICAL-MIGRATION-MATRIX", "kind": "physical", "reason": "Upgrade v1, backup/restore y downgrade deben ensayarse físicamente con datos/configuración."}]
+    },
+    {
+      "id": "REL-01",
+      "phase": "Phase 20 — PR-19",
+      "automated_status": "passed",
+      "tests": ["bridge/tests/test_quality_gates.py::test_ci_has_all_blocking_jobs", "bridge/tests/test_prepare_release.py::test_candidate_is_deterministic_and_explicitly_blocked"],
+      "verification": ".planning/phases/20-pr-19-release-v2-final/20-VERIFICATION.md",
+      "remaining_gates": [{"id": "REMOTE-CI-RELEASE", "kind": "external", "reason": "CI remoto protegido debe quedar verde sobre el commit final."}, {"id": "PHYSICAL-EVIDENCE-COVERAGE", "kind": "physical", "reason": "Los requisitos físicos deben enlazar evidencia del mismo commit."}]
+    },
+    {
+      "id": "REL-02",
+      "phase": "Phase 20 — PR-19",
+      "automated_status": "passed",
+      "tests": ["bridge/tests/test_prepare_release.py::test_candidate_is_deterministic_and_explicitly_blocked", "bridge/tests/test_firmware_release.py::test_manifest_rejects_tampering_wrong_board_and_wrong_signer"],
+      "verification": ".planning/phases/20-pr-19-release-v2-final/20-VERIFICATION.md",
+      "remaining_gates": [{"id": "AUTHORIZED-RELEASE-SIGNING", "kind": "authorization", "reason": "La firma real requiere la clave de release autorizada; no se genera ni busca automáticamente."}, {"id": "AUTHORIZED-PUBLICATION", "kind": "authorization", "reason": "Tag, push y GitHub Release requieren gates previos y aprobación literal."}]
+    },
+    {
+      "id": "REL-03",
+      "phase": "Phase 20 — PR-19",
+      "automated_status": "not_applicable",
+      "tests": ["bridge/tests/test_v2_api.py::test_pc_android_and_panel_receive_each_verified_light_change_live"],
+      "verification": ".planning/phases/20-pr-19-release-v2-final/20-VERIFICATION.md",
+      "remaining_gates": [{"id": "PHYSICAL-FINAL-SMOKE", "kind": "physical", "reason": "PC, Android, panel, luz y notificaciones requieren smoke físico del commit final."}, {"id": "EXTERNAL-FINAL-SMOKE", "kind": "external", "reason": "Spotify, Calendar, cámara y Wyss real requieren cuentas/hardware/gates externos."}]
+    }
+  ]
+}

@@ -5,7 +5,7 @@ milestone_name: final
 status: executing
 stopped_at: Phase 20 release candidate preparation complete; publication and physical gates pending
 last_updated: "2026-07-18T02:00:00Z"
-last_activity: 2026-07-18 -- Phase 20 versions/tooling/docs prepared; release remains blocked
+last_activity: 2026-07-18 -- 51/51 executable evidence audit passed; only explicit gates remain
 progress:
   total_phases: 20
   completed_phases: 1
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-07-17)
 Phase: 01 and 03-20 physical/external gates pending; 02 complete
 Plan: Hold publication; preserve functional screen and collect authorized evidence
 Status: Continuing autonomous roadmap work
-Last activity: 2026-07-18 -- Phase 20 candidate tooling, versions and operator docs prepared
+Last activity: 2026-07-18 -- Requirement evidence audit passes 51/51 with no automated gap
 
 Progress: [█░░░░░░░░░] 5% of roadmap phases complete
 
@@ -131,6 +131,9 @@ None yet.
 - Phase 20 aligns version 2.0.0 and prepares deterministic firmware/wheel/SBOM checksums with a
   fail-closed `BLOCKED_CANDIDATE` manifest. Signing, remote CI/protection, tag/publication and the
   complete physical smoke remain mandatory gates.
+- The executable requirement audit covers 51/51 entries: 45 automated passes, 2 physical-only
+  requirements and 4 implementation gates for camera/VPN. Every remaining item is classified as
+  physical, external or authorization; CI rejects generic unclassified pending work.
 - Gates O-01..O-07 require explicit operator decisions at Phases 5, 8, 9/11, 12, 14, 15 and 20.
 - Android, Spotify, Google Calendar, camera hardware and private remote network are external dependencies; simulations cannot close their physical criteria.
 - Secure Boot, Flash Encryption and eFuses remain untouched without separate explicit authorization.

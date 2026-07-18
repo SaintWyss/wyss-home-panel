@@ -33,10 +33,11 @@ jobs:
           python-version: "3.12"
       - run: python -m pip install uv==0.11.18
       - run: uv sync --project bridge --locked --extra dev
-      - run: uv run --project bridge --locked --extra dev ruff check bridge tools/check_docs.py tools/doctor.py tools/check_baseline_evidence.py tools/check_ci_protection.py tools/check_architecture.py tools/generate_sbom.py tools/prepare_release.py
-      - run: uv run --project bridge --locked --extra dev ruff format --check bridge tools/check_docs.py tools/doctor.py tools/check_baseline_evidence.py tools/check_ci_protection.py tools/check_architecture.py tools/generate_sbom.py tools/prepare_release.py
+      - run: uv run --project bridge --locked --extra dev ruff check bridge tools/check_docs.py tools/doctor.py tools/check_baseline_evidence.py tools/check_ci_protection.py tools/check_architecture.py tools/check_requirement_evidence.py tools/generate_sbom.py tools/prepare_release.py
+      - run: uv run --project bridge --locked --extra dev ruff format --check bridge tools/check_docs.py tools/doctor.py tools/check_baseline_evidence.py tools/check_ci_protection.py tools/check_architecture.py tools/check_requirement_evidence.py tools/generate_sbom.py tools/prepare_release.py
       - run: uv run --project bridge --locked --extra dev mypy bridge/src
       - run: uv run --project bridge --locked --extra dev python tools/check_architecture.py --format json
+      - run: uv run --project bridge --locked --extra dev python tools/check_requirement_evidence.py --format json
       - run: uv run --project bridge --locked --extra dev pytest bridge/tests --quiet
       - run: uv export --project bridge --locked --no-emit-project --format requirements-txt --output-file /tmp/wyss-requirements.txt
       - run: uvx --from pip-audit==2.10.1 pip-audit --requirement /tmp/wyss-requirements.txt --strict --progress-spinner off
@@ -75,3 +76,4 @@ jobs:
         with:
           python-version: "3.12"
       - run: python tools/check_docs.py --format json
+      - run: python tools/check_requirement_evidence.py --format json

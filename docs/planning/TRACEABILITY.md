@@ -33,3 +33,9 @@ Yo actualizo esta matriz en cada PR. Yo no marco una fila como completa sin enla
 ## Evidencia final
 
 Yo enlazaré desde cada fila el workflow, reporte, captura o acta de smoke. Yo conservaré artefactos de release, hashes y versiones. Yo trataré “hardware pendiente” como bloqueo de release, no como éxito parcial oculto.
+
+La matriz ejecutable requisito por requisito está en
+[`docs/evidence/requirements-v2.json`](../evidence/requirements-v2.json). El comando
+`python tools/check_requirement_evidence.py --format json` bloquea CI si alguno de los 51
+requisitos queda sin evidencia automatizada concreta o sin un gate restante clasificado únicamente
+como físico, externo o de autorización.

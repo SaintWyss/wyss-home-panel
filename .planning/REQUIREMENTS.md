@@ -49,7 +49,7 @@
 ### Conversación y voz
 
 - [ ] **CONV-01**: Texto enviado desde PC, Android o panel usa una sesión coherente y proyecta `idle`, `thinking`, confirmación, ejecución, verificación y fallo.
-- [ ] **CONV-02**: Acciones B/C exigen confirmación válida con TTL y carrera segura; acciones D no tienen bypass y toda confirmación reevalúa política.
+- [x] **CONV-02**: Acciones B/C exigen confirmación válida con TTL y carrera segura; acciones D no tienen bypass y toda confirmación reevalúa política.
 - [ ] **VOICE-01**: El owner captura voz sólo mientras mantiene pulsado un control visible en PC o Android, edita la transcripción y envía explícitamente.
 - [ ] **VOICE-02**: El sistema maneja permisos negados, silencio, ruido, interrupción y proveedor caído, y elimina el audio crudo por defecto.
 
@@ -119,7 +119,7 @@ La trazabilidad de cada requisito v2.0.0 se define en `ROADMAP.md` y se actualiz
 | BASE-02 | Phase 1 — PR-00 | Complete |
 | BASE-03 | Phase 1 — PR-00 | Complete |
 | BASE-04 | Phase 1 — PR-00 | Pending |
-| BASE-05 | Phase 1 — PR-00 | Pending |
+| BASE-05 | Phase 1 — PR-00 | Automated CI contract complete; remote protection authorization pending |
 | ARCH-01 | Phase 2 — PR-01 | Complete |
 | ARCH-02 | Phase 2 — PR-01 | Complete |
 | PROTO-01 | Phase 2 — PR-01 | Complete |
@@ -144,9 +144,9 @@ La trazabilidad de cada requisito v2.0.0 se define en `ROADMAP.md` y se actualiz
 | VOICE-02 | Phase 8 — PR-07 | Automated complete; physical permission/audio matrix pending |
 | MEDIA-01 | Phase 9 — PR-08 | Automated complete; O-07/Premium physical pending |
 | MEDIA-02 | Phase 9 — PR-08 | Automated complete; real OAuth lifecycle pending |
-| WEATHER-01 | Phase 10 — PR-09 | Pending |
-| CAL-01 | Phase 11 — PR-10 | Pending |
-| CAL-02 | Phase 11 — PR-10 | Pending |
+| WEATHER-01 | Phase 10 — PR-09 | Automated/provider complete; physical panel projection pending |
+| CAL-01 | Phase 11 — PR-10 | Automated complete; O-07/Google account/physical clients pending |
+| CAL-02 | Phase 11 — PR-10 | Automated complete; real OAuth lifecycle pending |
 | REM-01 | Phase 12 — PR-11 | Automated complete; Wyss real lifecycle pending |
 | REM-02 | Phase 12 — PR-11 | Automated complete; O-04/Android physical pending |
 | TIMER-01 | Phase 13 — PR-12 | Automated complete; Wyss/clients physical pending |
@@ -163,7 +163,7 @@ La trazabilidad de cada requisito v2.0.0 se define en `ROADMAP.md` y se actualiz
 | SEC-02 | Phase 18 — PR-17 | Blocked by remote branch protection authorization |
 | SOAK-01 | Phase 19 — PR-18 | 1000/500/100 and provider/process faults automated; 72 h physical pending |
 | SOAK-02 | Phase 19 — PR-18 | Automated restart/dedupe complete; v1 upgrade/restore/rollback physical pending |
-| REL-01 | Phase 20 — PR-19 | 51/51 mapped and local gates ready; physical requirements/remote CI pending |
+| REL-01 | Phase 20 — PR-19 | 51/51 evidence-linked and locally enforced; physical requirements/remote CI pending |
 | REL-02 | Phase 20 — PR-19 | Versions/checksums/SBOM/changelog/docs ready; real signature/tag/publication pending |
 | REL-03 | Phase 20 — PR-19 | Blocked by physical hardware, accounts and operator gates |
 
@@ -175,4 +175,4 @@ La trazabilidad de cada requisito v2.0.0 se define en `ROADMAP.md` y se actualiz
 
 ---
 *Requirements defined: 2026-07-17*
-*Last updated: 2026-07-18 after Phase 20 release preparation*
+*Last updated: 2026-07-18 after executable 51/51 completion audit*
