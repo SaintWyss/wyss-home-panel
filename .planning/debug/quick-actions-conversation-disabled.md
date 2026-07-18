@@ -25,3 +25,18 @@ Los tres botones enviaban `assistant.intent`, pero la conversación v2 estaba de
 - Build PlatformIO: correcto.
 - Flash app-only: hash verificado, NVS preservado.
 - Prueba WebSocket/Tuya extremo a extremo: modo noche verificado y estado original restaurado.
+
+## Seguimiento físico: potencia sin ACK
+
+Durante la prueba táctil, color y brillo se verificaron, pero `turn_on` y `turn_off` quedaron como
+`provider_unavailable`. El foco sí acepta esos writes de un único DP, pero a veces no devuelve un
+ACK a `tinytuya.set_multiple_values()`.
+
+La corrección no acepta éxito a ciegas: ante una respuesta silenciosa hace hasta tres lecturas
+acotadas y sólo confirma si todos los DP pedidos coinciden exactamente. Una respuesta Tuya con
+`Error`/`Err`, una lectura inválida o un estado distinto siguen fallando de forma segura.
+
+- Regresión nueva: un foco fake aplica un DP sin ACK; encendido y apagado sólo pasan por lectura.
+- Suite Python completa: 216/216.
+- Ruff, formato y mypy: correctos.
+- Prueba física directa: apagada → encendida → apagada, estado inicial restaurado.

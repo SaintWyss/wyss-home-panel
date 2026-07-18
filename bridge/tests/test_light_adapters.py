@@ -24,6 +24,7 @@ class FakeTuyaDevice:
         self.device_id = device_id
         self.dps: dict[str, object] = {"20": False, "21": "white", "22": 400}
         self.error = False
+        self.silent_single_writes = False
         self.active_writes = 0
         self.maximum_active_writes = 0
 
@@ -44,6 +45,8 @@ class FakeTuyaDevice:
         if self.error:
             return {"Error": "offline"}
         self.dps.update(values)
+        if self.silent_single_writes and len(values) == 1:
+            return None
         return {"success": True}
 
     def status(self) -> object:
@@ -125,6 +128,18 @@ async def test_tuya_serializes_commands_per_entity_and_marks_offline() -> None:
     assert unavailable[0].brightness == 50
     with pytest.raises(RuntimeError, match="confirmación"):
         await gateway.execute(FastCommand("offline:1", "light.living", "turn_on"))
+
+
+@pytest.mark.asyncio
+async def test_tuya_verifies_silent_single_dp_power_writes_by_reading_state() -> None:
+    gateway, devices = _tuya_gateway()
+    devices["living"].silent_single_writes = True
+
+    turned_on = await gateway.execute(FastCommand("power:1", "light.living", "turn_on"))
+    turned_off = await gateway.execute(FastCommand("power:2", "light.living", "turn_off"))
+
+    assert turned_on[0].on is True
+    assert turned_off[0].on is False
 
 
 @pytest.mark.asyncio
