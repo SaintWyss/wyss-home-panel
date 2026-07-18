@@ -38,7 +38,7 @@ Este milestone lleva el baseline v1 hasta un sistema doméstico v2.0.0 coherente
   2. **[Automatizada]** `doctor` informa toolchain, dependencias y configuración insegura con redacción de secretos, y CI bloquea dominio, bridge, firmware, secret scan y documentación esencial cuando fallan.
   3. **[Física]** El commit probado tiene evidencia fechada del backup de fábrica y mediciones comparables de LVGL/touch, Tuya, RAM y Flash; sin placa y luz reales este criterio permanece bloqueado.
   4. **[Física]** El smoke de la luz real confirma que el baseline continúa operativo sin alterar credenciales, NVS ni firmware estable.
-**Plans**: 4
+**Plans**: 3/4; CI/protección completa, evidencia física pendiente
 
 ### Phase 2: PR-01 — Contratos y arquitectura v2
 **Goal**: Los runtimes comparten contratos v2 cerrados y ports estables sin comprometer el camino v1.
@@ -234,7 +234,7 @@ Este milestone lleva el baseline v1 hasta un sistema doméstico v2.0.0 coherente
   2. **[Automatizada]** Dependency scan, SBOM y secret scan son reproducibles y bloquean componentes o material sensible no permitido.
   3. **[Automatizada + revisión humana]** No queda ningún hallazgo crítico o alto abierto; cada riesgo restante registra owner, impacto, mitigación y fecha.
   4. **[Automatizada]** Revertir una funcionalidad problemática conserva la segunda muralla de política, identidad, allowlists y controles esenciales.
-**Plans**: 2/2 automated; remote branch protection high gate open
+**Plans**: 2/2 automated; protección remota cerrada, superficies externas gated
 
 ### Phase 19: PR-18 — Beta diaria y soak
 **Goal**: El sistema completo demuestra estabilidad, recuperación y migración sobre la matriz E2E real.
@@ -265,7 +265,7 @@ Este milestone lleva el baseline v1 hasta un sistema doméstico v2.0.0 coherente
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. PR-00 — Baseline reproducible y protección | 2/4 | In progress | - |
+| 1. PR-00 — Baseline reproducible y protección | 3/4 | CI/protección complete; physical evidence pending | - |
 | 2. PR-01 — Contratos y arquitectura v2 | 3/3 | Complete | 2026-07-17 |
 | 3. PR-02 — Identidad, pairing y event backbone | 3/3 | Automated complete; physical pending | - |
 | 4. PR-03 — Projection Store y sincronización multicliente | 3/3 | Automated complete; physical pending | - |
@@ -282,6 +282,6 @@ Este milestone lleva el baseline v1 hasta un sistema doméstico v2.0.0 coherente
 | 15. PR-14 — Acceso remoto privado y operación móvil | gate | Blocked by O-02 operator decision | - |
 | 16. PR-15 — OTA, provisioning y recovery de producción | 2/2 | Automated signature/health complete; physical recovery pending | - |
 | 17. PR-16 — Observabilidad, rendimiento y sostenibilidad | 2/2 | Automated complete; physical budgets pending | - |
-| 18. PR-17 — Hardening y suite adversarial | 2/2 | Automated complete; remote protection high gate open | - |
+| 18. PR-17 — Hardening y suite adversarial | 2/2 | Automated + remote protection complete; external surfaces gated | - |
 | 19. PR-18 — Beta diaria y soak | 2/2 | Automated accelerated complete; 72 h/physical migration pending | - |
 | 20. PR-19 — Release v2.0.0 final | 2/3 | Release candidate tooling/docs ready; publication blocked | - |

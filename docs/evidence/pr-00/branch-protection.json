@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "status": "VERIFIED",
+  "observed_at": "2026-07-18T02:18:31Z",
+  "tested_commit": "fd8a01d9e44d989017b4006eee432e4dc9b6bc53",
+  "remote_ref": "refs/heads/agent/pr-00-baseline-c59bd169d9bf",
+  "workflow_runs": [
+    {
+      "event": "push",
+      "status": "success",
+      "url": "https://github.com/SaintWyss/wyss-home-panel/actions/runs/29626641230"
+    },
+    {
+      "event": "pull_request",
+      "status": "success",
+      "url": "https://github.com/SaintWyss/wyss-home-panel/actions/runs/29626642885"
+    }
+  ],
+  "check_runs": {
+    "Yo busco secretos accidentales": {
+      "status": "completed",
+      "conclusion": "success",
+      "occurrences": 2
+    },
+    "Yo compilo el firmware ESP32-S3": {
+      "status": "completed",
+      "conclusion": "success",
+      "occurrences": 2
+    },
+    "Yo pruebo el dominio C++": {
+      "status": "completed",
+      "conclusion": "success",
+      "occurrences": 2
+    },
+    "Yo valido documentación esencial": {
+      "status": "completed",
+      "conclusion": "success",
+      "occurrences": 2
+    },
+    "Yo valido el puente Python": {
+      "status": "completed",
+      "conclusion": "success",
+      "occurrences": 2
+    }
+  },
+  "protection": {
+    "strict": true,
+    "required_checks": [
+      "Yo busco secretos accidentales",
+      "Yo compilo el firmware ESP32-S3",
+      "Yo pruebo el dominio C++",
+      "Yo valido documentación esencial",
+      "Yo valido el puente Python"
+    ],
+    "enforce_admins": true,
+    "required_approving_review_count": 1,
+    "dismiss_stale_reviews": true,
+    "required_conversation_resolution": true,
+    "allow_force_pushes": false,
+    "allow_deletions": false
+  }
+}

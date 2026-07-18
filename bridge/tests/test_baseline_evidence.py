@@ -19,6 +19,13 @@ def _write(path: Path, payload: dict[str, Any]) -> None:
 
 def _manifest(path: Path) -> dict[str, Any]:
     payload = json.loads(TEMPLATE.read_text(encoding="utf-8"))
+    payload["status"] = "NOT_VERIFIED"
+    payload["tested_commit"] = None
+    for item in payload["evidence"].values():
+        item["status"] = "NOT_VERIFIED"
+        item["tested_commit"] = None
+        item["observed_at"] = None
+        item["sha256"] = None
     _write(path, payload)
     return payload
 

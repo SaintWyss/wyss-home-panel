@@ -1,11 +1,11 @@
 {
   "schema_version": 1,
   "status": "NOT_VERIFIED",
-  "tested_commit": null,
+  "tested_commit": "fd8a01d9e44d989017b4006eee432e4dc9b6bc53",
   "evidence": {
     "factory_backup": {
       "status": "NOT_VERIFIED",
-      "tested_commit": null,
+      "tested_commit": "fd8a01d9e44d989017b4006eee432e4dc9b6bc53",
       "observed_at": null,
       "provenance": "physical",
       "hardware": "Waveshare ESP32-S3-Touch-LCD-7 Rev. 1.2",
@@ -16,7 +16,7 @@
     },
     "lvgl_cycle": {
       "status": "NOT_VERIFIED",
-      "tested_commit": null,
+      "tested_commit": "fd8a01d9e44d989017b4006eee432e4dc9b6bc53",
       "observed_at": null,
       "provenance": "physical",
       "hardware": "Waveshare ESP32-S3-Touch-LCD-7 Rev. 1.2",
@@ -27,7 +27,7 @@
     },
     "touch_handler": {
       "status": "NOT_VERIFIED",
-      "tested_commit": null,
+      "tested_commit": "fd8a01d9e44d989017b4006eee432e4dc9b6bc53",
       "observed_at": null,
       "provenance": "physical",
       "hardware": "GT911 touch controller",
@@ -38,7 +38,7 @@
     },
     "tuya_round_trip": {
       "status": "NOT_VERIFIED",
-      "tested_commit": null,
+      "tested_commit": "fd8a01d9e44d989017b4006eee432e4dc9b6bc53",
       "observed_at": null,
       "provenance": "physical",
       "hardware": "real Tuya LAN light",
@@ -49,7 +49,7 @@
     },
     "firmware_resources": {
       "status": "NOT_VERIFIED",
-      "tested_commit": null,
+      "tested_commit": "fd8a01d9e44d989017b4006eee432e4dc9b6bc53",
       "observed_at": null,
       "provenance": "automated",
       "hardware": "ESP32-S3 N16R8 build target",
@@ -60,7 +60,7 @@
     },
     "real_light_smoke": {
       "status": "NOT_VERIFIED",
-      "tested_commit": null,
+      "tested_commit": "fd8a01d9e44d989017b4006eee432e4dc9b6bc53",
       "observed_at": null,
       "provenance": "physical",
       "hardware": "panel and real light",
@@ -71,7 +71,7 @@
     },
     "rollback": {
       "status": "NOT_VERIFIED",
-      "tested_commit": null,
+      "tested_commit": "fd8a01d9e44d989017b4006eee432e4dc9b6bc53",
       "observed_at": null,
       "provenance": "physical",
       "hardware": "Waveshare ESP32-S3-Touch-LCD-7 Rev. 1.2",
@@ -82,7 +82,7 @@
     },
     "branch_protection": {
       "status": "NOT_VERIFIED",
-      "tested_commit": null,
+      "tested_commit": "fd8a01d9e44d989017b4006eee432e4dc9b6bc53",
       "observed_at": null,
       "provenance": "external",
       "hardware": "GitHub repository",
