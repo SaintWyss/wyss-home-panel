@@ -153,6 +153,7 @@ def _projection_snapshot(payload: dict[str, Any], revision: int) -> dict[str, An
         "spotify": {},
         "weather": {"days": []},
         "agenda": {"next": []},
+        "reminders": {"items": []},
         "timers": [],
         "cameras": [],
     }
@@ -234,6 +235,7 @@ def create_v2_router(settings: Settings, runtime: V2Runtime) -> APIRouter:
     runtime.media.set_event_sink(hub.broadcast)
     runtime.weather.set_event_sink(hub.broadcast)
     runtime.calendar.set_event_sink(hub.broadcast)
+    runtime.reminders.set_event_sink(hub.broadcast)
 
     @router.get("/v2/voice/config")
     async def voice_config() -> JSONResponse:
@@ -393,6 +395,8 @@ def create_v2_router(settings: Settings, runtime: V2Runtime) -> APIRouter:
                 await runtime.weather.ensure_snapshot()
             if settings.v2_calendar_enabled:
                 await runtime.calendar.ensure_snapshot()
+            if settings.v2_reminders_enabled:
+                await runtime.reminders.ensure_snapshot()
             delivery = runtime.projections.delivery(client_id, last_event_id)
             messages = [
                 _message(
@@ -424,6 +428,8 @@ def create_v2_router(settings: Settings, runtime: V2Runtime) -> APIRouter:
                 deadlines["weather"] = loop.time() + settings.v2_weather_refresh_seconds
             if settings.v2_calendar_enabled:
                 deadlines["calendar"] = loop.time() + settings.v2_calendar_refresh_seconds
+            if settings.v2_reminders_enabled:
+                deadlines["reminders"] = loop.time() + settings.v2_reminder_refresh_seconds
             while True:
                 if not deadlines:
                     raw = await websocket.receive_text()
@@ -440,6 +446,9 @@ def create_v2_router(settings: Settings, runtime: V2Runtime) -> APIRouter:
                     if deadlines.get("calendar", current_time + 1) <= current_time:
                         await runtime.calendar.ensure_snapshot()
                         deadlines["calendar"] = current_time + settings.v2_calendar_refresh_seconds
+                    if deadlines.get("reminders", current_time + 1) <= current_time:
+                        await runtime.reminders.ensure_snapshot()
+                        deadlines["reminders"] = current_time + settings.v2_reminder_refresh_seconds
                 if raw is None:
                     continue
                 if not identity_service.authenticate(client_id, token):

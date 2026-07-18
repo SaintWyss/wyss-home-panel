@@ -235,3 +235,27 @@ async def test_calendar_mutations_always_cross_wyss_plan_policy_and_confirmation
     assert proposed.payload["risk"] == "B"
     assert proposed.payload["steps"] == [{"description": "Ajustar", "target": "calendar.primary"}]
     assert gateway.confirmations == 1
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "intent",
+    [
+        "Recordame tomar la medicación mañana a las diez",
+        "Completá el recordatorio de medicación",
+        "Posponé el recordatorio de medicación una hora",
+    ],
+)
+async def test_reminder_mutations_cross_wyss_plan_policy_and_confirmation(
+    tmp_path: Path, intent: str
+) -> None:
+    gateway = FakeWyss(RiskLevel.B, target="reminder.primary")
+    service, store = _service(tmp_path / "events.sqlite3", gateway, Clock())
+
+    await service.submit("android:phone", f"request:{hash(intent)}", intent, "text")
+    proposed = next(event for event in store.after(0, 20) if event.event_type == "plan.proposed")
+    await service.answer("android:phone", "plan:study", "approve", "CONFIRMAR", 1)
+
+    assert proposed.payload["risk"] == "B"
+    assert proposed.payload["steps"] == [{"description": "Ajustar", "target": "reminder.primary"}]
+    assert gateway.confirmations == 1

@@ -21,8 +21,16 @@ from wyss_panel_bridge.domain.events import EventDraft
 from wyss_panel_bridge.domain.media import MediaAction, MediaCommand, MediaDevice, MediaState
 from wyss_panel_bridge.domain.models import DeviceState, FastCommand, Plan, PlanStep, RiskLevel
 from wyss_panel_bridge.domain.protocol_v2 import parse_envelope
+from wyss_panel_bridge.domain.reminders import Reminder, ReminderSnapshot
 from wyss_panel_bridge.domain.weather import ForecastDay, WeatherForecast
-from wyss_panel_bridge.ports_v2 import CalendarPort, MediaPort, SpeechPort, WeatherPort
+from wyss_panel_bridge.ports_v2 import (
+    CalendarPort,
+    MediaPort,
+    NotificationPort,
+    ReminderPort,
+    SpeechPort,
+    WeatherPort,
+)
 
 
 class FakeLights:
@@ -175,6 +183,29 @@ class FakeCalendar:
         return CalendarPage((event,), None, "cursor-1")
 
 
+class FakeReminders:
+    def __init__(self) -> None:
+        self.calls = 0
+
+    async def snapshot(self) -> ReminderSnapshot:
+        self.calls += 1
+        return ReminderSnapshot(
+            (
+                Reminder(
+                    "reminder-1",
+                    "Tomar medicación",
+                    "2026-07-18T10:00:00-03:00",
+                    "America/Argentina/Cordoba",
+                    "FREQ=DAILY",
+                    "active",
+                    2,
+                ),
+            ),
+            2,
+            0,
+        )
+
+
 def _app(
     settings: Settings,
     lights: FakeLights | None = None,
@@ -183,9 +214,19 @@ def _app(
     media: MediaPort | None = None,
     weather: WeatherPort | None = None,
     calendar: CalendarPort | None = None,
+    reminders: ReminderPort | None = None,
+    notifications: NotificationPort | None = None,
 ) -> FastAPI:
     return create_app(
-        settings, lights or FakeLights(), orchestrator, speech, media, weather, calendar
+        settings,
+        lights or FakeLights(),
+        orchestrator,
+        speech,
+        media,
+        weather,
+        calendar,
+        reminders,
+        notifications,
     )
 
 
@@ -214,6 +255,8 @@ def _settings(tmp_path: Path, *, enabled: bool) -> Settings:
         v2_light_audit_db=tmp_path / "light-audit.sqlite3",
         v2_weather_cache_db=tmp_path / "weather-cache.sqlite3",
         v2_calendar_cache_db=tmp_path / "calendar-cache.sqlite3",
+        v2_reminder_cache_db=tmp_path / "reminder-cache.sqlite3",
+        v2_notification_db=tmp_path / "notification-outbox.sqlite3",
         v2_lights_enabled=enabled,
         v2_conversation_enabled=enabled,
     )
@@ -761,6 +804,38 @@ def test_pc_android_and_panel_receive_same_calendar_projection(tmp_path: Path) -
     serialized = json.dumps(agendas)
     assert "access_token" not in serialized
     assert "refresh_token" not in serialized
+
+
+def test_pc_android_and_panel_receive_same_reminder_projection(tmp_path: Path) -> None:
+    settings = replace(
+        _settings(tmp_path, enabled=True),
+        v2_reminders_enabled=True,
+    )
+    reminders = FakeReminders()
+    clients = {
+        client_id: _pair(settings)[0]
+        if client_id == "panel:living"
+        else _pair_as(settings, client_id, "panel.read_projection")
+        for client_id in ("panel:living", "pc:desk", "android:phone")
+    }
+
+    with TestClient(_app(settings, reminders=reminders)) as client:
+        snapshots = []
+        for client_id in ("pc:desk", "android:phone", "panel:living"):
+            with client.websocket_connect(
+                "/v2/client",
+                headers=_headers_as(client_id, clients[client_id]),
+                subprotocols=["wyss-v2"],
+            ) as websocket:
+                websocket.send_json(_hello_as(client_id))
+                assert websocket.receive_json()["type"] == "session.welcome"
+                snapshots.append(websocket.receive_json())
+
+    projected = [message["payload"]["reminders"] for message in snapshots]
+    assert all(value["items"][0]["text"] == "Tomar medicación" for value in projected)
+    assert all(value["items"][0]["recurrence"] == "FREQ=DAILY" for value in projected)
+    assert all(len(json.dumps(message).encode()) < 4096 for message in snapshots)
+    assert reminders.calls == 1
 
 
 def test_spotify_flag_rolls_back_to_shell_without_calling_provider(tmp_path: Path) -> None:

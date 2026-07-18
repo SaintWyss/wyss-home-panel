@@ -23,6 +23,8 @@ from wyss_panel_bridge.composition import (
     CalendarPort,
     LightPort,
     MediaPort,
+    NotificationPort,
+    ReminderPort,
     SpeechPort,
     WeatherPort,
     build_light_gateway,
@@ -54,6 +56,8 @@ def create_app(
     media_gateway: MediaPort | None = None,
     weather_gateway: WeatherPort | None = None,
     calendar_gateway: CalendarPort | None = None,
+    reminder_gateway: ReminderPort | None = None,
+    notification_gateway: NotificationPort | None = None,
 ) -> FastAPI:
     app = FastAPI(
         title="Wyss Home Panel Bridge",
@@ -73,6 +77,8 @@ def create_app(
             media_gateway,
             weather_gateway,
             calendar_gateway,
+            reminder_gateway,
+            notification_gateway,
         )
         if settings.v2_enabled
         else None

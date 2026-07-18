@@ -242,6 +242,7 @@ def _validate_payload(message_type: str, payload: dict[str, Any]) -> None:
             "spotify",
             "weather",
             "agenda",
+            "reminders",
             "timers",
             "cameras",
         }

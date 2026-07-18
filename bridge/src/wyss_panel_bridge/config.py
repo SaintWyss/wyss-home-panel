@@ -75,6 +75,12 @@ class Settings:
     v2_calendar_cache_db: Path = Path("bridge/data/calendar-cache.sqlite3")
     v2_calendar_timezone: str = "America/Argentina/Cordoba"
     v2_calendar_refresh_seconds: float = 5 * 60
+    v2_reminders_enabled: bool = False
+    v2_reminder_cache_db: Path = Path("bridge/data/reminder-cache.sqlite3")
+    v2_reminder_timezone: str = "America/Argentina/Cordoba"
+    v2_reminder_refresh_seconds: float = 60
+    v2_notifications_enabled: bool = False
+    v2_notification_db: Path = Path("bridge/data/notification-outbox.sqlite3")
 
     @classmethod
     def load(cls, path: Path) -> Settings:
@@ -128,6 +134,16 @@ class Settings:
         calendar_refresh = float(v2.get("calendar_refresh_seconds", 5 * 60))
         if calendar_refresh <= 0:
             raise RuntimeError("Yo recibí un intervalo Calendar inválido")
+        reminders_enabled = bool(v2.get("reminders_enabled", False))
+        notifications_enabled = bool(v2.get("notifications_enabled", False))
+        if notifications_enabled and not reminders_enabled:
+            raise RuntimeError("Yo no habilito notificaciones sin recordatorios")
+        reminder_timezone = str(v2.get("reminder_timezone", "America/Argentina/Cordoba"))
+        if reminder_timezone != "America/Argentina/Cordoba":
+            raise RuntimeError("Yo rechacé otra zona horaria para recordatorios")
+        reminder_refresh = float(v2.get("reminder_refresh_seconds", 60))
+        if reminder_refresh <= 0:
+            raise RuntimeError("Yo recibí un intervalo de recordatorios inválido")
         return cls(
             host=str(bridge.get("host", "0.0.0.0")),
             port=int(bridge.get("port", 8443)),
@@ -174,4 +190,14 @@ class Settings:
             ),
             v2_calendar_timezone=calendar_timezone,
             v2_calendar_refresh_seconds=calendar_refresh,
+            v2_reminders_enabled=reminders_enabled,
+            v2_reminder_cache_db=Path(
+                v2.get("reminder_cache_db", "bridge/data/reminder-cache.sqlite3")
+            ),
+            v2_reminder_timezone=reminder_timezone,
+            v2_reminder_refresh_seconds=reminder_refresh,
+            v2_notifications_enabled=notifications_enabled,
+            v2_notification_db=Path(
+                v2.get("notification_db", "bridge/data/notification-outbox.sqlite3")
+            ),
         )

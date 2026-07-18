@@ -12,6 +12,10 @@ from wyss_panel_bridge.domain.lights import LightAuditRecord
 from wyss_panel_bridge.domain.media import MediaCommand, MediaState
 from wyss_panel_bridge.domain.models import DeviceState, FastCommand
 from wyss_panel_bridge.domain.projection import ProjectionDelivery
+from wyss_panel_bridge.domain.reminders import (
+    ReminderNotification,
+    ReminderSnapshot,
+)
 from wyss_panel_bridge.domain.v2_types import (
     CapabilityCommand,
     DeliveryReceipt,
@@ -99,9 +103,23 @@ class CalendarStorePort(Protocol):
 
 
 class ReminderPort(Protocol):
-    async def list(self) -> Snapshot: ...
+    async def snapshot(self) -> ReminderSnapshot: ...
 
-    async def execute(self, command: CapabilityCommand) -> ProjectionEvent: ...
+
+class ReminderStorePort(Protocol):
+    def load(self) -> ReminderSnapshot | None: ...
+
+    def save(self, snapshot: ReminderSnapshot) -> None: ...
+
+
+class NotificationOutboxPort(Protocol):
+    def enqueue(self, notification: ReminderNotification) -> None: ...
+
+    def pending(self, limit: int = 32) -> tuple[ReminderNotification, ...]: ...
+
+    def record_attempt(self, notification_id: str, *, accepted: bool) -> None: ...
+
+    def is_delivered(self, notification_id: str) -> bool: ...
 
 
 class TimerPort(Protocol):

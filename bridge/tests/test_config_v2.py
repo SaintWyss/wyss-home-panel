@@ -66,6 +66,12 @@ calendar_approved_scopes = ["https://www.googleapis.com/auth/calendar.events.own
 calendar_cache_db = "private/calendar-cache.sqlite3"
 calendar_timezone = "America/Argentina/Cordoba"
 calendar_refresh_seconds = 120
+reminders_enabled = true
+reminder_cache_db = "private/reminder-cache.sqlite3"
+reminder_timezone = "America/Argentina/Cordoba"
+reminder_refresh_seconds = 45
+notifications_enabled = true
+notification_db = "private/notification-outbox.sqlite3"
 """.strip(),
         encoding="utf-8",
     )
@@ -111,6 +117,12 @@ calendar_refresh_seconds = 120
     assert settings.v2_calendar_cache_db == Path("private/calendar-cache.sqlite3")
     assert settings.v2_calendar_timezone == "America/Argentina/Cordoba"
     assert settings.v2_calendar_refresh_seconds == 120
+    assert settings.v2_reminders_enabled is True
+    assert settings.v2_reminder_cache_db == Path("private/reminder-cache.sqlite3")
+    assert settings.v2_reminder_timezone == "America/Argentina/Cordoba"
+    assert settings.v2_reminder_refresh_seconds == 45
+    assert settings.v2_notifications_enabled is True
+    assert settings.v2_notification_db == Path("private/notification-outbox.sqlite3")
     assert settings.wyss_url == "http://127.0.0.1:8000"
 
 
@@ -184,6 +196,40 @@ calendar_approved_scopes = ["https://www.googleapis.com/auth/calendar"]
     monkeypatch.setenv("TEST_WYSS_TOKEN", "fake")
 
     with pytest.raises(RuntimeError, match="scope mínimo aprobado exacto"):
+        Settings.load(config)
+
+
+def test_settings_reject_notifications_without_reminders(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    config = tmp_path / "bridge.toml"
+    config.write_text(
+        """
+[bridge]
+certfile = "server.crt"
+keyfile = "server.key"
+[panel]
+id = "panel-v1"
+token_sha256 = "hash"
+allowed_entities = ["light.living"]
+primary_entity = "light.living"
+[devices]
+provider = "tuya"
+[tuya]
+device_id = "fake"
+address = "127.0.0.1"
+local_key = "fake"
+[wyss]
+url = "http://127.0.0.1:8000"
+token_env = "TEST_WYSS_TOKEN"
+[protocol_v2]
+notifications_enabled = true
+""".strip(),
+        encoding="utf-8",
+    )
+    monkeypatch.setenv("TEST_WYSS_TOKEN", "fake")
+
+    with pytest.raises(RuntimeError, match="notificaciones sin recordatorios"):
         Settings.load(config)
 
 

@@ -9,6 +9,12 @@ from wyss_panel_bridge.adapters.disabled_calendar import (
     VolatileCalendarStore,
 )
 from wyss_panel_bridge.adapters.disabled_media import DisabledMediaGateway
+from wyss_panel_bridge.adapters.disabled_reminders import (
+    DisabledNotificationGateway,
+    DisabledReminderGateway,
+    VolatileNotificationOutbox,
+    VolatileReminderStore,
+)
 from wyss_panel_bridge.adapters.disabled_speech import DisabledSpeechGateway
 from wyss_panel_bridge.adapters.disabled_weather import (
     DisabledWeatherGateway,
@@ -20,15 +26,21 @@ from wyss_panel_bridge.adapters.sqlite_calendar import SqliteCalendarStore
 from wyss_panel_bridge.adapters.sqlite_events import SqliteEventStore
 from wyss_panel_bridge.adapters.sqlite_light_audit import SqliteLightAuditStore
 from wyss_panel_bridge.adapters.sqlite_projection import SqliteProjectionStore
+from wyss_panel_bridge.adapters.sqlite_reminders import (
+    SqliteNotificationOutbox,
+    SqliteReminderStore,
+)
 from wyss_panel_bridge.adapters.sqlite_weather_cache import SqliteWeatherCache
 from wyss_panel_bridge.adapters.tuya import TuyaGateway
 from wyss_panel_bridge.adapters.wyss_calendar import WyssCalendarGateway
 from wyss_panel_bridge.adapters.wyss_media import WyssMediaGateway
+from wyss_panel_bridge.adapters.wyss_reminders import WyssReminderGateway
 from wyss_panel_bridge.application.calendar_service import CalendarService
 from wyss_panel_bridge.application.conversation_service import ConversationService
 from wyss_panel_bridge.application.light_service import LightService
 from wyss_panel_bridge.application.media_service import MediaService
 from wyss_panel_bridge.application.projection_service import ProjectionCoordinator
+from wyss_panel_bridge.application.reminder_service import ReminderService
 from wyss_panel_bridge.application.voice_service import VoiceService
 from wyss_panel_bridge.application.weather_service import WeatherService
 from wyss_panel_bridge.config import Settings
@@ -37,6 +49,10 @@ from wyss_panel_bridge.ports_v2 import (
     CalendarPort,
     CalendarStorePort,
     MediaPort,
+    NotificationOutboxPort,
+    NotificationPort,
+    ReminderPort,
+    ReminderStorePort,
     SpeechPort,
     WeatherCachePort,
     WeatherPort,
@@ -54,6 +70,7 @@ class V2Runtime:
     media: MediaService
     weather: WeatherService
     calendar: CalendarService
+    reminders: ReminderService
 
 
 def build_light_gateway(settings: Settings) -> LightPort:
@@ -73,6 +90,8 @@ def build_v2_runtime(
     media: MediaPort | None = None,
     weather: WeatherPort | None = None,
     calendar: CalendarPort | None = None,
+    reminders: ReminderPort | None = None,
+    notifications: NotificationPort | None = None,
 ) -> V2Runtime:
     events = SqliteEventStore(settings.v2_event_db)
     projections = ProjectionCoordinator(
@@ -141,6 +160,31 @@ def build_v2_runtime(
         write_enabled=settings.v2_calendar_access == "write",
         refresh_seconds=settings.v2_calendar_refresh_seconds,
     )
+    reminder_gateway: ReminderPort
+    reminder_cache: ReminderStorePort
+    notification_outbox: NotificationOutboxPort
+    if settings.v2_reminders_enabled:
+        reminder_gateway = reminders or WyssReminderGateway(
+            settings.wyss_url,
+            settings.wyss_token,
+            settings.v2_reminder_timezone,
+        )
+        reminder_cache = SqliteReminderStore(settings.v2_reminder_cache_db)
+        notification_outbox = SqliteNotificationOutbox(settings.v2_notification_db)
+    else:
+        reminder_gateway = DisabledReminderGateway()
+        reminder_cache = VolatileReminderStore()
+        notification_outbox = VolatileNotificationOutbox()
+    reminder_service = ReminderService(
+        reminder_gateway,
+        reminder_cache,
+        notifications or DisabledNotificationGateway(),
+        notification_outbox,
+        events,
+        timezone=settings.v2_reminder_timezone,
+        notifications_enabled=settings.v2_notifications_enabled,
+        refresh_seconds=settings.v2_reminder_refresh_seconds,
+    )
     return V2Runtime(
         events,
         projections,
@@ -150,4 +194,5 @@ def build_v2_runtime(
         media_service,
         weather_service,
         calendar_service,
+        reminder_service,
     )
