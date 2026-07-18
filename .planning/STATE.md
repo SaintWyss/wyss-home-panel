@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0.0
 milestone_name: final
 status: executing
-stopped_at: Phase 01/03-18 physical or external evidence pending; Phase 19 next
-last_updated: "2026-07-18T01:40:22Z"
-last_activity: 2026-07-18 -- Phase 18 automated hardening verified; branch protection gate open
+stopped_at: Phase 01/03-19 physical or external evidence pending; Phase 20 release preparation next
+last_updated: "2026-07-18T01:47:30Z"
+last_activity: 2026-07-18 -- Phase 19 accelerated soak verified; 72 h and physical migration pending
 progress:
   total_phases: 20
   completed_phases: 1
-  total_plans: 36
-  completed_plans: 34
+  total_plans: 38
+  completed_plans: 36
   percent: 5
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-17)
 
 **Core value:** Toda acción doméstica debe pasar por una única autoridad de política y ejecución de Wyss, conservar coherencia observable entre clientes y fallar de forma segura.
-**Current focus:** Phase 18 branch protection gate open; Phase 19 automated soak next
+**Current focus:** Phase 20 release preparation without publication; physical/external gates remain
 
 ## Current Position
 
-Phase: 01 and 03-18 physical/external gates pending; 02 complete
-Plan: Continue automated roadmap work from PR-18
+Phase: 01 and 03-19 physical/external gates pending; 02 complete
+Plan: Continue safe release preparation from PR-19 without publishing
 Status: Continuing autonomous roadmap work
-Last activity: 2026-07-18 -- Phase 18 hardening, SBOM and supply-chain checks verified
+Last activity: 2026-07-18 -- Phase 19 accelerated soak and recovery verified
 
 Progress: [█░░░░░░░░░] 5% of roadmap phases complete
 
@@ -61,6 +61,7 @@ Progress: [█░░░░░░░░░] 5% of roadmap phases complete
 | 16 | 2/2 automated | Not tracked | Not tracked |
 | 17 | 2/2 automated | Not tracked | Not tracked |
 | 18 | 2/2 automated | Not tracked | Not tracked |
+| 19 | 2/2 automated | Not tracked | Not tracked |
 
 **Recent Trend:**
 
@@ -122,6 +123,10 @@ None yet.
 - Phase 17 has bounded percentile metrics, redacted correlation traces, capability-protected
   export, module health and handshake backpressure. Energy/FPS/startup/traffic on hardware remain
   physical measurements rather than estimated values.
+- Phase 19 passed an accelerated reproducible run of 1.000 reconnects, 500 brightness changes,
+  100 timers/notifications, one provider failure and two process restarts with zero duplicates or
+  ghost state. It does not substitute the required 72-hour physical soak, real network/power faults
+  or v1 upgrade/backup/restore/downgrade matrix.
 - Gates O-01..O-07 require explicit operator decisions at Phases 5, 8, 9/11, 12, 14, 15 and 20.
 - Android, Spotify, Google Calendar, camera hardware and private remote network are external dependencies; simulations cannot close their physical criteria.
 - Secure Boot, Flash Encryption and eFuses remain untouched without separate explicit authorization.
@@ -134,6 +139,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-18T01:05:57Z
-Stopped at: Phase 17 automated observability complete; physical budgets pending
-Resume file: .planning/phases/17-pr-16-observabilidad/17-VERIFICATION.md
+Last session: 2026-07-18T01:47:30Z
+Stopped at: Phase 19 automated soak complete; physical soak/migration pending
+Resume file: .planning/phases/19-pr-18-beta-diaria-y-soak/19-VERIFICATION.md

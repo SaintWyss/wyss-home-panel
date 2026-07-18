@@ -21,10 +21,10 @@ Yo actualizo esta matriz en cada PR. Yo no marco una fila como completa sin enla
 | RNF-01/02 Latencia | PR-05/16 | benchmark harness | 1.000 muestras | Baseline parcial |
 | RNF-03 Fluidez | PR-04/16 | simulator metrics | Panel p95/p99 | Baseline parcial |
 | RNF-04 Arranque | PR-16 | boot instrumentation | Panel cold boot | Planificado |
-| RNF-05 Disponibilidad | PR-03/16/18 | fault injection | Soak | Planificado |
+| RNF-05 Disponibilidad | PR-03/16/18 | provider/process fault injection aprobado | Red/energía real | Automatizado parcial; física pendiente |
 | RNF-06 Seguridad | PR-02/17 | adversarial suite | Pair/revoke | Planificado |
 | RNF-07 Privacidad | PR-07/17 | borrado/no-store/no implicit send | Permisos/audio | PR-07 automatizado; física pendiente |
-| RNF-08 Resiliencia | PR-18 | chaos/soak | 72 h | Planificado |
+| RNF-08 Resiliencia | PR-18 | `test_soak`: 1.000/500/100 sin duplicación | 72 h + migración real | Automatizado parcial; física pendiente |
 | RNF-09 Recursos | PR-04/16 | size/heap gates | Panel | Baseline: RAM 29,3 %, Flash 24 % |
 | RNF-10 Mantenibilidad | PR-01 | import/contract gates | N/A | Arquitectura base existente |
 | RNF-11 Accesibilidad | PR-04 | static/UI tests | Revisión física | Planificado |

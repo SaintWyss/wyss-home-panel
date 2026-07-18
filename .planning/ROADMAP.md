@@ -234,7 +234,7 @@ Este milestone lleva el baseline v1 hasta un sistema doméstico v2.0.0 coherente
   2. **[Automatizada]** Dependency scan, SBOM y secret scan son reproducibles y bloquean componentes o material sensible no permitido.
   3. **[Automatizada + revisión humana]** No queda ningún hallazgo crítico o alto abierto; cada riesgo restante registra owner, impacto, mitigación y fecha.
   4. **[Automatizada]** Revertir una funcionalidad problemática conserva la segunda muralla de política, identidad, allowlists y controles esenciales.
-**Plans**: TBD
+**Plans**: 2/2 automated; remote branch protection high gate open
 
 ### Phase 19: PR-18 — Beta diaria y soak
 **Goal**: El sistema completo demuestra estabilidad, recuperación y migración sobre la matriz E2E real.
@@ -245,7 +245,7 @@ Este milestone lleva el baseline v1 hasta un sistema doméstico v2.0.0 coherente
   2. **[Automatizada + física]** Fault injection en red, proveedores y procesos conserva funciones esenciales o muestra degradación explícita y recuperable.
   3. **[Física]** Upgrade desde v1, backup/restore y rollback en la matriz real preservan datos, configuración e identidades verificadas.
   4. **[Física/externa]** Toda dependencia de hardware o proveedor ausente queda como bloqueo de fase; simuladores sólo aportan evidencia complementaria.
-**Plans**: TBD
+**Plans**: 2/2 automated; 72 h/physical migration matrix pending
 
 ### Phase 20: PR-19 — Release v2.0.0 final
 **Goal**: El operador publica un artefacto v2.0.0 trazable y puede volver de forma segura a una versión conocida.
@@ -283,5 +283,5 @@ Este milestone lleva el baseline v1 hasta un sistema doméstico v2.0.0 coherente
 | 16. PR-15 — OTA, provisioning y recovery de producción | 2/2 | Automated signature/health complete; physical recovery pending | - |
 | 17. PR-16 — Observabilidad, rendimiento y sostenibilidad | 2/2 | Automated complete; physical budgets pending | - |
 | 18. PR-17 — Hardening y suite adversarial | 2/2 | Automated complete; remote protection high gate open | - |
-| 19. PR-18 — Beta diaria y soak | 0/TBD | Not started | - |
+| 19. PR-18 — Beta diaria y soak | 2/2 | Automated accelerated complete; 72 h/physical migration pending | - |
 | 20. PR-19 — Release v2.0.0 final | 0/TBD | Not started | - |
