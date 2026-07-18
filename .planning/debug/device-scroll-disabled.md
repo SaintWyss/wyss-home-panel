@@ -2,7 +2,7 @@
 status: resolved
 trigger: "no quiero que se pueda scrolear por el dispositivo"
 created: 2026-07-18T14:18:00Z
-updated: 2026-07-18T14:24:00Z
+updated: 2026-07-18T14:40:46Z
 ---
 
 # Debug: desplazamiento táctil no deseado
@@ -17,10 +17,10 @@ updated: 2026-07-18T14:24:00Z
 
 ## Current Focus
 
-- hypothesis: confirmed; los objetos base de LVGL heredan scroll, elasticidad, momentum y chaining.
-- test: el simulador recorre el árbol completo y exige `LV_DIR_NONE` sin flags de gesto táctil.
-- expecting: el test falla antes del fix y pasa después sin cambiar botones, sliders ni las vistas fuera del modal.
-- next_action: compilar el firmware y validar el bloqueo en la pantalla física.
+- hypothesis: confirmed; además del gesto directo, `SCROLL_ON_FOCUS` puede desplazar un padre al enfocar un control.
+- test: el simulador recorre el árbol completo y exige `LV_DIR_NONE` sin flags táctiles ni auto-scroll de foco/teclado.
+- expecting: ningún arrastre, foco o flecha puede desplazar la superficie; sliders y clicks conservan coordenadas directas.
+- next_action: compilar, flashear y repetir la prueba física.
 
 ## Evidence
 
@@ -30,12 +30,14 @@ updated: 2026-07-18T14:24:00Z
   observation: la regresión del simulador falló contra el árbol original con `la interfaz conserva un objeto desplazable por tacto`.
 - timestamp: 2026-07-18T14:24:00Z
   observation: `LV_DIR_NONE` impide que LVGL elija un `scroll_obj`; sliders y botones procesan el puntero sin consultar esa dirección.
+- timestamp: 2026-07-18T14:40:46Z
+  observation: la pantalla física todavía se desplazó ocasionalmente; `LV_EVENT_FOCUSED` llama a `lv_obj_scroll_to_view_recursive()` cuando queda `SCROLL_ON_FOCUS`.
 
 ## Eliminated
 
 ## Resolution
 
-- root_cause: LVGL 8.4 habilita desplazamiento y efectos de gesto por defecto; la UI sólo los anulaba en algunos contenedores.
-- fix: recorrer el árbol al terminar `begin()`, bloquear direcciones táctiles y limpiar elasticidad, momentum y chaining.
-- verification: TDD rojo/verde, recorrido completo del árbol, capturas visuales deterministas y revisión del manejo de sliders/clicks.
+- root_cause: LVGL 8.4 habilita desplazamiento, efectos de gesto y auto-scroll de foco por defecto; la UI sólo los anulaba en algunos contenedores.
+- fix: recorrer el árbol al terminar `begin()`, resetear offsets, bloquear direcciones táctiles y limpiar elasticidad, momentum, chaining, auto-scroll de foco y flechas.
+- verification: TDD rojo/verde, recorrido completo del árbol, capturas visuales deterministas, revisión del manejo de sliders/clicks y prueba física de seguimiento.
 - files_changed: firmware/src/adapters/lvgl_panel_view.cpp, simulator/ui_simulator.cpp, tests/fixtures/ui_visual_manifest.txt
