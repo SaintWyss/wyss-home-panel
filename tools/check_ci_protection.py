@@ -154,23 +154,26 @@ def validate_check_runs(
         raise ContractError("tested_commit inválido")
     contract = _contract(contract_path)
     runs = payload.get("check_runs")
-    if not isinstance(runs, list) or len(runs) != 5:
-        raise ContractError("se requieren exactamente cinco check-runs")
+    if not isinstance(runs, list) or len(runs) < 5:
+        raise ContractError("se requieren ejecuciones para los cinco checks")
     expected = {item["name"] for item in contract["checks"]}
     observed: set[str] = set()
     conclusions: dict[str, str] = {}
+    occurrences: dict[str, int] = {name: 0 for name in expected}
     for run in runs:
         if not isinstance(run, dict):
             raise ContractError("check-run inválido")
         name = run.get("name")
-        if name not in expected or name in observed:
-            raise ContractError("contexto inesperado o duplicado")
+        if name not in expected:
+            raise ContractError("contexto inesperado")
         if run.get("head_sha") != tested_commit:
             raise ContractError("check-run atribuido a otro SHA")
         if run.get("status") != "completed" or run.get("conclusion") != "success":
             raise ContractError("check-run incompleto o fallido")
-        observed.add(name)
-        conclusions[str(name)] = "success"
+        normalized = str(name)
+        observed.add(normalized)
+        occurrences[normalized] += 1
+        conclusions[normalized] = "success"
     if observed != expected:
         raise ContractError("falta un contexto requerido")
     return {
@@ -178,6 +181,7 @@ def validate_check_runs(
         "status": "VERIFIED",
         "tested_commit": tested_commit,
         "checks": conclusions,
+        "occurrences": occurrences,
     }
 
 

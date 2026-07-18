@@ -109,6 +109,34 @@ def test_check_runs_require_five_successes_on_exact_sha() -> None:
     assert result.returncode == 0, result.stderr
 
 
+def test_check_runs_accept_completed_push_and_pr_reexecutions() -> None:
+    payload = _check_runs()
+    payload["check_runs"] += [dict(item) for item in payload["check_runs"]]
+    payload["total_count"] = 10
+
+    result = _run("--check-runs-json", "-", "--tested-commit", COMMIT, payload=payload)
+
+    assert result.returncode == 0, result.stderr
+    assert set(json.loads(result.stdout)["occurrences"].values()) == {2}
+
+
+@pytest.mark.parametrize("state", ["in_progress", "failure", "unexpected"])
+def test_check_runs_reject_unsafe_duplicate_execution(state: str) -> None:
+    payload = _check_runs()
+    duplicate = dict(payload["check_runs"][0])
+    if state == "in_progress":
+        duplicate.update(status="in_progress", conclusion=None)
+    elif state == "failure":
+        duplicate["conclusion"] = "failure"
+    else:
+        duplicate["name"] = "untrusted-check"
+    payload["check_runs"].append(duplicate)
+
+    result = _run("--check-runs-json", "-", "--tested-commit", COMMIT, payload=payload)
+
+    assert result.returncode == 1
+
+
 @pytest.mark.parametrize("mutation", ["missing", "sha", "conclusion"])
 def test_check_runs_reject_incomplete_or_untrusted_results(mutation: str) -> None:
     payload = _check_runs()
