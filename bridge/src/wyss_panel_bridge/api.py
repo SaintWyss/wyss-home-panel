@@ -26,6 +26,7 @@ from wyss_panel_bridge.composition import (
     NotificationPort,
     ReminderPort,
     SpeechPort,
+    TimerPort,
     WeatherPort,
     build_light_gateway,
     build_v2_runtime,
@@ -58,6 +59,7 @@ def create_app(
     calendar_gateway: CalendarPort | None = None,
     reminder_gateway: ReminderPort | None = None,
     notification_gateway: NotificationPort | None = None,
+    timer_gateway: TimerPort | None = None,
 ) -> FastAPI:
     app = FastAPI(
         title="Wyss Home Panel Bridge",
@@ -79,6 +81,7 @@ def create_app(
             calendar_gateway,
             reminder_gateway,
             notification_gateway,
+            timer_gateway,
         )
         if settings.v2_enabled
         else None

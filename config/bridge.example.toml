@@ -86,3 +86,7 @@ reminder_timezone = "America/Argentina/Cordoba"
 reminder_refresh_seconds = 60
 notifications_enabled = false
 notification_db = "bridge/data/notification-outbox.sqlite3"
+timers_enabled = false
+timer_cache_db = "bridge/data/timer-cache.sqlite3"
+timer_notification_db = "bridge/data/timer-notification-outbox.sqlite3"
+timer_refresh_seconds = 1

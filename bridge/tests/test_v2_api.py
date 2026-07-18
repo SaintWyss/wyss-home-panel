@@ -22,6 +22,7 @@ from wyss_panel_bridge.domain.media import MediaAction, MediaCommand, MediaDevic
 from wyss_panel_bridge.domain.models import DeviceState, FastCommand, Plan, PlanStep, RiskLevel
 from wyss_panel_bridge.domain.protocol_v2 import parse_envelope
 from wyss_panel_bridge.domain.reminders import Reminder, ReminderSnapshot
+from wyss_panel_bridge.domain.timers import Timer, TimerSnapshot
 from wyss_panel_bridge.domain.weather import ForecastDay, WeatherForecast
 from wyss_panel_bridge.ports_v2 import (
     CalendarPort,
@@ -29,6 +30,7 @@ from wyss_panel_bridge.ports_v2 import (
     NotificationPort,
     ReminderPort,
     SpeechPort,
+    TimerPort,
     WeatherPort,
 )
 
@@ -206,6 +208,30 @@ class FakeReminders:
         )
 
 
+class FakeTimers:
+    def __init__(self) -> None:
+        self.calls = 0
+
+    async def snapshot(self) -> TimerSnapshot:
+        self.calls += 1
+        return TimerSnapshot(
+            (
+                Timer(
+                    "timer-1",
+                    "Horno",
+                    "running",
+                    2,
+                    600,
+                    300,
+                    "2026-07-18T01:05:00Z",
+                    "horno",
+                ),
+            ),
+            2,
+            0,
+        )
+
+
 def _app(
     settings: Settings,
     lights: FakeLights | None = None,
@@ -216,6 +242,7 @@ def _app(
     calendar: CalendarPort | None = None,
     reminders: ReminderPort | None = None,
     notifications: NotificationPort | None = None,
+    timers: TimerPort | None = None,
 ) -> FastAPI:
     return create_app(
         settings,
@@ -227,6 +254,7 @@ def _app(
         calendar,
         reminders,
         notifications,
+        timers,
     )
 
 
@@ -257,6 +285,8 @@ def _settings(tmp_path: Path, *, enabled: bool) -> Settings:
         v2_calendar_cache_db=tmp_path / "calendar-cache.sqlite3",
         v2_reminder_cache_db=tmp_path / "reminder-cache.sqlite3",
         v2_notification_db=tmp_path / "notification-outbox.sqlite3",
+        v2_timer_cache_db=tmp_path / "timer-cache.sqlite3",
+        v2_timer_notification_db=tmp_path / "timer-notification-outbox.sqlite3",
         v2_lights_enabled=enabled,
         v2_conversation_enabled=enabled,
     )
@@ -836,6 +866,36 @@ def test_pc_android_and_panel_receive_same_reminder_projection(tmp_path: Path) -
     assert all(value["items"][0]["recurrence"] == "FREQ=DAILY" for value in projected)
     assert all(len(json.dumps(message).encode()) < 4096 for message in snapshots)
     assert reminders.calls == 1
+
+
+def test_pc_android_and_panel_receive_same_timer_deadline(tmp_path: Path) -> None:
+    settings = replace(
+        _settings(tmp_path, enabled=True),
+        v2_timers_enabled=True,
+    )
+    timers = FakeTimers()
+    clients = {
+        client_id: _pair(settings)[0]
+        if client_id == "panel:living"
+        else _pair_as(settings, client_id, "panel.read_projection")
+        for client_id in ("panel:living", "pc:desk", "android:phone")
+    }
+
+    with TestClient(_app(settings, timers=timers)) as client:
+        snapshots = []
+        for client_id in ("pc:desk", "android:phone", "panel:living"):
+            with client.websocket_connect(
+                "/v2/client",
+                headers=_headers_as(client_id, clients[client_id]),
+                subprotocols=["wyss-v2"],
+            ) as websocket:
+                websocket.send_json(_hello_as(client_id))
+                assert websocket.receive_json()["type"] == "session.welcome"
+                snapshots.append(websocket.receive_json()["payload"]["timers"])
+
+    assert all(value["items"][0]["remaining_seconds"] == 300 for value in snapshots)
+    assert all(value["items"][0]["deadline_at"] == "2026-07-18T01:05:00Z" for value in snapshots)
+    assert timers.calls == 1
 
 
 def test_spotify_flag_rolls_back_to_shell_without_calling_provider(tmp_path: Path) -> None:

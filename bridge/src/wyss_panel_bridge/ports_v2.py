@@ -16,6 +16,7 @@ from wyss_panel_bridge.domain.reminders import (
     ReminderNotification,
     ReminderSnapshot,
 )
+from wyss_panel_bridge.domain.timers import TimerNotification, TimerSnapshot
 from wyss_panel_bridge.domain.v2_types import (
     CapabilityCommand,
     DeliveryReceipt,
@@ -123,9 +124,25 @@ class NotificationOutboxPort(Protocol):
 
 
 class TimerPort(Protocol):
-    async def list(self) -> Snapshot: ...
+    async def snapshot(self) -> TimerSnapshot: ...
 
-    async def execute(self, command: CapabilityCommand) -> ProjectionEvent: ...
+
+class TimerStorePort(Protocol):
+    def load(self) -> TimerSnapshot | None: ...
+
+    def save(self, snapshot: TimerSnapshot) -> None: ...
+
+    def completion_recorded(self, completion_id: str) -> bool: ...
+
+    def record_completion(self, completion_id: str, timer_id: str) -> None: ...
+
+
+class TimerNotificationOutboxPort(Protocol):
+    def enqueue(self, notification: TimerNotification) -> None: ...
+
+    def pending(self, limit: int = 128) -> tuple[TimerNotification, ...]: ...
+
+    def record_attempt(self, notification_id: str, *, accepted: bool) -> None: ...
 
 
 class NotificationPort(Protocol):

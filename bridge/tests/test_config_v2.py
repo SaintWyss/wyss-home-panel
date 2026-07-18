@@ -72,6 +72,10 @@ reminder_timezone = "America/Argentina/Cordoba"
 reminder_refresh_seconds = 45
 notifications_enabled = true
 notification_db = "private/notification-outbox.sqlite3"
+timers_enabled = true
+timer_cache_db = "private/timer-cache.sqlite3"
+timer_notification_db = "private/timer-notification-outbox.sqlite3"
+timer_refresh_seconds = 2
 """.strip(),
         encoding="utf-8",
     )
@@ -123,6 +127,10 @@ notification_db = "private/notification-outbox.sqlite3"
     assert settings.v2_reminder_refresh_seconds == 45
     assert settings.v2_notifications_enabled is True
     assert settings.v2_notification_db == Path("private/notification-outbox.sqlite3")
+    assert settings.v2_timers_enabled is True
+    assert settings.v2_timer_cache_db == Path("private/timer-cache.sqlite3")
+    assert settings.v2_timer_notification_db == Path("private/timer-notification-outbox.sqlite3")
+    assert settings.v2_timer_refresh_seconds == 2
     assert settings.wyss_url == "http://127.0.0.1:8000"
 
 

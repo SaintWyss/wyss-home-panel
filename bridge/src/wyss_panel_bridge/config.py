@@ -81,6 +81,10 @@ class Settings:
     v2_reminder_refresh_seconds: float = 60
     v2_notifications_enabled: bool = False
     v2_notification_db: Path = Path("bridge/data/notification-outbox.sqlite3")
+    v2_timers_enabled: bool = False
+    v2_timer_cache_db: Path = Path("bridge/data/timer-cache.sqlite3")
+    v2_timer_notification_db: Path = Path("bridge/data/timer-notification-outbox.sqlite3")
+    v2_timer_refresh_seconds: float = 1
 
     @classmethod
     def load(cls, path: Path) -> Settings:
@@ -135,15 +139,19 @@ class Settings:
         if calendar_refresh <= 0:
             raise RuntimeError("Yo recibí un intervalo Calendar inválido")
         reminders_enabled = bool(v2.get("reminders_enabled", False))
+        timers_enabled = bool(v2.get("timers_enabled", False))
         notifications_enabled = bool(v2.get("notifications_enabled", False))
-        if notifications_enabled and not reminders_enabled:
-            raise RuntimeError("Yo no habilito notificaciones sin recordatorios")
+        if notifications_enabled and not (reminders_enabled or timers_enabled):
+            raise RuntimeError("Yo no habilito notificaciones sin recordatorios o timers")
         reminder_timezone = str(v2.get("reminder_timezone", "America/Argentina/Cordoba"))
         if reminder_timezone != "America/Argentina/Cordoba":
             raise RuntimeError("Yo rechacé otra zona horaria para recordatorios")
         reminder_refresh = float(v2.get("reminder_refresh_seconds", 60))
         if reminder_refresh <= 0:
             raise RuntimeError("Yo recibí un intervalo de recordatorios inválido")
+        timer_refresh = float(v2.get("timer_refresh_seconds", 1))
+        if timer_refresh <= 0:
+            raise RuntimeError("Yo recibí un intervalo de timers inválido")
         return cls(
             host=str(bridge.get("host", "0.0.0.0")),
             port=int(bridge.get("port", 8443)),
@@ -200,4 +208,13 @@ class Settings:
             v2_notification_db=Path(
                 v2.get("notification_db", "bridge/data/notification-outbox.sqlite3")
             ),
+            v2_timers_enabled=timers_enabled,
+            v2_timer_cache_db=Path(v2.get("timer_cache_db", "bridge/data/timer-cache.sqlite3")),
+            v2_timer_notification_db=Path(
+                v2.get(
+                    "timer_notification_db",
+                    "bridge/data/timer-notification-outbox.sqlite3",
+                )
+            ),
+            v2_timer_refresh_seconds=timer_refresh,
         )

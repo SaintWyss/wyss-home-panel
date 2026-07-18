@@ -16,6 +16,11 @@ from wyss_panel_bridge.adapters.disabled_reminders import (
     VolatileReminderStore,
 )
 from wyss_panel_bridge.adapters.disabled_speech import DisabledSpeechGateway
+from wyss_panel_bridge.adapters.disabled_timers import (
+    DisabledTimerGateway,
+    VolatileTimerNotificationOutbox,
+    VolatileTimerStore,
+)
 from wyss_panel_bridge.adapters.disabled_weather import (
     DisabledWeatherGateway,
     VolatileWeatherCache,
@@ -30,17 +35,23 @@ from wyss_panel_bridge.adapters.sqlite_reminders import (
     SqliteNotificationOutbox,
     SqliteReminderStore,
 )
+from wyss_panel_bridge.adapters.sqlite_timers import (
+    SqliteTimerNotificationOutbox,
+    SqliteTimerStore,
+)
 from wyss_panel_bridge.adapters.sqlite_weather_cache import SqliteWeatherCache
 from wyss_panel_bridge.adapters.tuya import TuyaGateway
 from wyss_panel_bridge.adapters.wyss_calendar import WyssCalendarGateway
 from wyss_panel_bridge.adapters.wyss_media import WyssMediaGateway
 from wyss_panel_bridge.adapters.wyss_reminders import WyssReminderGateway
+from wyss_panel_bridge.adapters.wyss_timers import WyssTimerGateway
 from wyss_panel_bridge.application.calendar_service import CalendarService
 from wyss_panel_bridge.application.conversation_service import ConversationService
 from wyss_panel_bridge.application.light_service import LightService
 from wyss_panel_bridge.application.media_service import MediaService
 from wyss_panel_bridge.application.projection_service import ProjectionCoordinator
 from wyss_panel_bridge.application.reminder_service import ReminderService
+from wyss_panel_bridge.application.timer_service import TimerService
 from wyss_panel_bridge.application.voice_service import VoiceService
 from wyss_panel_bridge.application.weather_service import WeatherService
 from wyss_panel_bridge.config import Settings
@@ -54,6 +65,9 @@ from wyss_panel_bridge.ports_v2 import (
     ReminderPort,
     ReminderStorePort,
     SpeechPort,
+    TimerNotificationOutboxPort,
+    TimerPort,
+    TimerStorePort,
     WeatherCachePort,
     WeatherPort,
 )
@@ -71,6 +85,7 @@ class V2Runtime:
     weather: WeatherService
     calendar: CalendarService
     reminders: ReminderService
+    timers: TimerService
 
 
 def build_light_gateway(settings: Settings) -> LightPort:
@@ -92,6 +107,7 @@ def build_v2_runtime(
     calendar: CalendarPort | None = None,
     reminders: ReminderPort | None = None,
     notifications: NotificationPort | None = None,
+    timers: TimerPort | None = None,
 ) -> V2Runtime:
     events = SqliteEventStore(settings.v2_event_db)
     projections = ProjectionCoordinator(
@@ -185,6 +201,26 @@ def build_v2_runtime(
         notifications_enabled=settings.v2_notifications_enabled,
         refresh_seconds=settings.v2_reminder_refresh_seconds,
     )
+    timer_gateway: TimerPort
+    timer_cache: TimerStorePort
+    timer_outbox: TimerNotificationOutboxPort
+    if settings.v2_timers_enabled:
+        timer_gateway = timers or WyssTimerGateway(settings.wyss_url, settings.wyss_token)
+        timer_cache = SqliteTimerStore(settings.v2_timer_cache_db)
+        timer_outbox = SqliteTimerNotificationOutbox(settings.v2_timer_notification_db)
+    else:
+        timer_gateway = DisabledTimerGateway()
+        timer_cache = VolatileTimerStore()
+        timer_outbox = VolatileTimerNotificationOutbox()
+    timer_service = TimerService(
+        timer_gateway,
+        timer_cache,
+        notifications or DisabledNotificationGateway(),
+        timer_outbox,
+        events,
+        notifications_enabled=settings.v2_notifications_enabled,
+        refresh_seconds=settings.v2_timer_refresh_seconds,
+    )
     return V2Runtime(
         events,
         projections,
@@ -195,4 +231,5 @@ def build_v2_runtime(
         weather_service,
         calendar_service,
         reminder_service,
+        timer_service,
     )

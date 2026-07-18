@@ -154,7 +154,7 @@ def _projection_snapshot(payload: dict[str, Any], revision: int) -> dict[str, An
         "weather": {"days": []},
         "agenda": {"next": []},
         "reminders": {"items": []},
-        "timers": [],
+        "timers": {"items": []},
         "cameras": [],
     }
     for aggregate, value in payload.items():
@@ -236,6 +236,7 @@ def create_v2_router(settings: Settings, runtime: V2Runtime) -> APIRouter:
     runtime.weather.set_event_sink(hub.broadcast)
     runtime.calendar.set_event_sink(hub.broadcast)
     runtime.reminders.set_event_sink(hub.broadcast)
+    runtime.timers.set_event_sink(hub.broadcast)
 
     @router.get("/v2/voice/config")
     async def voice_config() -> JSONResponse:
@@ -397,6 +398,8 @@ def create_v2_router(settings: Settings, runtime: V2Runtime) -> APIRouter:
                 await runtime.calendar.ensure_snapshot()
             if settings.v2_reminders_enabled:
                 await runtime.reminders.ensure_snapshot()
+            if settings.v2_timers_enabled:
+                await runtime.timers.ensure_snapshot()
             delivery = runtime.projections.delivery(client_id, last_event_id)
             messages = [
                 _message(
@@ -430,6 +433,8 @@ def create_v2_router(settings: Settings, runtime: V2Runtime) -> APIRouter:
                 deadlines["calendar"] = loop.time() + settings.v2_calendar_refresh_seconds
             if settings.v2_reminders_enabled:
                 deadlines["reminders"] = loop.time() + settings.v2_reminder_refresh_seconds
+            if settings.v2_timers_enabled:
+                deadlines["timers"] = loop.time() + settings.v2_timer_refresh_seconds
             while True:
                 if not deadlines:
                     raw = await websocket.receive_text()
@@ -449,6 +454,9 @@ def create_v2_router(settings: Settings, runtime: V2Runtime) -> APIRouter:
                     if deadlines.get("reminders", current_time + 1) <= current_time:
                         await runtime.reminders.ensure_snapshot()
                         deadlines["reminders"] = current_time + settings.v2_reminder_refresh_seconds
+                    if deadlines.get("timers", current_time + 1) <= current_time:
+                        await runtime.timers.ensure_snapshot()
+                        deadlines["timers"] = current_time + settings.v2_timer_refresh_seconds
                 if raw is None:
                     continue
                 if not identity_service.authenticate(client_id, token):
