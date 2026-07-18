@@ -5,6 +5,7 @@ from __future__ import annotations
 import time
 from collections.abc import Callable
 from typing import Any, cast
+from urllib.parse import urlsplit
 
 import httpx
 
@@ -17,6 +18,8 @@ from wyss_panel_bridge.domain.weather import (
 
 
 class OpenMeteoGateway:
+    _ALLOWED_ORIGIN = "https://api.open-meteo.com"
+
     def __init__(
         self,
         latitude: float,
@@ -27,11 +30,27 @@ class OpenMeteoGateway:
         transport: httpx.AsyncBaseTransport | None = None,
         now: Callable[[], float] = time.time,
     ) -> None:
+        parsed = urlsplit(url)
+        origin = f"{parsed.scheme}://{parsed.netloc}".rstrip("/")
+        if (
+            origin != self._ALLOWED_ORIGIN
+            or parsed.path not in {"", "/"}
+            or parsed.query
+            or parsed.fragment
+            or parsed.username is not None
+            or parsed.password is not None
+        ):
+            raise WeatherError("invalid_provider", "El origen meteorológico no está permitido")
         self._latitude = latitude
         self._longitude = longitude
         self._timezone = timezone
         self._now = now
-        self._client = httpx.AsyncClient(base_url=url, timeout=12.0, transport=transport)
+        self._client = httpx.AsyncClient(
+            base_url=self._ALLOWED_ORIGIN,
+            timeout=12.0,
+            follow_redirects=False,
+            transport=transport,
+        )
 
     async def forecast(self, location: str, days: int) -> WeatherForecast:
         if location != "Resistencia, Chaco" or days != 7:

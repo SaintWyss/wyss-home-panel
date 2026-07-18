@@ -271,7 +271,10 @@ def _validate_payload(message_type: str, payload: dict[str, Any]) -> None:
 
 
 def parse_envelope(raw: str | bytes) -> EnvelopeV2:
-    encoded = raw.encode("utf-8") if isinstance(raw, str) else raw
+    try:
+        encoded = raw.encode("utf-8") if isinstance(raw, str) else raw
+    except UnicodeEncodeError as error:
+        raise ProtocolV2Error(ValidationCode.INVALID_MESSAGE) from error
     if len(encoded) > MAX_MESSAGE_BYTES:
         raise ProtocolV2Error(ValidationCode.MESSAGE_TOO_LARGE)
     try:
@@ -279,7 +282,7 @@ def parse_envelope(raw: str | bytes) -> EnvelopeV2:
         value = json.loads(text, object_pairs_hook=_object_without_duplicates)
     except ProtocolV2Error:
         raise
-    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+    except (UnicodeDecodeError, json.JSONDecodeError, RecursionError, ValueError) as error:
         raise ProtocolV2Error(ValidationCode.INVALID_MESSAGE) from error
     if not isinstance(value, dict) or _depth(value) > MAX_JSON_DEPTH:
         raise ProtocolV2Error(ValidationCode.INVALID_MESSAGE)
@@ -289,7 +292,7 @@ def parse_envelope(raw: str | bytes) -> EnvelopeV2:
     if value["v"] != 2 or isinstance(value["v"], bool):
         code = (
             ValidationCode.UNSUPPORTED_VERSION
-            if isinstance(value["v"], int)
+            if type(value["v"]) is int
             else ValidationCode.INVALID_MESSAGE
         )
         raise ProtocolV2Error(code)

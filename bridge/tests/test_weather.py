@@ -83,6 +83,29 @@ async def test_open_meteo_rejects_missing_values_and_wrong_timezone() -> None:
     assert captured.value.code == "invalid_forecast"
 
 
+@pytest.mark.parametrize(
+    "url",
+    [
+        "http://api.open-meteo.com",
+        "https://127.0.0.1",
+        "https://169.254.169.254/latest/meta-data",
+        "https://api.open-meteo.com@127.0.0.1",
+        "https://api.open-meteo.com/redirect",
+        "https://api.open-meteo.com?target=http://127.0.0.1",
+    ],
+)
+def test_open_meteo_rejects_ssrf_origins_and_paths(url: str) -> None:
+    with pytest.raises(WeatherError, match="origen meteorológico") as captured:
+        OpenMeteoGateway(
+            -27.4514,
+            -58.9867,
+            "America/Argentina/Cordoba",
+            url=url,
+        )
+
+    assert captured.value.code == "invalid_provider"
+
+
 def _forecast(fetched_at: float) -> WeatherForecast:
     return WeatherForecast(
         location="Resistencia, Chaco",

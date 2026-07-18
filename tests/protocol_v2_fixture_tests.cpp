@@ -1,3 +1,4 @@
+#include <cstdint>
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -69,6 +70,19 @@ int main() {
   if (observed < 17U) {
     std::cerr << "insufficient v2 fixtures\n";
     return 1;
+  }
+
+  // Deterministic hostile-byte corpus: the parser must always return a closed status.
+  std::uint32_t state = 0x57595353U;
+  for (std::size_t iteration = 0U; iteration < 4'000U; ++iteration) {
+    state = state * 1664525U + 1013904223U;
+    const std::size_t length = state % 513U;
+    std::string hostile(length, '\0');
+    for (char& byte : hostile) {
+      state = state * 1664525U + 1013904223U;
+      byte = static_cast<char>(state & 0xFFU);
+    }
+    (void)validator.validate(hostile);
   }
   return 0;
 }

@@ -1,0 +1,4 @@
+title = "Wyss Home Panel secret scanning"
+
+[extend]
+useDefault = true
