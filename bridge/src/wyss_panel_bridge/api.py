@@ -20,6 +20,7 @@ from wyss_panel_bridge.adapters.legacy_devices import (
 from wyss_panel_bridge.adapters.wyss import WyssGateway
 from wyss_panel_bridge.application.session_service import SessionService
 from wyss_panel_bridge.composition import (
+    CalendarPort,
     LightPort,
     MediaPort,
     SpeechPort,
@@ -52,6 +53,7 @@ def create_app(
     speech_gateway: SpeechPort | None = None,
     media_gateway: MediaPort | None = None,
     weather_gateway: WeatherPort | None = None,
+    calendar_gateway: CalendarPort | None = None,
 ) -> FastAPI:
     app = FastAPI(
         title="Wyss Home Panel Bridge",
@@ -70,6 +72,7 @@ def create_app(
             speech_gateway,
             media_gateway,
             weather_gateway,
+            calendar_gateway,
         )
         if settings.v2_enabled
         else None

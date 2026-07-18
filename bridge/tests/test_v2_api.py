@@ -15,13 +15,14 @@ from wyss_panel_bridge.adapters.sqlite_identity import SqliteIdentityStore
 from wyss_panel_bridge.api import create_app
 from wyss_panel_bridge.application.identity_service import IdentityService
 from wyss_panel_bridge.config import Settings
+from wyss_panel_bridge.domain.calendar import CalendarEvent, CalendarPage
 from wyss_panel_bridge.domain.conversation import ConfirmationResult, ConversationTurn
 from wyss_panel_bridge.domain.events import EventDraft
 from wyss_panel_bridge.domain.media import MediaAction, MediaCommand, MediaDevice, MediaState
 from wyss_panel_bridge.domain.models import DeviceState, FastCommand, Plan, PlanStep, RiskLevel
 from wyss_panel_bridge.domain.protocol_v2 import parse_envelope
 from wyss_panel_bridge.domain.weather import ForecastDay, WeatherForecast
-from wyss_panel_bridge.ports_v2 import MediaPort, SpeechPort, WeatherPort
+from wyss_panel_bridge.ports_v2 import CalendarPort, MediaPort, SpeechPort, WeatherPort
 
 
 class FakeLights:
@@ -154,6 +155,26 @@ class FakeWeather:
         )
 
 
+class FakeCalendar:
+    def __init__(self) -> None:
+        self.calls = 0
+
+    async def page(self, sync_token: str | None, page_token: str | None) -> CalendarPage:
+        assert sync_token is None and page_token is None
+        self.calls += 1
+        event = CalendarEvent(
+            "event-1",
+            '"event-1-1"',
+            "Reunión de producto",
+            "2026-07-18T10:00:00-03:00",
+            "2026-07-18T11:00:00-03:00",
+            "America/Argentina/Cordoba",
+            False,
+            updated_at="2026-07-18T12:00:00Z",
+        )
+        return CalendarPage((event,), None, "cursor-1")
+
+
 def _app(
     settings: Settings,
     lights: FakeLights | None = None,
@@ -161,8 +182,11 @@ def _app(
     speech: SpeechPort | None = None,
     media: MediaPort | None = None,
     weather: WeatherPort | None = None,
+    calendar: CalendarPort | None = None,
 ) -> FastAPI:
-    return create_app(settings, lights or FakeLights(), orchestrator, speech, media, weather)
+    return create_app(
+        settings, lights or FakeLights(), orchestrator, speech, media, weather, calendar
+    )
 
 
 def _settings(tmp_path: Path, *, enabled: bool) -> Settings:
@@ -189,6 +213,7 @@ def _settings(tmp_path: Path, *, enabled: bool) -> Settings:
         v2_projection_db=tmp_path / "projections.sqlite3",
         v2_light_audit_db=tmp_path / "light-audit.sqlite3",
         v2_weather_cache_db=tmp_path / "weather-cache.sqlite3",
+        v2_calendar_cache_db=tmp_path / "calendar-cache.sqlite3",
         v2_lights_enabled=enabled,
         v2_conversation_enabled=enabled,
     )
@@ -675,9 +700,67 @@ def test_connected_panel_refreshes_weather_without_reconnecting(tmp_path: Path) 
                     "payload": {},
                 }
             )
-            assert websocket.receive_json()["type"] == "session.heartbeat"
+            received_types = [websocket.receive_json()["type"]]
+            if "session.heartbeat" not in received_types:
+                received_types.append(websocket.receive_json()["type"])
+            assert "session.heartbeat" in received_types
 
     assert weather.calls >= 2
+
+
+def test_pc_android_and_panel_receive_same_calendar_projection(tmp_path: Path) -> None:
+    settings = replace(
+        _settings(tmp_path, enabled=True),
+        v2_calendar_enabled=True,
+        v2_calendar_access="read",
+        v2_calendar_approved_scopes=frozenset(
+            {"https://www.googleapis.com/auth/calendar.events.owned.readonly"}
+        ),
+    )
+    calendar = FakeCalendar()
+    clients = {
+        client_id: _pair(settings)[0]
+        if client_id == "panel:living"
+        else _pair_as(settings, client_id, "panel.read_projection")
+        for client_id in ("panel:living", "pc:desk", "android:phone")
+    }
+
+    with TestClient(_app(settings, calendar=calendar)) as client:
+        with (
+            client.websocket_connect(
+                "/v2/client",
+                headers=_headers_as("pc:desk", clients["pc:desk"]),
+                subprotocols=["wyss-v2"],
+            ) as pc,
+            client.websocket_connect(
+                "/v2/client",
+                headers=_headers_as("android:phone", clients["android:phone"]),
+                subprotocols=["wyss-v2"],
+            ) as android,
+            client.websocket_connect(
+                "/v2/client",
+                headers=_headers_as("panel:living", clients["panel:living"]),
+                subprotocols=["wyss-v2"],
+            ) as panel,
+        ):
+            snapshots = []
+            for client_id, websocket in {
+                "pc:desk": pc,
+                "android:phone": android,
+                "panel:living": panel,
+            }.items():
+                websocket.send_json(_hello_as(client_id))
+                assert websocket.receive_json()["type"] == "session.welcome"
+                snapshots.append(websocket.receive_json())
+
+    agendas = [message["payload"]["agenda"] for message in snapshots]
+    assert all(agenda["timezone"] == "America/Argentina/Cordoba" for agenda in agendas)
+    assert all(agenda["events"][0]["title"] == "Reunión de producto" for agenda in agendas)
+    assert all(agenda["write_enabled"] is False for agenda in agendas)
+    assert calendar.calls == 1
+    serialized = json.dumps(agendas)
+    assert "access_token" not in serialized
+    assert "refresh_token" not in serialized
 
 
 def test_spotify_flag_rolls_back_to_shell_without_calling_provider(tmp_path: Path) -> None:

@@ -233,6 +233,7 @@ def create_v2_router(settings: Settings, runtime: V2Runtime) -> APIRouter:
     runtime.conversation.set_event_sink(hub.broadcast)
     runtime.media.set_event_sink(hub.broadcast)
     runtime.weather.set_event_sink(hub.broadcast)
+    runtime.calendar.set_event_sink(hub.broadcast)
 
     @router.get("/v2/voice/config")
     async def voice_config() -> JSONResponse:
@@ -390,6 +391,8 @@ def create_v2_router(settings: Settings, runtime: V2Runtime) -> APIRouter:
                 await runtime.media.ensure_snapshot()
             if settings.v2_weather_enabled:
                 await runtime.weather.ensure_snapshot()
+            if settings.v2_calendar_enabled:
+                await runtime.calendar.ensure_snapshot()
             delivery = runtime.projections.delivery(client_id, last_event_id)
             messages = [
                 _message(
@@ -415,29 +418,30 @@ def create_v2_router(settings: Settings, runtime: V2Runtime) -> APIRouter:
                 messages.extend(_delta(event) for event in delivery.events)
             await hub.finish_initial(connection, messages, delivery.latest_event_id)
 
-            weather_deadline = (
-                asyncio.get_running_loop().time() + settings.v2_weather_refresh_seconds
-                if settings.v2_weather_enabled
-                else None
-            )
+            loop = asyncio.get_running_loop()
+            deadlines: dict[str, float] = {}
+            if settings.v2_weather_enabled:
+                deadlines["weather"] = loop.time() + settings.v2_weather_refresh_seconds
+            if settings.v2_calendar_enabled:
+                deadlines["calendar"] = loop.time() + settings.v2_calendar_refresh_seconds
             while True:
-                if weather_deadline is None:
+                if not deadlines:
                     raw = await websocket.receive_text()
                 else:
-                    timeout = max(0.0, weather_deadline - asyncio.get_running_loop().time())
+                    timeout = max(0.0, min(deadlines.values()) - loop.time())
                     try:
                         raw = await asyncio.wait_for(websocket.receive_text(), timeout=timeout)
                     except TimeoutError:
+                        raw = None
+                    current_time = loop.time()
+                    if deadlines.get("weather", current_time + 1) <= current_time:
                         await runtime.weather.ensure_snapshot()
-                        weather_deadline = (
-                            asyncio.get_running_loop().time() + settings.v2_weather_refresh_seconds
-                        )
-                        continue
-                    if asyncio.get_running_loop().time() >= weather_deadline:
-                        await runtime.weather.ensure_snapshot()
-                        weather_deadline = (
-                            asyncio.get_running_loop().time() + settings.v2_weather_refresh_seconds
-                        )
+                        deadlines["weather"] = current_time + settings.v2_weather_refresh_seconds
+                    if deadlines.get("calendar", current_time + 1) <= current_time:
+                        await runtime.calendar.ensure_snapshot()
+                        deadlines["calendar"] = current_time + settings.v2_calendar_refresh_seconds
+                if raw is None:
+                    continue
                 if not identity_service.authenticate(client_id, token):
                     await websocket.close(code=4403, reason="device_revoked")
                     return

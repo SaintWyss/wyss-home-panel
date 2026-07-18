@@ -29,9 +29,11 @@ class FakeWyss:
         risk: RiskLevel | None = None,
         *,
         reevaluated: bool = True,
+        target: str = "light.living",
     ) -> None:
         self.risk = risk
         self.reevaluated = reevaluated
+        self.target = target
         self.confirmations = 0
         self.turns = 0
 
@@ -49,7 +51,7 @@ class FakeWyss:
                 "plan:study",
                 "Preparar estudio",
                 self.risk,
-                (PlanStep("Ajustar", "light.living"),),
+                (PlanStep("Ajustar", self.target),),
                 5_000,
             )
         return ConversationTurn(f"Respuesta para {source}", "verified", plan)
@@ -209,3 +211,27 @@ async def test_risk_d_and_missing_policy_reevaluation_fail_closed(tmp_path: Path
 
     assert no_reevaluation.value.code == "policy_rejected"
     assert "plan.resolved" not in {event.event_type for event in store.after(0, 30)}
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "intent",
+    [
+        "Creá una reunión mañana a las diez",
+        "Mové la reunión de mañana a las once",
+        "Eliminá la reunión de mañana",
+    ],
+)
+async def test_calendar_mutations_always_cross_wyss_plan_policy_and_confirmation(
+    tmp_path: Path, intent: str
+) -> None:
+    gateway = FakeWyss(RiskLevel.B, target="calendar.primary")
+    service, store = _service(tmp_path / "events.sqlite3", gateway, Clock())
+
+    await service.submit("panel:living", f"request:{hash(intent)}", intent, "text")
+    proposed = next(event for event in store.after(0, 20) if event.event_type == "plan.proposed")
+    await service.answer("panel:living", "plan:study", "approve", "CONFIRMAR", 1)
+
+    assert proposed.payload["risk"] == "B"
+    assert proposed.payload["steps"] == [{"description": "Ajustar", "target": "calendar.primary"}]
+    assert gateway.confirmations == 1

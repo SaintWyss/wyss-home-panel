@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import AsyncIterator, Mapping, Sequence
 from typing import Any, Protocol
 
+from wyss_panel_bridge.domain.calendar import CalendarCache, CalendarEvent, CalendarPage
 from wyss_panel_bridge.domain.events import EventDraft
 from wyss_panel_bridge.domain.identity import ClientIdentity
 from wyss_panel_bridge.domain.lights import LightAuditRecord
@@ -84,9 +85,17 @@ class WeatherCachePort(Protocol):
 
 
 class CalendarPort(Protocol):
-    async def agenda(self, window: Mapping[str, str]) -> Snapshot: ...
+    async def page(self, sync_token: str | None, page_token: str | None) -> CalendarPage: ...
 
-    async def execute(self, command: CapabilityCommand) -> ProjectionEvent: ...
+
+class CalendarStorePort(Protocol):
+    def load(self) -> CalendarCache | None: ...
+
+    def replace(self, cache: CalendarCache) -> None: ...
+
+    def apply(
+        self, events: tuple[CalendarEvent, ...], sync_token: str, synced_at: float
+    ) -> None: ...
 
 
 class ReminderPort(Protocol):

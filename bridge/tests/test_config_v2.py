@@ -60,6 +60,12 @@ weather_longitude = -58.9867
 weather_timezone = "America/Argentina/Cordoba"
 weather_refresh_seconds = 900
 weather_max_stale_seconds = 21600
+calendar_enabled = true
+calendar_access = "write"
+calendar_approved_scopes = ["https://www.googleapis.com/auth/calendar.events.owned"]
+calendar_cache_db = "private/calendar-cache.sqlite3"
+calendar_timezone = "America/Argentina/Cordoba"
+calendar_refresh_seconds = 120
 """.strip(),
         encoding="utf-8",
     )
@@ -97,6 +103,14 @@ weather_max_stale_seconds = 21600
     assert settings.v2_weather_timezone == "America/Argentina/Cordoba"
     assert settings.v2_weather_refresh_seconds == 900
     assert settings.v2_weather_max_stale_seconds == 21_600
+    assert settings.v2_calendar_enabled is True
+    assert settings.v2_calendar_access == "write"
+    assert settings.v2_calendar_approved_scopes == frozenset(
+        {"https://www.googleapis.com/auth/calendar.events.owned"}
+    )
+    assert settings.v2_calendar_cache_db == Path("private/calendar-cache.sqlite3")
+    assert settings.v2_calendar_timezone == "America/Argentina/Cordoba"
+    assert settings.v2_calendar_refresh_seconds == 120
     assert settings.wyss_url == "http://127.0.0.1:8000"
 
 
@@ -133,6 +147,43 @@ spotify_approved_scopes = ["user-read-playback-state", "playlist-modify-public"]
     monkeypatch.setenv("TEST_WYSS_TOKEN", "fake")
 
     with pytest.raises(RuntimeError, match="scopes Spotify no requeridos"):
+        Settings.load(config)
+
+
+def test_settings_reject_calendar_scope_wider_than_selected_access(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    config = tmp_path / "bridge.toml"
+    config.write_text(
+        """
+[bridge]
+certfile = "server.crt"
+keyfile = "server.key"
+[panel]
+id = "panel-v1"
+token_sha256 = "hash"
+allowed_entities = ["light.living"]
+primary_entity = "light.living"
+[devices]
+provider = "tuya"
+[tuya]
+device_id = "fake"
+address = "127.0.0.1"
+local_key = "fake"
+[wyss]
+url = "http://127.0.0.1:8000"
+token_env = "TEST_WYSS_TOKEN"
+[protocol_v2]
+enabled = true
+calendar_enabled = true
+calendar_access = "read"
+calendar_approved_scopes = ["https://www.googleapis.com/auth/calendar"]
+""".strip(),
+        encoding="utf-8",
+    )
+    monkeypatch.setenv("TEST_WYSS_TOKEN", "fake")
+
+    with pytest.raises(RuntimeError, match="scope mínimo aprobado exacto"):
         Settings.load(config)
 
 

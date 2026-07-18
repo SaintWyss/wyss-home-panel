@@ -69,6 +69,12 @@ class Settings:
     v2_weather_timezone: str = "America/Argentina/Cordoba"
     v2_weather_refresh_seconds: float = 30 * 60
     v2_weather_max_stale_seconds: float = 6 * 60 * 60
+    v2_calendar_enabled: bool = False
+    v2_calendar_access: str = "disabled"
+    v2_calendar_approved_scopes: frozenset[str] = frozenset()
+    v2_calendar_cache_db: Path = Path("bridge/data/calendar-cache.sqlite3")
+    v2_calendar_timezone: str = "America/Argentina/Cordoba"
+    v2_calendar_refresh_seconds: float = 5 * 60
 
     @classmethod
     def load(cls, path: Path) -> Settings:
@@ -102,6 +108,26 @@ class Settings:
         weather_timezone = str(v2.get("weather_timezone", "America/Argentina/Cordoba"))
         if weather_timezone != "America/Argentina/Cordoba":
             raise RuntimeError("Yo rechacé otra zona horaria para Resistencia")
+        calendar_access = str(v2.get("calendar_access", "disabled"))
+        calendar_scopes = frozenset(str(item) for item in v2.get("calendar_approved_scopes", []))
+        calendar_scope_by_access = {
+            "disabled": frozenset(),
+            "read": frozenset({"https://www.googleapis.com/auth/calendar.events.owned.readonly"}),
+            "write": frozenset({"https://www.googleapis.com/auth/calendar.events.owned"}),
+        }
+        if calendar_access not in calendar_scope_by_access:
+            raise RuntimeError("Yo rechacé un nivel de acceso Calendar desconocido")
+        if calendar_scopes != calendar_scope_by_access[calendar_access]:
+            raise RuntimeError("Yo no habilito Calendar sin el scope mínimo aprobado exacto")
+        calendar_enabled = bool(v2.get("calendar_enabled", False))
+        if calendar_enabled and calendar_access == "disabled":
+            raise RuntimeError("Yo no habilito Calendar sin acceso aprobado")
+        calendar_timezone = str(v2.get("calendar_timezone", "America/Argentina/Cordoba"))
+        if calendar_timezone != "America/Argentina/Cordoba":
+            raise RuntimeError("Yo rechacé otra zona horaria para Calendar")
+        calendar_refresh = float(v2.get("calendar_refresh_seconds", 5 * 60))
+        if calendar_refresh <= 0:
+            raise RuntimeError("Yo recibí un intervalo Calendar inválido")
         return cls(
             host=str(bridge.get("host", "0.0.0.0")),
             port=int(bridge.get("port", 8443)),
@@ -140,4 +166,12 @@ class Settings:
             v2_weather_timezone=weather_timezone,
             v2_weather_refresh_seconds=weather_refresh,
             v2_weather_max_stale_seconds=weather_max_stale,
+            v2_calendar_enabled=calendar_enabled,
+            v2_calendar_access=calendar_access,
+            v2_calendar_approved_scopes=calendar_scopes,
+            v2_calendar_cache_db=Path(
+                v2.get("calendar_cache_db", "bridge/data/calendar-cache.sqlite3")
+            ),
+            v2_calendar_timezone=calendar_timezone,
+            v2_calendar_refresh_seconds=calendar_refresh,
         )

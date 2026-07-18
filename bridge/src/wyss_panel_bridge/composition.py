@@ -4,6 +4,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from wyss_panel_bridge.adapters.disabled_calendar import (
+    DisabledCalendarGateway,
+    VolatileCalendarStore,
+)
 from wyss_panel_bridge.adapters.disabled_media import DisabledMediaGateway
 from wyss_panel_bridge.adapters.disabled_speech import DisabledSpeechGateway
 from wyss_panel_bridge.adapters.disabled_weather import (
@@ -12,12 +16,15 @@ from wyss_panel_bridge.adapters.disabled_weather import (
 )
 from wyss_panel_bridge.adapters.home_assistant import HomeAssistantGateway
 from wyss_panel_bridge.adapters.open_meteo import OpenMeteoGateway
+from wyss_panel_bridge.adapters.sqlite_calendar import SqliteCalendarStore
 from wyss_panel_bridge.adapters.sqlite_events import SqliteEventStore
 from wyss_panel_bridge.adapters.sqlite_light_audit import SqliteLightAuditStore
 from wyss_panel_bridge.adapters.sqlite_projection import SqliteProjectionStore
 from wyss_panel_bridge.adapters.sqlite_weather_cache import SqliteWeatherCache
 from wyss_panel_bridge.adapters.tuya import TuyaGateway
+from wyss_panel_bridge.adapters.wyss_calendar import WyssCalendarGateway
 from wyss_panel_bridge.adapters.wyss_media import WyssMediaGateway
+from wyss_panel_bridge.application.calendar_service import CalendarService
 from wyss_panel_bridge.application.conversation_service import ConversationService
 from wyss_panel_bridge.application.light_service import LightService
 from wyss_panel_bridge.application.media_service import MediaService
@@ -26,8 +33,15 @@ from wyss_panel_bridge.application.voice_service import VoiceService
 from wyss_panel_bridge.application.weather_service import WeatherService
 from wyss_panel_bridge.config import Settings
 from wyss_panel_bridge.ports import WyssGatewayPort
+from wyss_panel_bridge.ports_v2 import (
+    CalendarPort,
+    CalendarStorePort,
+    MediaPort,
+    SpeechPort,
+    WeatherCachePort,
+    WeatherPort,
+)
 from wyss_panel_bridge.ports_v2 import LightPort as LightPort
-from wyss_panel_bridge.ports_v2 import MediaPort, SpeechPort, WeatherCachePort, WeatherPort
 
 
 @dataclass(frozen=True, slots=True)
@@ -39,6 +53,7 @@ class V2Runtime:
     voice: VoiceService
     media: MediaService
     weather: WeatherService
+    calendar: CalendarService
 
 
 def build_light_gateway(settings: Settings) -> LightPort:
@@ -57,6 +72,7 @@ def build_v2_runtime(
     speech: SpeechPort | None = None,
     media: MediaPort | None = None,
     weather: WeatherPort | None = None,
+    calendar: CalendarPort | None = None,
 ) -> V2Runtime:
     events = SqliteEventStore(settings.v2_event_db)
     projections = ProjectionCoordinator(
@@ -105,6 +121,26 @@ def build_v2_runtime(
         refresh_seconds=settings.v2_weather_refresh_seconds,
         max_stale_seconds=settings.v2_weather_max_stale_seconds,
     )
+    calendar_gateway: CalendarPort
+    calendar_cache: CalendarStorePort
+    if settings.v2_calendar_enabled:
+        calendar_gateway = calendar or WyssCalendarGateway(
+            settings.wyss_url,
+            settings.wyss_token,
+            settings.v2_calendar_timezone,
+        )
+        calendar_cache = SqliteCalendarStore(settings.v2_calendar_cache_db)
+    else:
+        calendar_gateway = DisabledCalendarGateway()
+        calendar_cache = VolatileCalendarStore()
+    calendar_service = CalendarService(
+        calendar_gateway,
+        calendar_cache,
+        events,
+        timezone=settings.v2_calendar_timezone,
+        write_enabled=settings.v2_calendar_access == "write",
+        refresh_seconds=settings.v2_calendar_refresh_seconds,
+    )
     return V2Runtime(
         events,
         projections,
@@ -113,4 +149,5 @@ def build_v2_runtime(
         voice,
         media_service,
         weather_service,
+        calendar_service,
     )
