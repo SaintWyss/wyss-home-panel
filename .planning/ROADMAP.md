@@ -141,7 +141,7 @@ Este milestone lleva el baseline v1 hasta un sistema doméstico v2.0.0 coherente
   1. **[Automatizada + externa]** La card muestra condición actual y siete días para Resistencia, Chaco, con timezone correcto, códigos normalizados y antigüedad visible usando respuestas reales del proveedor.
   2. **[Automatizada]** Offline, cache vencido, valores faltantes y error del proveedor muestran último dato o ausencia explícita sin inventar frescura.
   3. **[Física]** El panel real presenta la card en modos idle y manual y mantiene el tráfico dentro del presupuesto medido para el commit.
-**Plans**: TBD
+**Plans**: 2
 **UI hint**: yes
 
 ### Phase 11: PR-10 — Google Calendar
@@ -274,7 +274,7 @@ Este milestone lleva el baseline v1 hasta un sistema doméstico v2.0.0 coherente
 | 7. PR-06 — Conversación visual y confirmaciones | 3/3 | Automated complete; physical E2E pending | - |
 | 8. PR-07 — Push-to-talk PC y Android | 3/3 | Automated complete; O-01 and physical pending | - |
 | 9. PR-08 — Spotify Premium | 3/3 | Automated + panel boot complete; O-07/account pending | - |
-| 10. PR-09 — Clima semanal | 0/TBD | Not started | - |
+| 10. PR-09 — Clima semanal | 2/2 | Automated + provider + panel boot complete; physical projection pending | - |
 | 11. PR-10 — Google Calendar | 0/TBD | Not started | - |
 | 12. PR-11 — Recordatorios y notificaciones Android | 0/TBD | Not started | - |
 | 13. PR-12 — Temporizadores durables | 0/TBD | Not started | - |

@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0.0
 milestone_name: final
 status: executing
-stopped_at: Phase 01/03/04/05/06/07/08/09 physical or external evidence pending
-last_updated: "2026-07-17T23:39:13Z"
-last_activity: 2026-07-17 -- Phase 09 Spotify automation, panel boot and exact rollback verified
+stopped_at: Phase 01/03/04/05/06/07/08/09/10 physical or external evidence pending
+last_updated: "2026-07-18T00:11:47Z"
+last_activity: 2026-07-18 -- Phase 10 weather automation, real provider, panel boot and rollback verified
 progress:
   total_phases: 20
   completed_phases: 1
-  total_plans: 28
-  completed_plans: 26
+  total_plans: 30
+  completed_plans: 28
   percent: 5
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-17)
 
 **Core value:** Toda acción doméstica debe pasar por una única autoridad de política y ejecución de Wyss, conservar coherencia observable entre clientes y fallar de forma segura.
-**Current focus:** Phase 01/03/04/05/06/07/08/09 external gates; Phase 10 automation next
+**Current focus:** Phase 01/03/04/05/06/07/08/09/10 external gates; Phase 11 automation next
 
 ## Current Position
 
-Phase: 01, 03, 04, 05, 06, 07, 08 and 09 physical/external gates pending; 02 complete
-Plan: Continue automated roadmap work from PR-09
+Phase: 01, 03, 04, 05, 06, 07, 08, 09 and 10 physical/external gates pending; 02 complete
+Plan: Continue automated roadmap work from PR-10
 Status: Continuing autonomous roadmap work
-Last activity: 2026-07-17 -- Phase 09 Spotify automation, panel boot and exact rollback verified
+Last activity: 2026-07-18 -- Phase 10 weather automation, real provider, panel boot and rollback verified
 
 Progress: [█░░░░░░░░░] 5% of roadmap phases complete
 
@@ -52,6 +52,7 @@ Progress: [█░░░░░░░░░] 5% of roadmap phases complete
 | 07 | 3/3 automated | Not tracked | Not tracked |
 | 08 | 3/3 automated | Not tracked | Not tracked |
 | 09 | 3/3 automated | Not tracked | Not tracked |
+| 10 | 2/2 automated | Not tracked | Not tracked |
 
 **Recent Trend:**
 
@@ -91,6 +92,9 @@ None yet.
 - Phase 9 has a token-free Wyss media contract, strict scope gate, multiclient projection, complete
   panel controls, automated provider-failure matrix and physical panel boot/rollback. O-07 and a
   real Spotify Premium account are still required for OAuth, refresh and three-surface control.
+- Phase 10 has a real Open-Meteo response, seven-day projection, durable explicit cache, traffic
+  budget, visual regression and physical panel boot/rollback. The tested panel lacked v2 NVS
+  provisioning, so real weather in manual and sleeping modes remains physical evidence pending.
 - Gates O-01..O-07 require explicit operator decisions at Phases 5, 8, 9/11, 12, 14, 15 and 20.
 - Android, Spotify, Google Calendar, camera hardware and private remote network are external dependencies; simulations cannot close their physical criteria.
 - Secure Boot, Flash Encryption and eFuses remain untouched without separate explicit authorization.
@@ -103,6 +107,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-17T23:39:13Z
-Stopped at: Phase 9 automated/panel evidence complete; O-07 and Premium account pending
-Resume file: .planning/phases/09-pr-08-spotify-premium/09-VERIFICATION.md
+Last session: 2026-07-18T00:11:47Z
+Stopped at: Phase 10 automated/provider/panel boot complete; physical projection pending
+Resume file: .planning/phases/10-pr-09-clima-semanal/10-VERIFICATION.md
