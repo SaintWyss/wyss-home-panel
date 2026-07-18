@@ -44,6 +44,7 @@ class View final : public wyss::ports::ViewPort {
     }
     void render_media(const wyss::domain::MediaState& value) override { media = value; }
     void render_weather(const wyss::domain::WeatherState& value) override { weather = value; }
+    void render_agenda(const wyss::domain::AgendaState& value) override { agenda = value; }
     void render_execution(const wyss::domain::ExecutionUpdate& value) override {
         execution = value.state;
     }
@@ -57,6 +58,7 @@ class View final : public wyss::ports::ViewPort {
     std::vector<wyss::domain::DeviceState> devices;
     wyss::domain::MediaState media;
     wyss::domain::WeatherState weather;
+    wyss::domain::AgendaState agenda;
     std::string toast;
     bool toast_error{false};
     unsigned device_renders{0};
@@ -206,6 +208,27 @@ void weather_projection_is_forwarded_without_local_freshness_invention() {
     assert(view.weather.days.size() == 1);
     assert(view.weather.error_code == "provider_unavailable");
 }
+
+void calendar_projection_is_forwarded_without_oauth_or_local_authority() {
+    Clock clock;
+    Commands commands;
+    View view;
+    wyss::application::PanelService service(clock, commands, view);
+    wyss::domain::AgendaState agenda{
+        "America/Argentina/Cordoba",
+        90,
+        true,
+        true,
+        false,
+        {{"opaque-1", "Reunion", "2026-07-18T10:00:00-03:00",
+          "2026-07-18T11:00:00-03:00", false, false}},
+        "provider_unavailable"};
+    service.receive_agenda(agenda);
+    assert(view.agenda.stale);
+    assert(!view.agenda.write_enabled);
+    assert(view.agenda.events.size() == 1);
+    assert(view.agenda.events.front().title == "Reunion");
+}
 }  // namespace
 
 int main() {
@@ -218,5 +241,6 @@ int main() {
     shared_plan_resolution_clears_modal_authority_and_revision_is_forwarded();
     media_controls_are_validated_and_forwarded_without_provider_details();
     weather_projection_is_forwarded_without_local_freshness_invention();
+    calendar_projection_is_forwarded_without_oauth_or_local_authority();
     return 0;
 }

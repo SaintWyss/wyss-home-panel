@@ -158,6 +158,7 @@ void BridgeClient::handle_socket_event(WStype_t type, std::uint8_t* payload, std
         capabilities.add("light.fast");
         capabilities.add("assistant.text");
         capabilities.add("spotify.control");
+        capabilities.add("calendar.read");
         payload["last_event_id"] = last_event_id_;
 #else
         hello["v"] = 1;
@@ -418,6 +419,31 @@ void BridgeClient::dispatch(application::PanelService& service, const char* json
         }
         service.receive_weather(std::move(state));
     };
+    auto agenda = [&](JsonObjectConst value) {
+        domain::AgendaState state;
+        state.timezone = value["timezone"] | "";
+        state.age_seconds = value["age_seconds"] | 0U;
+        state.available = value["available"] | false;
+        state.stale = value["stale"] | false;
+        state.write_enabled = value["write_enabled"] | false;
+        state.error_code = value["error_code"] | "";
+        for (JsonObjectConst item : value["events"].as<JsonArrayConst>()) {
+            if (state.events.size() >= 8U) break;
+            const char* status = item["status"] | "confirmed";
+            if (std::strcmp(status, "cancelled") == 0) continue;
+            domain::CalendarEvent event;
+            event.event_id = item["event_id"] | "";
+            event.title = item["title"] | "";
+            event.start = item["start"] | "";
+            event.end = item["end"] | "";
+            event.all_day = item["all_day"] | false;
+            event.tentative = std::strcmp(status, "tentative") == 0;
+            if (!event.event_id.empty() && !event.title.empty() && !event.start.empty()) {
+                state.events.push_back(std::move(event));
+            }
+        }
+        service.receive_agenda(std::move(state));
+    };
 
     if (std::strcmp(type, "projection.snapshot") == 0) {
         JsonObjectConst payload = document["payload"];
@@ -425,6 +451,7 @@ void BridgeClient::dispatch(application::PanelService& service, const char* json
         assistant(payload["assistant"].as<JsonObjectConst>(), "");
         spotify(payload["spotify"].as<JsonObjectConst>());
         weather(payload["weather"].as<JsonObjectConst>());
+        agenda(payload["agenda"].as<JsonObjectConst>());
     } else if (std::strcmp(type, "projection.delta") == 0) {
         JsonObjectConst payload = document["payload"];
         last_event_id_ = payload["event_id"] | last_event_id_;
@@ -438,6 +465,8 @@ void BridgeClient::dispatch(application::PanelService& service, const char* json
             spotify(changes);
         } else if (std::strcmp(aggregate, "weather") == 0) {
             weather(changes);
+        } else if (std::strcmp(aggregate, "agenda") == 0) {
+            agenda(changes);
         }
     } else if (std::strcmp(type, "execution.updated") == 0) {
         JsonObjectConst payload = document["payload"];

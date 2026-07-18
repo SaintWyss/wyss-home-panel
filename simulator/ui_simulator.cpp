@@ -226,6 +226,13 @@ int main(int argc, char** argv) {
                                  std::nullopt,
                                  {},
                                  "provider_unavailable"});
+        service.receive_agenda({"America/Argentina/Cordoba",
+                                0,
+                                false,
+                                false,
+                                false,
+                                {},
+                                "provider_unavailable"});
         recorder.capture("inicio_offline");
 
         service.set_connection(wyss::domain::ConnectionState::Online);
@@ -295,6 +302,20 @@ int main(int argc, char** argv) {
              std::nullopt});
         view.show_page(ManualPage::Media);
         recorder.capture("media");
+        service.receive_agenda(
+            {"America/Argentina/Cordoba",
+             180,
+             true,
+             false,
+             false,
+             {{"event-1", "Reunion de producto", "2026-07-18T10:00:00-03:00",
+               "2026-07-18T11:00:00-03:00", false, false},
+              {"event-2", "Revision semanal", "2026-07-18T15:30:00-03:00",
+               "2026-07-18T16:00:00-03:00", false, true},
+              {"event-3", "Feriado local", "2026-07-19", "2026-07-20", true, false},
+              {"event-4", "Planificacion", "2026-07-20T09:00:00-03:00",
+               "2026-07-20T10:00:00-03:00", false, false}},
+             ""});
         view.show_page(ManualPage::Agenda);
         recorder.capture("agenda");
         view.show_page(ManualPage::Sistema);

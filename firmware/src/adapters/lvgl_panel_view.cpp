@@ -124,6 +124,15 @@ const char* weather_error(std::string_view error) {
     return "Sin datos validos";
 }
 
+const char* calendar_error(std::string_view error) {
+    if (error == "reauthorization_required") return "Volve a vincular Calendar desde Wyss";
+    if (error == "scope_required") return "Calendar no tiene el permiso requerido";
+    if (error == "rate_limited") return "Calendar pidio esperar antes de reintentar";
+    if (error == "provider_unavailable") return "Calendar temporalmente fuera de linea";
+    if (error == "invalid_response") return "Calendar devolvio datos invalidos";
+    return "Sin agenda sincronizada";
+}
+
 void format_age(char* output, std::size_t size, std::uint32_t age_seconds) {
     if (age_seconds < 60U) {
         std::snprintf(output, size, "menos de 1 min");
@@ -398,13 +407,18 @@ void LvglPanelView::begin(application::PanelService& service, std::string primar
 
     lv_obj_t* agenda = panel(pages_[3], 20, 18, 760, 370);
     label(agenda, "AGENDA", &lv_font_montserrat_12, kCyan);
-    lv_obj_t* agenda_state =
-        label(agenda, "Sin eventos proyectados", &lv_font_montserrat_20, kText);
-    lv_obj_set_pos(agenda_state, 0, 32);
-    lv_obj_t* agenda_hint = label(
-        agenda, "Cuando Calendar este disponible vas a ver el proximo evento y recordatorios.",
-        &lv_font_montserrat_14, kMuted);
-    lv_obj_set_pos(agenda_hint, 0, 76);
+    agenda_state_ = label(agenda, "Sin eventos proyectados", &lv_font_montserrat_20, kText);
+    lv_obj_set_pos(agenda_state_, 0, 30);
+    lv_obj_set_width(agenda_state_, 700);
+    lv_label_set_long_mode(agenda_state_, LV_LABEL_LONG_DOT);
+    agenda_meta_ = label(agenda, "Esperando Calendar", &lv_font_montserrat_12, kMuted);
+    lv_obj_set_pos(agenda_meta_, 0, 66);
+    for (unsigned index = 0; index < agenda_events_.size(); ++index) {
+        agenda_events_[index] = label(agenda, "--", &lv_font_montserrat_14, kMuted);
+        lv_obj_set_pos(agenda_events_[index], 0, 104 + static_cast<int>(index) * 43);
+        lv_obj_set_width(agenda_events_[index], 700);
+        lv_label_set_long_mode(agenda_events_[index], LV_LABEL_LONG_DOT);
+    }
 
     lv_obj_t* system = panel(pages_[4], 20, 18, 760, 370);
     label(system, "SISTEMA", &lv_font_montserrat_12, kCyan);
@@ -698,7 +712,7 @@ void LvglPanelView::render_weather(const domain::WeatherState& state) {
                       "Clima no disponible");
         std::snprintf(weather_meta_text_, sizeof(weather_meta_text_), "%s",
                       weather_error(state.error_code));
-        std::snprintf(sleeping_weather_text_, sizeof(sleeping_weather_text_),
+        std::snprintf(sleeping_weather_part_, sizeof(sleeping_weather_part_),
                       "Resistencia - clima no disponible");
     } else {
         const char* condition = weather_condition(state.condition);
@@ -712,7 +726,7 @@ void LvglPanelView::render_weather(const domain::WeatherState& state) {
             std::snprintf(weather_meta_text_, sizeof(weather_meta_text_), "%s hace %s",
                           state.stale ? "CACHE" : "Actualizado", age);
         }
-        std::snprintf(sleeping_weather_text_, sizeof(sleeping_weather_text_),
+        std::snprintf(sleeping_weather_part_, sizeof(sleeping_weather_part_),
                       "Resistencia - %.0f C - %s - %s hace %s",
                       static_cast<double>(*state.temperature), condition,
                       state.stale ? "CACHE" : "actualizado", age);
@@ -721,7 +735,7 @@ void LvglPanelView::render_weather(const domain::WeatherState& state) {
     lv_obj_set_style_text_color(weather_current_, color(state_color), 0);
     lv_label_set_text_static(weather_meta_, weather_meta_text_);
     lv_obj_set_style_text_color(weather_meta_, color(state.stale ? kAmber : kMuted), 0);
-    lv_label_set_text_static(sleeping_weather_, sleeping_weather_text_);
+    refresh_sleeping_summary();
     lv_obj_set_style_text_color(sleeping_weather_, color(state_color), 0);
 
     for (unsigned index = 0; index < weather_days_.size(); ++index) {
@@ -748,6 +762,78 @@ void LvglPanelView::render_weather(const domain::WeatherState& state) {
         lv_obj_set_style_text_color(weather_days_[index],
                                     color(state.stale ? kAmber : kMuted), 0);
     }
+}
+
+void LvglPanelView::render_agenda(const domain::AgendaState& state) {
+    char age[24]{};
+    format_age(age, sizeof(age), state.age_seconds);
+    const std::uint32_t state_color = !state.available ? kRed : (state.stale ? kAmber : kText);
+
+    if (!state.available) {
+        std::snprintf(agenda_state_text_, sizeof(agenda_state_text_), "Calendar no disponible");
+        std::snprintf(agenda_meta_text_, sizeof(agenda_meta_text_), "%s",
+                      calendar_error(state.error_code));
+        std::snprintf(sleeping_agenda_part_, sizeof(sleeping_agenda_part_),
+                      "agenda no disponible");
+    } else if (state.events.empty()) {
+        std::snprintf(agenda_state_text_, sizeof(agenda_state_text_), "Sin eventos proximos");
+        std::snprintf(agenda_meta_text_, sizeof(agenda_meta_text_), "%s hace %s - %s",
+                      state.stale ? "CACHE" : "Actualizado", age,
+                      state.write_enabled ? "edicion via Wyss" : "solo lectura");
+        std::snprintf(sleeping_agenda_part_, sizeof(sleeping_agenda_part_),
+                      "sin eventos proximos");
+    } else {
+        const auto title = ascii_safe(state.events.front().title);
+        std::snprintf(agenda_state_text_, sizeof(agenda_state_text_), "PROXIMO  %s",
+                      title.c_str());
+        std::snprintf(agenda_meta_text_, sizeof(agenda_meta_text_), "%s hace %s - %s",
+                      state.stale ? "CACHE" : "Actualizado", age,
+                      state.write_enabled ? "edicion via Wyss" : "solo lectura");
+        std::snprintf(sleeping_agenda_part_, sizeof(sleeping_agenda_part_), "proximo: %s",
+                      title.c_str());
+    }
+    lv_label_set_text_static(agenda_state_, agenda_state_text_);
+    lv_obj_set_style_text_color(agenda_state_, color(state_color), 0);
+    lv_label_set_text_static(agenda_meta_, agenda_meta_text_);
+    lv_obj_set_style_text_color(agenda_meta_, color(state.stale ? kAmber : kMuted), 0);
+
+    for (unsigned index = 0; index < agenda_events_.size(); ++index) {
+        if (state.available && index < state.events.size()) {
+            const auto& event = state.events[index];
+            const auto title = ascii_safe(event.title);
+            const std::string_view start = event.start;
+            const std::string_view day = start.size() >= 10U ? start.substr(8U, 2U) : start;
+            const std::string_view month = start.size() >= 7U ? start.substr(5U, 2U) : "--";
+            if (event.all_day) {
+                std::snprintf(agenda_event_text_[index], sizeof(agenda_event_text_[index]),
+                              "%.*s/%.*s  TODO EL DIA  %s%s",
+                              static_cast<int>(day.size()), day.data(),
+                              static_cast<int>(month.size()), month.data(), title.c_str(),
+                              event.tentative ? "  [TENTATIVO]" : "");
+            } else {
+                const std::string_view time =
+                    start.size() >= 16U ? start.substr(11U, 5U) : std::string_view{"--:--"};
+                std::snprintf(agenda_event_text_[index], sizeof(agenda_event_text_[index]),
+                              "%.*s/%.*s  %.*s  %s%s", static_cast<int>(day.size()),
+                              day.data(), static_cast<int>(month.size()), month.data(),
+                              static_cast<int>(time.size()), time.data(), title.c_str(),
+                              event.tentative ? "  [TENTATIVO]" : "");
+            }
+        } else {
+            std::snprintf(agenda_event_text_[index], sizeof(agenda_event_text_[index]), "--");
+        }
+        lv_label_set_text_static(agenda_events_[index], agenda_event_text_[index]);
+        lv_obj_set_style_text_color(agenda_events_[index],
+                                    color(state.stale ? kAmber : kMuted), 0);
+    }
+    refresh_sleeping_summary();
+    lv_obj_set_style_text_color(sleeping_weather_, color(state_color), 0);
+}
+
+void LvglPanelView::refresh_sleeping_summary() {
+    std::snprintf(sleeping_summary_text_, sizeof(sleeping_summary_text_), "%s   -   %s",
+                  sleeping_weather_part_, sleeping_agenda_part_);
+    lv_label_set_text_static(sleeping_weather_, sleeping_summary_text_);
 }
 
 void LvglPanelView::refresh_home_controls() {

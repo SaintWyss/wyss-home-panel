@@ -99,6 +99,25 @@ struct WeatherState {
     std::string error_code;
 };
 
+struct CalendarEvent {
+    std::string event_id;
+    std::string title;
+    std::string start;
+    std::string end;
+    bool all_day{false};
+    bool tentative{false};
+};
+
+struct AgendaState {
+    std::string timezone;
+    std::uint32_t age_seconds{0};
+    bool available{false};
+    bool stale{false};
+    bool write_enabled{false};
+    std::vector<CalendarEvent> events;
+    std::string error_code;
+};
+
 struct Intent {
     std::string request_id;
     std::string text;
