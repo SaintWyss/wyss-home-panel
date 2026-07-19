@@ -6,7 +6,7 @@ Yo actualizo esta matriz en cada PR. Yo no marco una fila como completa sin enla
 
 | Requisito | PR dueño | Test automatizado | Evidencia física | Estado inicial |
 | --- | --- | --- | --- | --- |
-| RF-01 Conversación multicliente | PR-03/06 | contract + integration | PC/Android/Panel | Planificado |
+| RF-01 Conversación multicliente | PR-03/06 | `test_wyss_unix_gateway` + `test_conversation_service` + `test_v2_api` | PC/Android/Panel | Canal Unix y carrera automatizados; física pendiente |
 | RF-02 Push-to-talk | PR-07 | `test_voice_service` + `test_v2_api` | Mic PC + Android | Automatizado; O-01/física pendiente |
 | RF-03 Luces | PR-05 | domain/contract/protocol | LEDVANCE real | Baseline existente; migración pendiente |
 | RF-04 Spotify | PR-08 | `test_media_adapters` + `test_media_service` + `test_v2_api` | Cuenta Premium real | Automatizado; O-07/cuenta pendiente |
@@ -16,7 +16,7 @@ Yo actualizo esta matriz en cada PR. Yo no marco una fila como completa sin enla
 | RF-08 Cámaras | PR-13 | adapter/SSRF/no-retention | Cámara real | Hardware pendiente |
 | RF-09 Modo dormido | PR-04 | UI state/screenshot | FPS/brillo/energía | Planificado |
 | RF-10 Modo manual | PR-04 | navigation/accessibility | Touch real | Planificado |
-| RF-11 Sincronización | PR-02/03 | reconnect/replay/conflict | Tres clientes | Planificado |
+| RF-11 Sincronización | PR-02/03 | replay/conflict + autoridad `already_resolved` | Tres clientes | Autoridad automatizada; reconexión física pendiente |
 | RF-12 Actualización/recuperación | PR-15 | manifest/migration | OTA/corte/USB | Planificado |
 | RNF-01/02 Latencia | PR-05/16 | benchmark harness | 1.000 muestras | Baseline parcial |
 | RNF-03 Fluidez | PR-04/16 | simulator metrics | Panel p95/p99 | Baseline parcial |

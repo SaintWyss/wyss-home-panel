@@ -5,7 +5,7 @@ from collections import OrderedDict, deque
 from collections.abc import Callable
 from typing import Any, cast
 
-from wyss_panel_bridge.domain.models import FastCommand, PolicyError
+from wyss_panel_bridge.domain.models import FastCommand, Plan, PolicyError
 from wyss_panel_bridge.domain.policy import validate_fast_command
 from wyss_panel_bridge.ports import DeviceGateway, OrchestratorGateway
 
@@ -26,6 +26,7 @@ class SessionService:
         self._now_ms = now_ms or (lambda: time.monotonic_ns() // 1_000_000)
         self._recent_commands: deque[int] = deque()
         self._responses: OrderedDict[str, list[dict[str, Any]]] = OrderedDict()
+        self._plans: OrderedDict[str, Plan] = OrderedDict()
 
     async def initial_snapshot(self) -> dict[str, Any]:
         devices = await self._devices.snapshot(self._allowed)
@@ -83,6 +84,10 @@ class SessionService:
             return [self._execution(request_id, "failed", str(error), 0)]
         if plan is None:
             return [self._execution(request_id, "executing", "Yo inicié la ejecución segura", 0)]
+        self._plans[plan.plan_id] = plan
+        self._plans.move_to_end(plan.plan_id)
+        while len(self._plans) > 256:
+            self._plans.popitem(last=False)
         expires_in_ms = max(0, min(300_000, plan.expires_at_ms - self._now_ms()))
         return [
             {
@@ -95,16 +100,21 @@ class SessionService:
                     {"description": step.description, "target": step.target} for step in plan.steps
                 ],
                 "expires_in_ms": expires_in_ms,
+                "revision": plan.revision,
             }
         ]
 
     async def _answer(self, message: dict[str, Any]) -> list[dict[str, Any]]:
         plan_id = self._safe_id(message.get("plan_id"))
         accepted = message.get("accepted") is True
+        plan = self._plans.get(plan_id)
+        if plan is None:
+            return [self._execution(plan_id, "failed", "Yo no tengo ese plan vigente", 0)]
         try:
-            await self._orchestrator.answer_plan(plan_id, accepted)
+            await self._orchestrator.answer_plan(plan_id, accepted, int(plan.risk), plan.revision)
         except RuntimeError as error:
             return [self._execution(plan_id, "failed", str(error), 0)]
+        self._plans.pop(plan_id, None)
         state = "executing" if accepted else "failed"
         text = "Yo ejecuté el plan confirmado" if accepted else "Yo cancelé el plan"
         return [self._execution(plan_id, state, text, 0)]

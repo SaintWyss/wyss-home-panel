@@ -8,6 +8,45 @@ from wyss_panel_bridge.adapters.tuya import TuyaGateway
 from wyss_panel_bridge.config import Settings
 
 
+def test_settings_loads_unix_authority_without_http_token(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.delenv("TEST_WYSS_TOKEN", raising=False)
+    config = tmp_path / "bridge.toml"
+    config.write_text(
+        """
+[bridge]
+certfile = "server.crt"
+keyfile = "server.key"
+[panel]
+id = "panel-v1"
+token_sha256 = "hash"
+allowed_entities = ["light.living"]
+primary_entity = "light.living"
+[devices]
+provider = "tuya"
+[tuya]
+device_id = "fake"
+address = "127.0.0.1"
+local_key = "fake"
+[wyss]
+transport = "unix"
+socket_path = "/run/wyss-home/wyss-home.sock"
+[protocol_v2]
+enabled = true
+conversation_enabled = true
+""".strip(),
+        encoding="utf-8",
+    )
+
+    settings = Settings.load(config)
+
+    assert settings.wyss_transport == "unix"
+    assert settings.wyss_socket_path == Path("/run/wyss-home/wyss-home.sock")
+    assert settings.wyss_url == ""
+    assert settings.wyss_token == ""
+
+
 def test_settings_load_v2_feature_flag_and_paths(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

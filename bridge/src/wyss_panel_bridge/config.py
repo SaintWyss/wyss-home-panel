@@ -46,6 +46,8 @@ class Settings:
     provider_config: dict[str, Any]
     wyss_url: str
     wyss_token: str
+    wyss_transport: str = "http_v1"
+    wyss_socket_path: Path = Path("/run/wyss-home/wyss-home.sock")
     v2_enabled: bool = False
     v2_identity_db: Path = Path("bridge/data/identities.sqlite3")
     v2_event_db: Path = Path("bridge/data/events.sqlite3")
@@ -161,6 +163,30 @@ class Settings:
         max_pending_events = int(v2.get("max_pending_events", 256))
         if not 16 <= max_pending_events <= 1024:
             raise RuntimeError("Yo recibí un límite de backpressure inválido")
+        wyss_transport = str(wyss.get("transport", "http_v1"))
+        if wyss_transport not in {"unix", "http_v1"}:
+            raise RuntimeError("Yo recibí un transporte Wyss desconocido")
+        wyss_socket_path = Path(str(wyss.get("socket_path", "/run/wyss-home/wyss-home.sock")))
+        if wyss_transport == "unix" and not wyss_socket_path.is_absolute():
+            raise RuntimeError("Yo exijo una ruta absoluta para el socket Home de Wyss")
+        if wyss_transport == "http_v1":
+            wyss_url = str(wyss["url"]).rstrip("/")
+            wyss_token = _env(str(wyss["token_env"]))
+        else:
+            wyss_url = ""
+            wyss_token = ""
+            legacy_features = {
+                "spotify": spotify_enabled,
+                "calendar": calendar_enabled,
+                "reminders": reminders_enabled,
+                "timers": timers_enabled,
+            }
+            enabled_legacy = [name for name, enabled in legacy_features.items() if enabled]
+            if enabled_legacy:
+                raise RuntimeError(
+                    "Yo no habilito adapters HTTP legacy con transporte Unix: "
+                    + ", ".join(enabled_legacy)
+                )
         return cls(
             host=str(bridge.get("host", "0.0.0.0")),
             port=int(bridge.get("port", 8443)),
@@ -172,8 +198,10 @@ class Settings:
             primary_entity=str(panel["primary_entity"]),
             provider=provider,
             provider_config=provider_config,
-            wyss_url=str(wyss["url"]).rstrip("/"),
-            wyss_token=_env(str(wyss["token_env"])),
+            wyss_url=wyss_url,
+            wyss_token=wyss_token,
+            wyss_transport=wyss_transport,
+            wyss_socket_path=wyss_socket_path,
             v2_enabled=bool(v2.get("enabled", False)),
             v2_identity_db=Path(v2.get("identity_db", "bridge/data/identities.sqlite3")),
             v2_event_db=Path(v2.get("event_db", "bridge/data/events.sqlite3")),

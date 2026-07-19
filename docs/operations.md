@@ -55,17 +55,20 @@ Antes de habilitarlo, cada identidad recibe únicamente su capacidad correspondi
 `panel.light.fast`, `android.light.fast` o `pc.light.fast`. Una identidad sin esa capacidad puede
 leer su proyección pero no ejecutar luces.
 
-La conversación tiene un gate separado: `conversation_enabled = true`. Cada superficie recibe
+La conversación tiene un gate separado: `conversation_enabled = true`. Yo configuro
+`[wyss] transport = "unix"` y `socket_path = "/run/wyss-home/wyss-home.sock"`; el servicio Edge
+corre con su usuario dedicado y sólo accede al socket Home. Cada superficie recibe
 capacidad mínima para enviar (`panel|android|pc.submit_intent`) y responder
-(`panel|android|pc.answer_plan`). El bridge serializa la sesión compartida, pero Wyss sigue siendo
-la única autoridad de plan, política, ejecución e historial completo. Si una aprobación no incluye
-`CONFIRMAR`, venció, perdió la revisión CAS o Wyss no acredita `policy_reevaluated = true`, falla
-cerrada.
+(`panel|android|pc.answer_plan`). Wyss serializa y resuelve la sesión compartida; el Edge sólo
+proyecta el resultado. B exige confirmación simple `s`, C exige `CONFIRMAR`, D nunca llega como plan
+confirmable. Si venció, perdió la revisión CAS o Wyss no acredita `policy_reevaluated = true`, yo
+fallo cerrado.
 
 Para rollback perceptual pongo `conversation_streaming = false`: se siguen enviando respuestas
 completas y se mantiene exactamente la misma confirmación. Para rollback del funnel pongo
-`conversation_enabled = false`; para volver además al transporte v1 recompilo con
-`WYSS_PROTOCOL_V2_CLIENT=0`. Ninguno de esos pasos escribe NVS ni elimina las bases existentes.
+`conversation_enabled = false`. Para rollback temporal del transporte pongo
+`[wyss] transport = "http_v1"`, restauro `url` y `token_env`, y reinicio. Ninguno de esos pasos
+escribe NVS ni elimina las bases existentes.
 
 Voz tiene un tercer gate: `voice_enabled = true`. Antes de activarlo emparejo cada cliente con
 `pc.voice` o `android.voice` además de su capacidad `submit_intent`, y cierro O-01 con una ADR del

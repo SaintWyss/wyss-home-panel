@@ -47,6 +47,9 @@ url = "http://homeassistant.local:8123"
 token_env = "WYSS_HA_TOKEN"
 
 [wyss]
+transport = "unix"
+socket_path = "/run/wyss-home/wyss-home.sock"
+# Rollback temporal v1: cambie transport a "http_v1" y configure estas dos claves.
 url = "http://127.0.0.1:8000"
 token_env = "WYSS_API_TOKEN"
 

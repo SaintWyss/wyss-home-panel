@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from enum import IntEnum
 from typing import Any
@@ -50,6 +51,7 @@ class FastCommand:
 class PlanStep:
     description: str
     target: str
+    parameters: Mapping[str, Any] = field(default_factory=dict)
 
 
 @dataclass(frozen=True, slots=True)
@@ -59,6 +61,7 @@ class Plan:
     risk: RiskLevel
     steps: tuple[PlanStep, ...] = field(default_factory=tuple)
     expires_at_ms: int = 0
+    revision: int = 1
 
 
 class PolicyError(ValueError):
