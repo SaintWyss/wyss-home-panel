@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v2.0.0
 milestone_name: final
 status: executing
-stopped_at: main protected and application upload authorized; physical/external gates pending
-last_updated: "2026-07-18T02:18:31Z"
-last_activity: 2026-07-18 -- main advanced to tested commit and five required checks enforced
+stopped_at: panel operational on protected main; optional physical/external gates pending
+last_updated: "2026-07-18T14:35:49Z"
+last_activity: 2026-07-18 -- touch scrolling disabled, flashed and merged as 2e3630b
 progress:
   total_phases: 20
   completed_phases: 1
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-17)
 
 **Core value:** Toda acción doméstica debe pasar por una única autoridad de política y ejecución de Wyss, conservar coherencia observable entre clientes y fallar de forma segura.
-**Current focus:** Validate the tested application on the connected panel without changing NVS
+**Current focus:** Preserve the operational panel while selecting the next authorized physical or external gate
 
 ## Current Position
 
 Phase: 01 and 03-20 physical/external gates pending; 02 complete
-Plan: Preserve protected main, upload only the application partition and collect physical evidence
-Status: Continuing autonomous roadmap work
-Last activity: 2026-07-18 -- GitHub protection VERIFIED for all five required contexts
+Plan: Keep protected main and the connected panel stable; continue only authorized gates
+Status: Operational baseline complete; roadmap gates remain explicitly open
+Last activity: 2026-07-18 -- PR #11 merged after 216 Python tests, full CI and a verified physical power action
 
 Progress: [█░░░░░░░░░] 5% of roadmap phases complete
 
@@ -86,14 +86,14 @@ None yet.
 
 ### Blockers/Concerns
 
-- Phase 1 CI and remote protection are complete. It still requires the exact panel, real light and
-  verified factory backup for physical baseline evidence.
+- Phase 1 CI, remote protection, exact panel and real Tuya light power confirmation are complete.
+  A verified factory backup is still required for the remaining physical baseline evidence.
 - Phase 3 requires a real panel/Android/PC client to close the physical revocation criterion.
 - Phase 4 requires PC, Android and panel reales sobre el mismo commit para cerrar convergencia.
 - Phase 5 requires touch/FPS/energy/temperature measurements and the O-05 operator ADR on the
   exact panel. Its switch-expander backlight only proves on/off in software.
-- Phase 6 requires LEDVANCE/Tuya, LAN p95, Wi-Fi/key/offline faults and three physical clients on
-  the same commit; automated adapters and stress cannot substitute that evidence.
+- Phase 6 now has a real Tuya power write confirmed from the physical panel. LAN p95,
+  Wi-Fi/key/offline faults and three physical clients on the same commit remain pending.
 - Phase 7 passed physical panel boot, display/touch initialization and exact app rollback. It still
   requires an authorized v2 identity, the real Wyss daemon plus PC, Android and panel on the same
   commit; fakes prove policy and convergence but not the external end-to-end integration.
@@ -131,7 +131,7 @@ None yet.
   or v1 upgrade/backup/restore/downgrade matrix.
 - Phase 20 aligns version 2.0.0 and prepares deterministic firmware/wheel/SBOM checksums with a
   fail-closed `BLOCKED_CANDIDATE` manifest. Remote CI/protection is complete; signing, tag/release
-  publication and the complete physical smoke remain mandatory gates.
+  publication and the complete physical smoke remain mandatory gates. No tag or release exists.
 - The executable requirement audit covers 51/51 entries: 45 automated passes, 2 physical-only
   requirements and 4 implementation gates for camera/VPN. Every remaining item is classified as
   physical, external or authorization; CI rejects generic unclassified pending work.
@@ -147,6 +147,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-18T02:18:31Z
-Stopped at: protected main; connected-panel application upload authorized
-Resume file: .planning/phases/01-pr-00-baseline-reproducible-y-protecci-n/01-04-PLAN.md
+Last session: 2026-07-18T14:35:49Z
+Stopped at: protected main 2e3630b; fixed-touch UI, bridge and connected panel operational
+Resume file: .planning/STATE.md
