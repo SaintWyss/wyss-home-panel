@@ -108,6 +108,8 @@ class LvglPanelView final : public ports::ViewPort {
     lv_obj_t* media_favorite_label_{nullptr};
     lv_obj_t* media_volume_{nullptr};
     lv_obj_t* media_volume_label_{nullptr};
+    lv_obj_t* media_volume_row_{nullptr};
+    lv_obj_t* media_time_now_{nullptr};
     std::array<lv_obj_t*, 3> device_buttons_{};
     std::array<lv_obj_t*, 3> device_labels_{};
     std::array<lv_obj_t*, 3> scene_buttons_{};
@@ -131,6 +133,7 @@ class LvglPanelView final : public ports::ViewPort {
     char media_artist_text_[192]{};
     char media_device_text_[192]{};
     char media_progress_text_[24]{};
+    char media_time_now_text_[16]{};
     char media_volume_text_[16]{};
     char execution_text_[96]{};
     char selected_text_[64]{};
