@@ -173,20 +173,27 @@ class Settings:
             wyss_url = str(wyss["url"]).rstrip("/")
             wyss_token = _env(str(wyss["token_env"]))
         else:
-            wyss_url = ""
-            wyss_token = ""
-            legacy_features = {
+            data_features = {
                 "spotify": spotify_enabled,
                 "calendar": calendar_enabled,
                 "reminders": reminders_enabled,
                 "timers": timers_enabled,
             }
-            enabled_legacy = [name for name, enabled in legacy_features.items() if enabled]
-            if enabled_legacy:
-                raise RuntimeError(
-                    "Yo no habilito adapters HTTP legacy con transporte Unix: "
-                    + ", ".join(enabled_legacy)
-                )
+            enabled_data = [name for name, enabled in data_features.items() if enabled]
+            if enabled_data:
+                # La conversación viaja por el socket Unix, pero los adapters de
+                # datos (media/agenda/reminders/timers) siguen sobre la API
+                # interna bearer de Wyss: ambos transportes conviven.
+                if "url" not in wyss or "token_env" not in wyss:
+                    raise RuntimeError(
+                        "Yo necesito [wyss] url y token_env para los adapters de datos: "
+                        + ", ".join(enabled_data)
+                    )
+                wyss_url = str(wyss["url"]).rstrip("/")
+                wyss_token = _env(str(wyss["token_env"]))
+            else:
+                wyss_url = ""
+                wyss_token = ""
         return cls(
             host=str(bridge.get("host", "0.0.0.0")),
             port=int(bridge.get("port", 8443)),

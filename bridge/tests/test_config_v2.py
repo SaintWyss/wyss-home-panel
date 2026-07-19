@@ -369,3 +369,80 @@ class _ConfigDevice:
 
     def status(self) -> object:
         return {"dps": {"20": False, "22": 0}}
+
+
+def test_settings_unix_transport_allows_data_adapters_with_bearer(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("TEST_WYSS_TOKEN", "bearer-home-edge")
+    config = tmp_path / "bridge.toml"
+    config.write_text(
+        """
+[bridge]
+certfile = "server.crt"
+keyfile = "server.key"
+[panel]
+id = "panel-v1"
+token_sha256 = "hash"
+allowed_entities = ["light.living"]
+primary_entity = "light.living"
+[devices]
+provider = "tuya"
+[tuya]
+device_id = "fake"
+address = "127.0.0.1"
+local_key = "fake"
+[wyss]
+transport = "unix"
+socket_path = "/run/wyss-home/wyss-home.sock"
+url = "http://127.0.0.1:8000"
+token_env = "TEST_WYSS_TOKEN"
+[protocol_v2]
+enabled = true
+conversation_enabled = true
+reminders_enabled = true
+timers_enabled = true
+""".strip(),
+        encoding="utf-8",
+    )
+
+    settings = Settings.load(config)
+
+    assert settings.wyss_transport == "unix"
+    assert settings.wyss_url == "http://127.0.0.1:8000"
+    assert settings.wyss_token == "bearer-home-edge"  # noqa: S105
+
+
+def test_settings_unix_transport_data_adapters_require_url(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.delenv("TEST_WYSS_TOKEN", raising=False)
+    config = tmp_path / "bridge.toml"
+    config.write_text(
+        """
+[bridge]
+certfile = "server.crt"
+keyfile = "server.key"
+[panel]
+id = "panel-v1"
+token_sha256 = "hash"
+allowed_entities = ["light.living"]
+primary_entity = "light.living"
+[devices]
+provider = "tuya"
+[tuya]
+device_id = "fake"
+address = "127.0.0.1"
+local_key = "fake"
+[wyss]
+transport = "unix"
+socket_path = "/run/wyss-home/wyss-home.sock"
+[protocol_v2]
+enabled = true
+timers_enabled = true
+""".strip(),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(RuntimeError, match="url y token_env"):
+        Settings.load(config)
