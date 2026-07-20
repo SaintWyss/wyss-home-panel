@@ -314,7 +314,10 @@ int main(int argc, char** argv) {
              true,
              wyss::domain::MediaDevice{"desk", "Escritorio", "Computer", true, false, true, 42},
              "",
-             std::nullopt});
+             std::nullopt,
+             {{"Nikes", "Frank Ocean"},
+              {"Self Control", "Frank Ocean"},
+              {"Zamba de mi esperanza", "Los Chalchaleros"}}});
         view.show_page(ManualPage::Media);
         recorder.capture("media");
         service.receive_agenda(

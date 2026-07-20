@@ -11,6 +11,7 @@ from wyss_panel_bridge.domain.media import (
     MediaDevice,
     MediaError,
     MediaState,
+    MediaTrack,
 )
 
 
@@ -95,9 +96,23 @@ class WyssMediaGateway:
             duration_ms=cls._bounded_int(raw.get("duration_ms"), 86_400_000),
             favorite=raw.get("favorite") is True,
             device=device,
+            queue=cls._queue(raw.get("queue")),
             error_code=cls._optional_text(raw.get("error_code"), 64),
             retry_after=cls._optional_bounded_int(raw.get("retry_after"), 86_400),
         )
+
+    @classmethod
+    def _queue(cls, raw: Any) -> tuple[MediaTrack, ...]:
+        if not isinstance(raw, list):
+            return ()
+        tracks: list[MediaTrack] = []
+        for item in raw[:5]:
+            if not isinstance(item, dict):
+                continue
+            title = cls._text(item.get("title"), 180)
+            if title:
+                tracks.append(MediaTrack(title, cls._text(item.get("artist"), 180)))
+        return tuple(tracks)
 
     @classmethod
     def _device(cls, raw: dict[str, Any]) -> MediaDevice:

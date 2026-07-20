@@ -54,8 +54,8 @@ void targets_are_large_and_inside_the_display() {
     for (const auto& target : navigation) {
         require(target.width >= min_touch_target);
         require(target.height >= min_touch_target);
-        require(target.x + target.width <= screen_width);
-        require(target.y + target.height <= header_height);
+        require(target.x + target.width <= sidebar_width);
+        require(target.y + target.height <= screen_height);
     }
     for (const auto& target : quick_actions) {
         require(target.width >= min_touch_target);

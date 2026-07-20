@@ -1,12 +1,11 @@
-# Deterministic FNV-1a hashes of 800x480 RGB frames rendered by LVGL 8.4.0.
-inicio_offline d070fe3319432eb3
-inicio_clima_cache c8c080a0cef0e4cb
-inicio_online 2ef49eb4fcfa9f64
-hogar 89b1b55debf1f1fe
-hogar_indisponible c8334d42683a1a44
-media 5b6dfe1bc4068c35
-agenda e53d5080e4c0f8fb
-sistema 0f8d24b37e13b288
-reposo 057b8d91b8c0b5ad
-conversacion cc6c3dfe7f2b0fb3
-confirmacion 5f8828e36c05b392
+inicio_offline c98be3c774726491
+inicio_clima_cache 26012590abae7dd9
+inicio_online 94519bcb36d148b0
+hogar 16b63323fcf7aa1c
+hogar_indisponible 13fbc8db5ea8b477
+media ce86bffe7953f380
+agenda 1f97f0957b6e6810
+sistema 37a11ad7f3a08025
+reposo 06ee773524311e55
+conversacion a5cd84b6238f6af0
+confirmacion d0819002a99ab256
