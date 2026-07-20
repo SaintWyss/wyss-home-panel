@@ -38,6 +38,12 @@ class MediaDevice:
 
 
 @dataclass(frozen=True, slots=True)
+class MediaTrack:
+    title: str
+    artist: str
+
+
+@dataclass(frozen=True, slots=True)
 class MediaState:
     linked: bool
     available: bool
@@ -51,6 +57,7 @@ class MediaState:
     device: MediaDevice | None = None
     error_code: str | None = None
     retry_after: int | None = None
+    queue: tuple[MediaTrack, ...] = ()
 
     def projection(self) -> dict[str, Any]:
         device = None
@@ -77,6 +84,9 @@ class MediaState:
             "device": device,
             "error_code": self.error_code,
             "retry_after": self.retry_after,
+            "queue": [
+                {"title": track.title, "artist": track.artist} for track in self.queue
+            ],
         }
 
 

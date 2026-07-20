@@ -110,6 +110,9 @@ class LvglPanelView final : public ports::ViewPort {
     lv_obj_t* media_volume_label_{nullptr};
     lv_obj_t* media_volume_row_{nullptr};
     lv_obj_t* media_time_now_{nullptr};
+    lv_obj_t* media_queue_empty_{nullptr};
+    std::array<lv_obj_t*, 5> media_queue_titles_{};
+    std::array<lv_obj_t*, 5> media_queue_artists_{};
     std::array<lv_obj_t*, 3> device_buttons_{};
     std::array<lv_obj_t*, 3> device_labels_{};
     std::array<lv_obj_t*, 3> scene_buttons_{};

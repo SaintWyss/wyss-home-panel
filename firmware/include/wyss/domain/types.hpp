@@ -55,6 +55,11 @@ struct MediaDevice {
     std::optional<std::uint8_t> volume;
 };
 
+struct MediaTrack {
+    std::string title;
+    std::string artist;
+};
+
 struct MediaState {
     bool linked{false};
     bool available{false};
@@ -68,6 +73,7 @@ struct MediaState {
     std::optional<MediaDevice> device;
     std::string error_code;
     std::optional<std::uint32_t> retry_after;
+    std::vector<MediaTrack> queue;
 };
 
 struct MediaCommand {

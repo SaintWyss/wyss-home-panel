@@ -1,5 +1,7 @@
 #include "wyss/adapters/lvgl_panel_view.hpp"
 
+#include "wyss/ui/spotify_logo.hpp"
+
 #include <algorithm>
 #include <cstdio>
 #include <cstring>
@@ -60,6 +62,11 @@ lv_obj_t* panel(lv_obj_t* parent, int x, int y, int width, int height) {
     flat(object);
     lv_obj_set_style_bg_color(object, color(kSurface), 0);
     lv_obj_set_style_pad_all(object, 20, 0);
+    lv_obj_set_style_radius(object, 18, 0);
+    lv_obj_set_style_shadow_width(object, 22, 0);
+    lv_obj_set_style_shadow_ofs_y(object, 6, 0);
+    lv_obj_set_style_shadow_color(object, color(0xD8C9B6), 0);
+    lv_obj_set_style_shadow_opa(object, LV_OPA_40, 0);
     lv_obj_clear_flag(object, LV_OBJ_FLAG_SCROLLABLE);
     return object;
 }
@@ -369,30 +376,36 @@ void LvglPanelView::begin(application::PanelService& service, std::string primar
         lv_obj_add_state(scene_buttons_[index], LV_STATE_DISABLED);
     }
 
-    lv_obj_t* media = panel(pages_[2], 16, 12, 596, 432);
-    label(media, "SPOTIFY - REPRODUCCION", &lv_font_montserrat_12, kCyan);
+    lv_obj_t* media = panel(pages_[2], 16, 12, 388, 432);
+    lv_obj_t* spotify_logo = lv_img_create(media);
+    lv_img_set_src(spotify_logo, &wyss_spotify_logo);
+    lv_obj_set_pos(spotify_logo, 0, 0);
+    lv_obj_t* media_eyebrow = label(media, "SPOTIFY", &lv_font_montserrat_14, kCyan);
+    lv_obj_set_pos(media_eyebrow, 40, 0);
+    lv_obj_t* media_eyebrow2 = label(media, "REPRODUCCION", &lv_font_montserrat_12, kMuted);
+    lv_obj_set_pos(media_eyebrow2, 40, 18);
     media_device_ = label(media, "-", &lv_font_montserrat_12, kMuted);
-    lv_obj_set_width(media_device_, 240);
-    lv_obj_set_pos(media_device_, 316, 0);
+    lv_obj_set_width(media_device_, 150);
+    lv_obj_set_pos(media_device_, 198, 0);
     lv_obj_set_style_text_align(media_device_, LV_TEXT_ALIGN_RIGHT, 0);
     lv_label_set_long_mode(media_device_, LV_LABEL_LONG_DOT);
 
     media_title_ = label(media, "Spotify no vinculado", &lv_font_montserrat_36, kText);
-    lv_obj_set_pos(media_title_, 0, 52);
-    lv_obj_set_width(media_title_, 556);
+    lv_obj_set_pos(media_title_, 0, 60);
+    lv_obj_set_width(media_title_, 348);
     lv_obj_set_style_text_align(media_title_, LV_TEXT_ALIGN_CENTER, 0);
     lv_label_set_long_mode(media_title_, LV_LABEL_LONG_DOT);
     media_artist_ = label(media, "Vinculalo desde Wyss", &lv_font_montserrat_16, kMuted);
-    lv_obj_set_pos(media_artist_, 0, 106);
-    lv_obj_set_width(media_artist_, 556);
+    lv_obj_set_pos(media_artist_, 0, 114);
+    lv_obj_set_width(media_artist_, 348);
     lv_obj_set_style_text_align(media_artist_, LV_TEXT_ALIGN_CENTER, 0);
     lv_label_set_long_mode(media_artist_, LV_LABEL_LONG_DOT);
 
     // Transporte centrado: anterior / play coral relleno / siguiente (mockup crema).
     constexpr const char* media_symbols[] = {LV_SYMBOL_PREV, LV_SYMBOL_PLAY, LV_SYMBOL_NEXT};
     constexpr int media_sizes[] = {64, 92, 64};
-    constexpr int media_xs[] = {112, 232, 380};
-    constexpr int media_ys[] = {160, 146, 160};
+    constexpr int media_xs[] = {28, 128, 256};
+    constexpr int media_ys[] = {168, 154, 168};
     for (unsigned index = 0; index < 3; ++index) {
         media_buttons_[index] = lv_btn_create(media);
         lv_obj_set_size(media_buttons_[index], media_sizes[index], media_sizes[index]);
@@ -414,7 +427,7 @@ void LvglPanelView::begin(application::PanelService& service, std::string primar
 
     media_buttons_[3] = lv_btn_create(media);
     lv_obj_set_size(media_buttons_[3], 130, 42);
-    lv_obj_set_pos(media_buttons_[3], 213, 254);
+    lv_obj_set_pos(media_buttons_[3], 109, 262);
     style_button(media_buttons_[3], kSurfaceRaised);
     lv_obj_set_style_radius(media_buttons_[3], 21, 0);
     lv_obj_set_style_border_width(media_buttons_[3], 1, 0);
@@ -427,15 +440,32 @@ void LvglPanelView::begin(application::PanelService& service, std::string primar
     media_time_now_ = label(media, "0:00", &lv_font_montserrat_12, kMuted);
     lv_obj_set_pos(media_time_now_, 0, 316);
     media_progress_ = lv_bar_create(media);
-    lv_obj_set_size(media_progress_, 452, 6);
-    lv_obj_set_pos(media_progress_, 52, 321);
+    lv_obj_set_size(media_progress_, 252, 6);
+    lv_obj_set_pos(media_progress_, 44, 321);
     lv_bar_set_range(media_progress_, 0, 1000);
     lv_obj_set_style_bg_color(media_progress_, color(kBorder), LV_PART_MAIN);
     lv_obj_set_style_bg_color(media_progress_, color(kCyan), LV_PART_INDICATOR);
     media_progress_label_ = label(media, "0:00", &lv_font_montserrat_12, kMuted);
     lv_obj_set_width(media_progress_label_, 48);
-    lv_obj_set_pos(media_progress_label_, 508, 316);
+    lv_obj_set_pos(media_progress_label_, 300, 316);
     lv_obj_set_style_text_align(media_progress_label_, LV_TEXT_ALIGN_RIGHT, 0);
+
+    lv_obj_t* queue_card = panel(pages_[2], 420, 12, 192, 432);
+    label(queue_card, "A CONTINUACION", &lv_font_montserrat_12, kCyan);
+    media_queue_empty_ = label(queue_card, "Sin cola", &lv_font_montserrat_14, kMuted);
+    lv_obj_set_pos(media_queue_empty_, 0, 34);
+    for (unsigned index = 0; index < media_queue_titles_.size(); ++index) {
+        media_queue_titles_[index] =
+            label(queue_card, "", &lv_font_montserrat_14, kText);
+        lv_obj_set_pos(media_queue_titles_[index], 0, 34 + static_cast<int>(index) * 70);
+        lv_obj_set_width(media_queue_titles_[index], 152);
+        lv_label_set_long_mode(media_queue_titles_[index], LV_LABEL_LONG_DOT);
+        media_queue_artists_[index] =
+            label(queue_card, "", &lv_font_montserrat_12, kMuted);
+        lv_obj_set_pos(media_queue_artists_[index], 0, 56 + static_cast<int>(index) * 70);
+        lv_obj_set_width(media_queue_artists_[index], 152);
+        lv_label_set_long_mode(media_queue_artists_[index], LV_LABEL_LONG_DOT);
+    }
 
     lv_obj_add_event_cb(media_buttons_[0], on_media_previous, LV_EVENT_CLICKED, this);
     lv_obj_add_event_cb(media_buttons_[1], on_media_play, LV_EVENT_CLICKED, this);
@@ -444,7 +474,7 @@ void LvglPanelView::begin(application::PanelService& service, std::string primar
 
     // Fila de volumen: existe solo cuando el dispositivo lo soporta (se muestra en render).
     media_volume_row_ = lv_obj_create(media);
-    lv_obj_set_size(media_volume_row_, 556, 48);
+    lv_obj_set_size(media_volume_row_, 348, 48);
     lv_obj_set_pos(media_volume_row_, 0, 342);
     lv_obj_set_style_bg_opa(media_volume_row_, LV_OPA_TRANSP, 0);
     lv_obj_set_style_border_width(media_volume_row_, 0, 0);
@@ -454,8 +484,8 @@ void LvglPanelView::begin(application::PanelService& service, std::string primar
         label(media_volume_row_, LV_SYMBOL_VOLUME_MAX, &lv_font_montserrat_16, kMuted);
     lv_obj_set_pos(volume_title, 0, 12);
     media_volume_ = lv_slider_create(media_volume_row_);
-    lv_obj_set_size(media_volume_, 400, 40);
-    lv_obj_set_pos(media_volume_, 40, 4);
+    lv_obj_set_size(media_volume_, 200, 40);
+    lv_obj_set_pos(media_volume_, 36, 4);
     lv_slider_set_range(media_volume_, 0, 100);
     lv_obj_set_style_bg_color(media_volume_, color(kBorder), LV_PART_MAIN);
     lv_obj_set_style_bg_color(media_volume_, color(kCyan), LV_PART_INDICATOR);
@@ -466,7 +496,7 @@ void LvglPanelView::begin(application::PanelService& service, std::string primar
     lv_obj_add_event_cb(media_volume_, on_media_volume_release, LV_EVENT_PRESS_LOST, this);
     media_volume_label_ = label(media_volume_row_, "-- %", &lv_font_montserrat_20, kText);
     lv_obj_set_width(media_volume_label_, 90);
-    lv_obj_set_pos(media_volume_label_, 462, 8);
+    lv_obj_set_pos(media_volume_label_, 252, 8);
     lv_obj_set_style_text_align(media_volume_label_, LV_TEXT_ALIGN_RIGHT, 0);
     lv_obj_add_flag(media_volume_row_, LV_OBJ_FLAG_HIDDEN);
 
@@ -751,6 +781,23 @@ void LvglPanelView::render_media(const domain::MediaState& state) {
                               color(state.favorite ? kCyan : kSurfaceRaised), 0);
     lv_obj_set_style_text_color(media_favorite_label_,
                                 color(state.favorite ? kSurfaceRaised : kCyan), 0);
+
+    for (unsigned index = 0; index < media_queue_titles_.size(); ++index) {
+        if (index < state.queue.size()) {
+            lv_label_set_text(media_queue_titles_[index],
+                              ascii_safe(state.queue[index].title).c_str());
+            lv_label_set_text(media_queue_artists_[index],
+                              ascii_safe(state.queue[index].artist).c_str());
+        } else {
+            lv_label_set_text(media_queue_titles_[index], "");
+            lv_label_set_text(media_queue_artists_[index], "");
+        }
+    }
+    if (state.queue.empty()) {
+        lv_obj_clear_flag(media_queue_empty_, LV_OBJ_FLAG_HIDDEN);
+    } else {
+        lv_obj_add_flag(media_queue_empty_, LV_OBJ_FLAG_HIDDEN);
+    }
     for (auto* button : media_buttons_) {
         if (controllable) {
             lv_obj_clear_state(button, LV_STATE_DISABLED);

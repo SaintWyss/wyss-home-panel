@@ -434,6 +434,15 @@ void BridgeClient::dispatch(application::PanelService& service, const char* json
             }
             state.device = std::move(device);
         }
+        if (value["queue"].is<JsonArrayConst>()) {
+            for (JsonObjectConst item : value["queue"].as<JsonArrayConst>()) {
+                if (state.queue.size() == 5) break;
+                domain::MediaTrack track;
+                track.title = item["title"] | "";
+                track.artist = item["artist"] | "";
+                if (!track.title.empty()) state.queue.push_back(std::move(track));
+            }
+        }
         service.receive_media(std::move(state));
     };
     auto weather = [&](JsonObjectConst value) {
