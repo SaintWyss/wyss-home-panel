@@ -22,6 +22,15 @@ constexpr auto kRed = ui::tokens::red;
 constexpr auto kBorder = ui::tokens::border;
 constexpr auto kSoft = ui::tokens::soft;
 
+// Geometria de la tarjeta de clima (contenido util de 250x200 dentro del panel).
+constexpr int kWeatherContentWidth = 250;
+constexpr int kWeatherChipWidth = 78;
+constexpr int kWeatherColumnPitch = 35;
+constexpr int kWeatherBarWidth = 14;
+constexpr int kWeatherBarInset = (kWeatherColumnPitch - kWeatherBarWidth) / 2;
+constexpr int kWeatherChartTop = 146;
+constexpr int kWeatherChartHeight = 34;
+
 LvglPanelView* g_view = nullptr;
 
 lv_color_t color(std::uint32_t value) { return lv_color_hex(value); }
@@ -139,9 +148,9 @@ const char* weather_condition(std::string_view condition) {
 }
 
 const char* weather_error(std::string_view error) {
-    if (error == "provider_unavailable") return "Proveedor temporalmente fuera de linea";
+    if (error == "provider_unavailable") return "Proveedor fuera de linea";
     if (error == "cache_expired") return "Ultimo dato vencido";
-    if (error == "invalid_forecast") return "Respuesta meteorologica invalida";
+    if (error == "invalid_forecast") return "Pronostico invalido";
     return "Sin datos validos";
 }
 
@@ -211,7 +220,7 @@ void LvglPanelView::begin(application::PanelService& service, std::string primar
     lv_obj_clear_flag(sidebar, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_t* brand = label(manual_layer_, "Wyss", &lv_font_montserrat_26, kText);
     lv_obj_set_pos(brand, 20, 22);
-    lv_obj_t* subtitle = label(manual_layer_, "Core", &lv_font_montserrat_26, kCyan);
+    lv_obj_t* subtitle = label(manual_layer_, "Home", &lv_font_montserrat_26, kCyan);
     lv_obj_set_pos(subtitle, 85, 22);
     connection_ = label(manual_layer_, "SIN CONEXION", &lv_font_montserrat_12, kRed);
     lv_obj_set_pos(connection_, 20, 448);
@@ -245,39 +254,119 @@ void LvglPanelView::begin(application::PanelService& service, std::string primar
         lv_obj_add_flag(page, LV_OBJ_FLAG_HIDDEN);
     }
 
-    lv_obj_t* core_card = panel(pages_[0], 16, 12, 290, 286);
-    label(core_card, "PRESENCIA WYSS", &lv_font_montserrat_12, kCyan);
+    // Presencia minima: tira compacta arriba (pedido del owner).
+    lv_obj_t* core_card = panel(pages_[0], 16, 12, 596, 64);
+    lv_obj_set_style_pad_ver(core_card, 12, 0);
     lv_obj_t* core = lv_obj_create(core_card);
-    lv_obj_set_size(core, 132, 132);
-    lv_obj_set_pos(core, 59, 52);
+    lv_obj_set_size(core, 38, 38);
+    lv_obj_set_pos(core, 0, 0);
     lv_obj_set_style_radius(core, LV_RADIUS_CIRCLE, 0);
     lv_obj_set_style_bg_color(core, color(kSurfaceRaised), 0);
     lv_obj_set_style_border_width(core, 3, 0);
     lv_obj_set_style_border_color(core, color(kCyan), 0);
     lv_obj_clear_flag(core, LV_OBJ_FLAG_SCROLLABLE);
-    lv_obj_t* core_label = label(core, "WYSS\nLISTO", &lv_font_montserrat_16, kText);
-    lv_obj_set_style_text_align(core_label, LV_TEXT_ALIGN_CENTER, 0);
-    lv_obj_center(core_label);
-    home_summary_ = label(core_card, "Hogar esperando estado", &lv_font_montserrat_14, kMuted);
-    lv_obj_align(home_summary_, LV_ALIGN_BOTTOM_MID, 0, -6);
+    lv_obj_t* core_label = label(core_card, "WYSS LISTO", &lv_font_montserrat_16, kText);
+    lv_obj_set_pos(core_label, 54, 9);
+    home_summary_ = label(core_card, "Hogar esperando estado", &lv_font_montserrat_12, kMuted);
+    lv_obj_set_width(home_summary_, 320);
+    lv_obj_set_pos(home_summary_, 236, 12);
+    lv_obj_set_style_text_align(home_summary_, LV_TEXT_ALIGN_RIGHT, 0);
+    lv_label_set_long_mode(home_summary_, LV_LABEL_LONG_DOT);
 
-    lv_obj_t* status_card = panel(pages_[0], 322, 12, 290, 286);
-    label(status_card, "CLIMA - RESISTENCIA", &lv_font_montserrat_12, kCyan);
-    weather_current_ =
-        label(status_card, "Clima sin sincronizar", &lv_font_montserrat_20, kText);
-    lv_obj_set_pos(weather_current_, 0, 30);
-    weather_meta_ = label(status_card, "Esperando proveedor", &lv_font_montserrat_12, kMuted);
-    lv_obj_set_pos(weather_meta_, 0, 66);
+    // Pendientes: recordatorios proyectados como lista de tareas.
+    lv_obj_t* todo_card = panel(pages_[0], 16, 88, 290, 240);
+    label(todo_card, "PENDIENTES", &lv_font_montserrat_12, kCyan);
+    for (unsigned index = 0; index < inicio_todo_.size(); ++index) {
+        inicio_todo_[index] = label(
+            todo_card, index == 0 ? "Sin sincronizar" : "",
+            &lv_font_montserrat_14, index == 0 ? kMuted : kText);
+        lv_obj_set_pos(inicio_todo_[index], 0, 34 + static_cast<int>(index) * 40);
+        lv_obj_set_width(inicio_todo_[index], 250);
+        lv_label_set_long_mode(inicio_todo_[index], LV_LABEL_LONG_DOT);
+    }
+
+    lv_obj_t* status_card = panel(pages_[0], 322, 88, 290, 240);
+    label(status_card, "CLIMA", &lv_font_montserrat_12, kCyan);
+    weather_location_ = label(status_card, "Resistencia", &lv_font_montserrat_12, kMuted);
+    lv_obj_set_width(weather_location_, 150);
+    lv_obj_set_pos(weather_location_, 100, 0);
+    lv_obj_set_style_text_align(weather_location_, LV_TEXT_ALIGN_RIGHT, 0);
+    // Lectura principal: numero grande con unidad al costado (estilo estacion meteorologica).
+    weather_current_ = label(status_card, "--", &lv_font_montserrat_36, kText);
+    lv_obj_set_pos(weather_current_, 0, 18);
+    weather_unit_ = label(status_card, "\xC2\xB0" "C", &lv_font_montserrat_16, kMuted);
+    lv_obj_align_to(weather_unit_, weather_current_, LV_ALIGN_OUT_RIGHT_TOP, 4, 10);
+    weather_condition_ = label(status_card, "Sin sincronizar", &lv_font_montserrat_16, kText);
+    lv_obj_set_width(weather_condition_, 122);
+    lv_obj_set_height(weather_condition_, 44);
+    lv_obj_set_pos(weather_condition_, 128, 20);
+    lv_label_set_long_mode(weather_condition_, LV_LABEL_LONG_DOT);
+    lv_obj_set_style_text_align(weather_condition_, LV_TEXT_ALIGN_RIGHT, 0);
+
+    lv_obj_t* weather_rule = lv_obj_create(status_card);
+    lv_obj_set_size(weather_rule, kWeatherContentWidth, 1);
+    lv_obj_set_pos(weather_rule, 0, 72);
+    flat(weather_rule);
+    lv_obj_set_style_border_width(weather_rule, 0, 0);
+    lv_obj_set_style_pad_all(weather_rule, 0, 0);
+    lv_obj_set_style_bg_color(weather_rule, color(kBorder), 0);
+
+    constexpr const char* chip_titles[] = {"VIENTO", "LLUVIA", "HACE"};
+    for (unsigned index = 0; index < 3; ++index) {
+        lv_obj_t* chip = lv_obj_create(status_card);
+        lv_obj_set_size(chip, kWeatherChipWidth, 40);
+        lv_obj_set_pos(chip, static_cast<int>(index) * (kWeatherChipWidth + 8), 82);
+        flat(chip);
+        lv_obj_set_style_bg_color(chip, color(kSurfaceRaised), 0);
+        lv_obj_set_style_radius(chip, 8, 0);
+        lv_obj_set_style_pad_all(chip, 0, 0);
+        lv_obj_t* chip_title = label(chip, chip_titles[index], &lv_font_montserrat_12, kMuted);
+        lv_obj_align(chip_title, LV_ALIGN_TOP_MID, 0, 4);
+        lv_obj_t* chip_value = label(chip, "--", &lv_font_montserrat_14, kText);
+        lv_obj_align(chip_value, LV_ALIGN_TOP_MID, 0, 19);
+        if (index < weather_chip_values_.size()) {
+            weather_chip_values_[index] = chip_value;
+        } else {
+            weather_meta_ = chip_value;
+        }
+    }
+
+    lv_obj_t* week_title = label(status_card, "7 DIAS", &lv_font_montserrat_12, kMuted);
+    lv_obj_set_pos(week_title, 0, 128);
+    weather_range_ = label(status_card, "min -- / max --", &lv_font_montserrat_12, kMuted);
+    lv_obj_set_width(weather_range_, 160);
+    lv_obj_set_pos(weather_range_, 90, 128);
+    lv_obj_set_style_text_align(weather_range_, LV_TEXT_ALIGN_RIGHT, 0);
+    // Riel unico detras del grafico: una sola superficie en vez de siete (ahorra memoria LVGL).
+    lv_obj_t* weather_rail = lv_obj_create(status_card);
+    lv_obj_set_size(weather_rail, kWeatherContentWidth, kWeatherChartHeight + 8);
+    lv_obj_set_pos(weather_rail, 0, kWeatherChartTop - 4);
+    flat(weather_rail);
+    lv_obj_set_style_border_width(weather_rail, 0, 0);
+    lv_obj_set_style_pad_all(weather_rail, 0, 0);
+    lv_obj_set_style_bg_color(weather_rail, color(kSoft), 0);
+    lv_obj_set_style_radius(weather_rail, 8, 0);
+
+    // Pronostico como rango vertical por dia: la barra cubre de minima a maxima.
     for (unsigned index = 0; index < weather_days_.size(); ++index) {
-        weather_days_[index] = label(status_card, "--\n--/--", &lv_font_montserrat_12, kMuted);
-        lv_obj_set_pos(weather_days_[index], static_cast<int>(index) * 34, 120);
-        lv_obj_set_width(weather_days_[index], 32);
+        const int column = static_cast<int>(index) * kWeatherColumnPitch;
+        weather_bars_[index] = lv_obj_create(status_card);
+        lv_obj_set_size(weather_bars_[index], kWeatherBarWidth, 0);
+        lv_obj_set_pos(weather_bars_[index], column + kWeatherBarInset, kWeatherChartTop);
+        flat(weather_bars_[index]);
+        lv_obj_set_style_border_width(weather_bars_[index], 0, 0);
+        lv_obj_set_style_pad_all(weather_bars_[index], 0, 0);
+        lv_obj_set_style_bg_color(weather_bars_[index], color(kCyan), 0);
+        lv_obj_set_style_radius(weather_bars_[index], kWeatherBarWidth / 2, 0);
+        weather_days_[index] = label(status_card, "--", &lv_font_montserrat_12, kMuted);
+        lv_obj_set_pos(weather_days_[index], column, kWeatherChartTop + kWeatherChartHeight + 6);
+        lv_obj_set_width(weather_days_[index], kWeatherColumnPitch);
         lv_obj_set_style_text_align(weather_days_[index], LV_TEXT_ALIGN_CENTER, 0);
     }
 
     lv_obj_t* home_quick_title =
         label(pages_[0], "ACCIONES RAPIDAS", &lv_font_montserrat_12, kMuted);
-    lv_obj_set_pos(home_quick_title, 16, 300);
+    lv_obj_set_pos(home_quick_title, 16, 402);
     constexpr const char* quick_labels[] = {"Modo noche", "Apagar todo", "Estoy saliendo"};
     for (unsigned index = 0; index < 3; ++index) {
         const auto bounds = ui::tokens::quick_actions[index];
@@ -362,7 +451,7 @@ void LvglPanelView::begin(application::PanelService& service, std::string primar
     }
 
     lv_obj_t* quick_title = label(pages_[1], "ESCENAS DEL HOGAR", &lv_font_montserrat_12, kMuted);
-    lv_obj_set_pos(quick_title, 16, 300);
+    lv_obj_set_pos(quick_title, 16, 402);
     for (unsigned index = 0; index < scene_buttons_.size(); ++index) {
         const auto bounds = ui::tokens::quick_actions[index];
         scene_buttons_[index] = lv_btn_create(pages_[1]);
@@ -833,56 +922,106 @@ void LvglPanelView::render_weather(const domain::WeatherState& state) {
     format_age(age, sizeof(age), state.age_seconds);
     const std::uint32_t state_color = !state.available ? kRed : (state.stale ? kAmber : kText);
 
+    std::uint8_t max_precipitation = 0;
+    for (const auto& day : state.days) {
+        if (day.precipitation_probability) {
+            max_precipitation = std::max(max_precipitation, *day.precipitation_probability);
+        }
+    }
+
     if (!state.available || !state.temperature) {
-        std::snprintf(weather_current_text_, sizeof(weather_current_text_),
-                      "Clima no disponible");
-        std::snprintf(weather_meta_text_, sizeof(weather_meta_text_), "%s",
+        std::snprintf(weather_current_text_, sizeof(weather_current_text_), "--");
+        std::snprintf(weather_condition_text_, sizeof(weather_condition_text_), "%s",
                       weather_error(state.error_code));
+        std::snprintf(weather_chip_text_[0], sizeof(weather_chip_text_[0]), "--");
+        std::snprintf(weather_chip_text_[1], sizeof(weather_chip_text_[1]), "--");
+        std::snprintf(weather_meta_text_, sizeof(weather_meta_text_), "--");
         std::snprintf(sleeping_weather_part_, sizeof(sleeping_weather_part_),
                       "Resistencia - clima no disponible");
     } else {
         const char* condition = weather_condition(state.condition);
-        std::snprintf(weather_current_text_, sizeof(weather_current_text_), "%.1f C - %s",
-                      static_cast<double>(*state.temperature), condition);
+        std::snprintf(weather_current_text_, sizeof(weather_current_text_), "%.1f",
+                      static_cast<double>(*state.temperature));
+        std::snprintf(weather_condition_text_, sizeof(weather_condition_text_), "%s", condition);
         if (state.wind_kmh) {
-            std::snprintf(weather_meta_text_, sizeof(weather_meta_text_), "%s hace %s - viento %.0f km/h",
-                          state.stale ? "CACHE" : "Actualizado", age,
+            std::snprintf(weather_chip_text_[0], sizeof(weather_chip_text_[0]), "%.0f km/h",
                           static_cast<double>(*state.wind_kmh));
         } else {
-            std::snprintf(weather_meta_text_, sizeof(weather_meta_text_), "%s hace %s",
-                          state.stale ? "CACHE" : "Actualizado", age);
+            std::snprintf(weather_chip_text_[0], sizeof(weather_chip_text_[0]), "--");
         }
+        std::snprintf(weather_chip_text_[1], sizeof(weather_chip_text_[1]), "%u%%",
+                      static_cast<unsigned>(max_precipitation));
+        std::snprintf(weather_meta_text_, sizeof(weather_meta_text_), "%s%s",
+                      state.stale ? "CACHE " : "", age);
         std::snprintf(sleeping_weather_part_, sizeof(sleeping_weather_part_),
                       "Resistencia - %.0f C - %s - %s hace %s",
                       static_cast<double>(*state.temperature), condition,
                       state.stale ? "CACHE" : "actualizado", age);
     }
+    const std::string location =
+        ascii_safe(state.location.empty() ? std::string_view{"Sin ubicacion"} : state.location);
+    std::snprintf(weather_location_text_, sizeof(weather_location_text_), "%s", location.c_str());
+
     lv_label_set_text_static(weather_current_, weather_current_text_);
     lv_obj_set_style_text_color(weather_current_, color(state_color), 0);
+    lv_obj_align_to(weather_unit_, weather_current_, LV_ALIGN_OUT_RIGHT_TOP, 4, 10);
+    lv_label_set_text_static(weather_condition_, weather_condition_text_);
+    lv_obj_set_style_text_color(weather_condition_, color(state.available ? kText : kRed), 0);
+    lv_label_set_text_static(weather_location_, weather_location_text_);
+    lv_label_set_text_static(weather_chip_values_[0], weather_chip_text_[0]);
+    lv_label_set_text_static(weather_chip_values_[1], weather_chip_text_[1]);
     lv_label_set_text_static(weather_meta_, weather_meta_text_);
-    lv_obj_set_style_text_color(weather_meta_, color(state.stale ? kAmber : kMuted), 0);
+    lv_obj_set_style_text_color(weather_meta_, color(state.stale ? kAmber : kText), 0);
     refresh_sleeping_summary();
     lv_obj_set_style_text_color(sleeping_weather_, color(state_color), 0);
 
+    // Escala compartida por la semana: la barra de cada dia cubre su minima y maxima.
+    const std::size_t forecast_days =
+        state.available ? std::min(state.days.size(), weather_days_.size()) : 0U;
+    float week_min = 0.0F;
+    float week_max = 0.0F;
+    if (forecast_days > 0U) {
+        week_min = state.days[0].temperature_min;
+        week_max = state.days[0].temperature_max;
+        for (std::size_t index = 0; index < forecast_days; ++index) {
+            week_min = std::min(week_min, state.days[index].temperature_min);
+            week_max = std::max(week_max, state.days[index].temperature_max);
+        }
+        std::snprintf(weather_range_text_, sizeof(weather_range_text_), "min %.0f / max %.0f",
+                      static_cast<double>(week_min), static_cast<double>(week_max));
+    } else {
+        std::snprintf(weather_range_text_, sizeof(weather_range_text_), "min -- / max --");
+    }
+    lv_label_set_text_static(weather_range_, weather_range_text_);
+    const float span = std::max(1.0F, week_max - week_min);
+
     for (unsigned index = 0; index < weather_days_.size(); ++index) {
-        if (state.available && index < state.days.size()) {
+        if (index < forecast_days) {
             const auto& day = state.days[index];
             const std::string_view date = day.date;
             const std::string_view day_number = date.size() >= 10U ? date.substr(8U, 2U) : date;
-            if (day.precipitation_probability) {
-                std::snprintf(weather_day_text_[index], sizeof(weather_day_text_[index]),
-                              "%.*s\n%.0f/%.0f\n%u%%", static_cast<int>(day_number.size()),
-                              day_number.data(), static_cast<double>(day.temperature_min),
-                              static_cast<double>(day.temperature_max),
-                              *day.precipitation_probability);
-            } else {
-                std::snprintf(weather_day_text_[index], sizeof(weather_day_text_[index]),
-                              "%.*s\n%.0f/%.0f\n--", static_cast<int>(day_number.size()),
-                              day_number.data(), static_cast<double>(day.temperature_min),
-                              static_cast<double>(day.temperature_max));
-            }
+            std::snprintf(weather_day_text_[index], sizeof(weather_day_text_[index]), "%.*s",
+                          static_cast<int>(day_number.size()), day_number.data());
+
+            const float top_ratio = (week_max - day.temperature_max) / span;
+            const float height_ratio = (day.temperature_max - day.temperature_min) / span;
+            const int height = std::max(
+                4, static_cast<int>(height_ratio * static_cast<float>(kWeatherChartHeight)));
+            const int top =
+                std::min(kWeatherChartHeight - height,
+                         static_cast<int>(top_ratio * static_cast<float>(kWeatherChartHeight)));
+            lv_obj_set_size(weather_bars_[index], kWeatherBarWidth, height);
+            lv_obj_set_pos(weather_bars_[index], static_cast<int>(index) * kWeatherColumnPitch +
+                                                     kWeatherBarInset,
+                           kWeatherChartTop + std::max(0, top));
+            const bool rainy =
+                day.precipitation_probability && *day.precipitation_probability >= 50U;
+            lv_obj_set_style_bg_color(weather_bars_[index],
+                                      color(state.stale ? kAmber : (rainy ? kBlue : kCyan)), 0);
+            lv_obj_clear_flag(weather_bars_[index], LV_OBJ_FLAG_HIDDEN);
         } else {
-            std::snprintf(weather_day_text_[index], sizeof(weather_day_text_[index]), "--\n--/--\n--");
+            std::snprintf(weather_day_text_[index], sizeof(weather_day_text_[index]), "--");
+            lv_obj_add_flag(weather_bars_[index], LV_OBJ_FLAG_HIDDEN);
         }
         lv_label_set_text_static(weather_days_[index], weather_day_text_[index]);
         lv_obj_set_style_text_color(weather_days_[index],
@@ -979,6 +1118,25 @@ void LvglPanelView::render_reminders(const domain::ReminderState& state) {
     }
     lv_label_set_text_static(reminder_state_, reminder_state_text_);
     lv_obj_set_style_text_color(reminder_state_, color(state_color), 0);
+
+    // Lista de pendientes en INICIO: texto + hora (HH:MM del due_at ISO).
+    for (unsigned index = 0; index < inicio_todo_.size(); ++index) {
+        if (state.available && index < state.items.size()) {
+            const auto& item = state.items[index];
+            const std::string hora =
+                item.due_at.size() >= 16 ? item.due_at.substr(11, 5) : "";
+            std::string linea = ascii_safe(item.text);
+            if (!hora.empty()) linea += "  -  " + hora;
+            lv_label_set_text(inicio_todo_[index], linea.c_str());
+            lv_obj_set_style_text_color(inicio_todo_[index], color(kText), 0);
+        } else if (index == 0 && (!state.available || state.items.empty())) {
+            lv_label_set_text(inicio_todo_[0],
+                              state.available ? "Sin pendientes" : "Sin sincronizar");
+            lv_obj_set_style_text_color(inicio_todo_[0], color(kMuted), 0);
+        } else {
+            lv_label_set_text(inicio_todo_[index], "");
+        }
+    }
     refresh_sleeping_summary();
 }
 

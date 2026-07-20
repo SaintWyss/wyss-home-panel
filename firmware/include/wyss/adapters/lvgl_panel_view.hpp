@@ -91,6 +91,10 @@ class LvglPanelView final : public ports::ViewPort {
     lv_obj_t* availability_{nullptr};
     lv_obj_t* home_summary_{nullptr};
     lv_obj_t* weather_current_{nullptr};
+    lv_obj_t* weather_unit_{nullptr};
+    lv_obj_t* weather_condition_{nullptr};
+    lv_obj_t* weather_location_{nullptr};
+    lv_obj_t* weather_range_{nullptr};
     lv_obj_t* weather_meta_{nullptr};
     lv_obj_t* sleeping_weather_{nullptr};
     lv_obj_t* agenda_state_{nullptr};
@@ -112,6 +116,7 @@ class LvglPanelView final : public ports::ViewPort {
     lv_obj_t* media_time_now_{nullptr};
     lv_obj_t* media_queue_empty_{nullptr};
     std::array<lv_obj_t*, 5> media_queue_titles_{};
+    std::array<lv_obj_t*, 4> inicio_todo_{};
     std::array<lv_obj_t*, 5> media_queue_artists_{};
     std::array<lv_obj_t*, 3> device_buttons_{};
     std::array<lv_obj_t*, 3> device_labels_{};
@@ -120,6 +125,8 @@ class LvglPanelView final : public ports::ViewPort {
     std::array<lv_obj_t*, 4> color_buttons_{};
     std::array<lv_obj_t*, 4> media_buttons_{};
     std::array<lv_obj_t*, 7> weather_days_{};
+    std::array<lv_obj_t*, 7> weather_bars_{};
+    std::array<lv_obj_t*, 2> weather_chip_values_{};
     std::array<lv_obj_t*, 4> agenda_events_{};
     std::array<std::string, 3> device_entities_{};
     std::array<std::string, 3> scene_entities_{};
@@ -142,6 +149,10 @@ class LvglPanelView final : public ports::ViewPort {
     char selected_text_[64]{};
     char home_text_[64]{};
     char weather_current_text_[128]{};
+    char weather_condition_text_[64]{};
+    char weather_location_text_[64]{};
+    char weather_range_text_[48]{};
+    char weather_chip_text_[2][16]{};
     char weather_meta_text_[128]{};
     char sleeping_weather_part_[128]{"Clima sin sincronizar"};
     char sleeping_agenda_part_[128]{"Agenda sin sincronizar"};
