@@ -27,21 +27,22 @@ inline constexpr std::uint32_t sleeping_after_ms = 300'000;
 inline constexpr std::uint8_t active_brightness = 100;
 inline constexpr std::uint8_t sleeping_brightness = 18;
 
-inline constexpr std::uint32_t canvas = 0x07101F;
-inline constexpr std::uint32_t surface = 0x111D30;
-inline constexpr std::uint32_t surface_raised = 0x18263C;
-inline constexpr std::uint32_t text = 0xF7FAFF;
-inline constexpr std::uint32_t muted = 0xA9B9D0;
-inline constexpr std::uint32_t cyan = 0x2EE6D6;
-inline constexpr std::uint32_t blue = 0x4F7CFF;
-inline constexpr std::uint32_t green = 0x45D483;
-inline constexpr std::uint32_t amber = 0xFFC857;
-inline constexpr std::uint32_t red = 0xFF6B7A;
-inline constexpr std::uint32_t border = 0x314968;
+inline constexpr std::uint32_t canvas = 0xF3EDE3;
+inline constexpr std::uint32_t surface = 0xFAF6EE;
+inline constexpr std::uint32_t surface_raised = 0xFFFFFF;
+inline constexpr std::uint32_t text = 0x2E2521;
+inline constexpr std::uint32_t muted = 0x96887B;
+inline constexpr std::uint32_t cyan = 0xE2604B;
+inline constexpr std::uint32_t blue = 0xC24E3B;
+inline constexpr std::uint32_t green = 0x3E9B6C;
+inline constexpr std::uint32_t amber = 0xC98A2B;
+inline constexpr std::uint32_t red = 0xB84034;
+inline constexpr std::uint32_t border = 0xE6DACA;
+inline constexpr std::uint32_t soft = 0xF7DFD4;
 
 inline constexpr std::array<Rect, 5> navigation = {
-    Rect{142, 8, 86, 48}, Rect{234, 8, 86, 48}, Rect{326, 8, 86, 48},
-    Rect{418, 8, 86, 48}, Rect{510, 8, 86, 48},
+    Rect{12, 86, 148, 50},  Rect{12, 144, 148, 50}, Rect{12, 202, 148, 50},
+    Rect{12, 260, 148, 50}, Rect{12, 318, 148, 50},
 };
 inline constexpr Rect manual_button{310, 382, 180, 58};
 inline constexpr Rect power_button{20, 119, 150, 112};
@@ -54,7 +55,7 @@ inline constexpr std::array<Rect, 4> color_presets = {
     Rect{686, 222, 54, 48},
 };
 inline constexpr std::array<Rect, 3> quick_actions = {
-    Rect{20, 324, 232, 66}, Rect{284, 324, 232, 66}, Rect{548, 324, 232, 66},
+    Rect{16, 316, 180, 56}, Rect{212, 316, 180, 56}, Rect{408, 316, 180, 56},
 };
 }  // namespace tokens
 
