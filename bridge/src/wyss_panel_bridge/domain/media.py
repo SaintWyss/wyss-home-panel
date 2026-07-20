@@ -84,9 +84,7 @@ class MediaState:
             "device": device,
             "error_code": self.error_code,
             "retry_after": self.retry_after,
-            "queue": [
-                {"title": track.title, "artist": track.artist} for track in self.queue
-            ],
+            "queue": [{"title": track.title, "artist": track.artist} for track in self.queue],
         }
 
 

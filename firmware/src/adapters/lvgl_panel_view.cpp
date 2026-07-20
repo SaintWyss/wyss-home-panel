@@ -201,7 +201,7 @@ void LvglPanelView::begin(application::PanelService& service, std::string primar
     prepare_layer(manual_layer_);
     // Sidebar izquierda: marca, navegacion vertical y estado de conexion.
     lv_obj_t* sidebar = lv_obj_create(manual_layer_);
-    lv_obj_set_size(sidebar, 172, 480);
+    lv_obj_set_size(sidebar, ui::tokens::sidebar_width, ui::tokens::screen_height);
     lv_obj_set_pos(sidebar, 0, 0);
     flat(sidebar);
     lv_obj_set_style_bg_color(sidebar, color(kSurface), 0);
@@ -235,8 +235,9 @@ void LvglPanelView::begin(application::PanelService& service, std::string primar
 
     for (auto*& page : pages_) {
         page = lv_obj_create(manual_layer_);
-        lv_obj_set_size(page, 628, 480);
-        lv_obj_set_pos(page, 172, 0);
+        lv_obj_set_size(page, ui::tokens::screen_width - ui::tokens::sidebar_width,
+                        ui::tokens::screen_height);
+        lv_obj_set_pos(page, ui::tokens::sidebar_width, 0);
         lv_obj_set_style_bg_opa(page, LV_OPA_TRANSP, 0);
         lv_obj_set_style_border_width(page, 0, 0);
         lv_obj_set_style_pad_all(page, 0, 0);
