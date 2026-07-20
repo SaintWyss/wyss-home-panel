@@ -27,17 +27,17 @@ inline constexpr std::uint32_t sleeping_after_ms = 300'000;
 inline constexpr std::uint8_t active_brightness = 100;
 inline constexpr std::uint8_t sleeping_brightness = 18;
 
-inline constexpr std::uint32_t canvas = 0x07101F;
-inline constexpr std::uint32_t surface = 0x111D30;
-inline constexpr std::uint32_t surface_raised = 0x18263C;
-inline constexpr std::uint32_t text = 0xF7FAFF;
-inline constexpr std::uint32_t muted = 0xA9B9D0;
+inline constexpr std::uint32_t canvas = 0x0B0D10;
+inline constexpr std::uint32_t surface = 0x14171C;
+inline constexpr std::uint32_t surface_raised = 0x1C2027;
+inline constexpr std::uint32_t text = 0xF4F6F8;
+inline constexpr std::uint32_t muted = 0xA3ABB6;
 inline constexpr std::uint32_t cyan = 0x2EE6D6;
-inline constexpr std::uint32_t blue = 0x4F7CFF;
+inline constexpr std::uint32_t blue = 0x128070;
 inline constexpr std::uint32_t green = 0x45D483;
 inline constexpr std::uint32_t amber = 0xFFC857;
 inline constexpr std::uint32_t red = 0xFF6B7A;
-inline constexpr std::uint32_t border = 0x314968;
+inline constexpr std::uint32_t border = 0x333A45;
 
 inline constexpr std::array<Rect, 5> navigation = {
     Rect{142, 8, 86, 48}, Rect{234, 8, 86, 48}, Rect{326, 8, 86, 48},
