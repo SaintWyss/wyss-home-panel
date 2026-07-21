@@ -5,6 +5,7 @@ on:
     branches: ["feat/panel-ui-reference-fidelity"]
     paths:
       - "tools/apply_reference_ui.py"
+      - "tools/fix_reference_ui_migration.py"
       - ".github/workflows/apply-reference-ui.yml"
       - "firmware/src/adapters/lvgl_panel_view.cpp"
       - "firmware/include/wyss/ui/design_tokens.hpp"
@@ -12,6 +13,7 @@ on:
   pull_request:
     paths:
       - "tools/apply_reference_ui.py"
+      - "tools/fix_reference_ui_migration.py"
       - ".github/workflows/apply-reference-ui.yml"
       - "firmware/src/adapters/lvgl_panel_view.cpp"
       - "firmware/include/wyss/ui/design_tokens.hpp"
@@ -39,6 +41,7 @@ jobs:
           else
             python tools/apply_reference_ui.py
           fi
+          python tools/fix_reference_ui_migration.py
       - name: Instalar toolchain fijado
         run: |
           python -m pip install platformio==6.1.19
