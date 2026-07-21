@@ -21,7 +21,7 @@ jobs:
         with:
           python-version: "3.12"
       - run: python -m pip install --quiet pillow==11.3.0
-      - name: Crear vista previa y fragmentos
+      - name: Crear vista previa paginable
         run: |
           python - <<'PY'
           import base64
@@ -45,31 +45,30 @@ jobs:
           tiles = []
           for path in files:
               image = Image.open(path).convert("RGB")
-              thumb = image.resize((300, 180), Image.Resampling.LANCZOS)
-              tile = Image.new("RGB", (300, 202), "#111318")
-              ImageDraw.Draw(tile).text((6, 6), path.stem, fill="white", font=font)
-              tile.paste(thumb, (0, 22))
+              thumb = image.resize((240, 144), Image.Resampling.LANCZOS)
+              tile = Image.new("RGB", (240, 164), "#111318")
+              ImageDraw.Draw(tile).text((5, 5), path.stem, fill="white", font=font)
+              tile.paste(thumb, (0, 20))
               tiles.append(tile)
 
           columns = 2
           rows = (len(tiles) + columns - 1) // columns
-          sheet = Image.new("RGB", (600, rows * 202), "#090b10")
+          sheet = Image.new("RGB", (480, rows * 164), "#090b10")
           for index, tile in enumerate(tiles):
-              sheet.paste(tile, ((index % columns) * 300, (index // columns) * 202))
+              sheet.paste(tile, ((index % columns) * 240, (index // columns) * 164))
 
           preview = output / "wyss-home-current-screens-small.jpg"
-          sheet.save(preview, quality=58, optimize=True, progressive=True)
+          sheet.save(preview, quality=44, optimize=True, progressive=True)
           encoded = base64.b64encode(preview.read_bytes()).decode("ascii")
-          chunk_size = 6000
-          chunks = [encoded[i:i + chunk_size] for i in range(0, len(encoded), chunk_size)]
-          for index, chunk in enumerate(chunks):
-              (output / f"chunk-{index:03d}.txt").write_text(chunk, encoding="ascii")
+          line_size = 1000
+          lines = [encoded[i:i + line_size] for i in range(0, len(encoded), line_size)]
+          (output / "base64-wrapped.txt").write_text("\n".join(lines) + "\n", encoding="ascii")
           (output / "manifest.txt").write_text(
               "\n".join([
                   f"filename={preview.name}",
                   f"base64_length={len(encoded)}",
-                  f"chunks={len(chunks)}",
-                  *[f"chunk-{index:03d}.txt" for index in range(len(chunks))],
+                  f"lines={len(lines)}",
+                  f"line_size={line_size}",
               ]) + "\n",
               encoding="utf-8",
           )
