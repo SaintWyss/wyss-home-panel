@@ -122,11 +122,7 @@ class LightService:
                     record.error_message or "El comando anterior falló",
                     replayed=True,
                 )
-            if (
-                record.status == "accepted"
-                and record.replayed
-                and command.action == "toggle"
-            ):
+            if record.status == "accepted" and record.replayed and command.action == "toggle":
                 self._audit.failed(
                     idempotency_key,
                     "conflict",
