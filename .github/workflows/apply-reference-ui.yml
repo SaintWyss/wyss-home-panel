@@ -9,6 +9,13 @@ on:
       - "firmware/src/adapters/lvgl_panel_view.cpp"
       - "firmware/include/wyss/ui/design_tokens.hpp"
       - "tests/fixtures/ui_visual_manifest.txt"
+  pull_request:
+    paths:
+      - "tools/apply_reference_ui.py"
+      - ".github/workflows/apply-reference-ui.yml"
+      - "firmware/src/adapters/lvgl_panel_view.cpp"
+      - "firmware/include/wyss/ui/design_tokens.hpp"
+      - "tests/fixtures/ui_visual_manifest.txt"
   workflow_dispatch:
 
 permissions:
