@@ -60,12 +60,14 @@ class LightService:
         self._event_sink = sink
 
     async def ensure_snapshot(self) -> ProjectionEvent | None:
-        if self._bootstrapped:
-            return None
+        """Relee el proveedor y publica sólo cuando el estado cambió.
+
+        La primera llamada fuerza el snapshot inicial. Las siguientes vuelven a consultar
+        el foco para que una reconexión del panel pueda recuperar dispositivos que estaban
+        temporalmente fuera de línea, sin emitir eventos duplicados si nada cambió.
+        """
         async with self._bootstrap_lock:
-            if self._bootstrapped:
-                return None
-            return await self.refresh(force=True)
+            return await self.refresh(force=not self._bootstrapped)
 
     async def refresh(self, *, force: bool = False) -> ProjectionEvent | None:
         states = await self._lights.snapshot(sorted(self._allowed))
