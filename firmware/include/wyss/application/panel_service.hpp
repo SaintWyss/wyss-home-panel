@@ -29,6 +29,7 @@ class PanelService final {
                      std::optional<std::uint8_t> brightness = std::nullopt,
                      std::optional<std::uint32_t> rgb = std::nullopt);
     void quick_action(domain::HomeQuickAction action);
+    void resync();
     void submit_intent(std::string text);
     void receive_plan(domain::Plan plan);
     void receive_plan_resolution(std::string_view plan_id);

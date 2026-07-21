@@ -22,6 +22,8 @@ class CommandPort {
     virtual bool send_intent(const domain::Intent& intent) = 0;
     virtual bool confirm(std::string_view plan_id, bool accepted, domain::RiskLevel risk,
                          std::uint64_t revision) = 0;
+    // ponytail: no-op default so mocks/stubs don't need to implement resync.
+    virtual void request_resync() {}
 };
 
 class ViewPort {

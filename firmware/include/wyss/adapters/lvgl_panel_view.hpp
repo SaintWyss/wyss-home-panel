@@ -43,6 +43,7 @@ class LvglPanelView final : public ports::ViewPort {
     static void on_color(lv_event_t* event);
     static void on_hue_release(lv_event_t* event);
     static void on_scene(lv_event_t* event);
+    static void on_resync(lv_event_t* event);
     static void on_media_previous(lv_event_t* event);
     static void on_media_play(lv_event_t* event);
     static void on_media_next(lv_event_t* event);
@@ -56,6 +57,7 @@ class LvglPanelView final : public ports::ViewPort {
     static void on_text_focus(lv_event_t* event);
     static void on_manual(lv_event_t* event);
     static void on_conversation_back(lv_event_t* event);
+    static void on_toast_timeout(lv_timer_t* timer);
     static lv_obj_t* label(lv_obj_t* parent, const char* text, const lv_font_t* font,
                            std::uint32_t color);
     static void style_button(lv_obj_t* object, std::uint32_t background);
@@ -142,6 +144,7 @@ class LvglPanelView final : public ports::ViewPort {
     lv_obj_t* modal_title_{nullptr};
     lv_obj_t* modal_body_{nullptr};
     lv_obj_t* toast_{nullptr};
+    lv_timer_t* toast_timer_{nullptr};
     char brightness_text_[12]{};
     char media_title_text_[192]{};
     char media_artist_text_[192]{};
