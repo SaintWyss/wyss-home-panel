@@ -94,6 +94,9 @@ class LvglPanelView final : public ports::ViewPort {
     lv_obj_t* selected_name_{nullptr};
     lv_obj_t* availability_{nullptr};
     lv_obj_t* home_summary_{nullptr};
+    lv_obj_t* banner_{nullptr};
+    lv_obj_t* banner_title_{nullptr};
+    lv_obj_t* banner_sub_{nullptr};
     lv_obj_t* weather_current_{nullptr};
     lv_obj_t* weather_unit_{nullptr};
     lv_obj_t* weather_condition_{nullptr};
@@ -134,6 +137,8 @@ class LvglPanelView final : public ports::ViewPort {
     std::array<lv_obj_t*, 7> weather_days_{};
     std::array<lv_obj_t*, 7> weather_maxes_{};
     std::array<lv_obj_t*, 7> weather_bars_{};
+    std::array<lv_obj_t*, 7> weather_lows_{};
+    std::array<lv_obj_t*, 7> weather_icons_{};
     std::array<lv_obj_t*, 2> weather_chip_values_{};
     std::array<lv_obj_t*, 4> agenda_events_{};
     std::array<lv_obj_t*, 3> inicio_agenda_{};
@@ -171,6 +176,7 @@ class LvglPanelView final : public ports::ViewPort {
     char sleeping_summary_text_[536]{};
     char weather_day_text_[7][48]{};
     char weather_max_text_[7][12]{};
+    char weather_low_text_[7][12]{};
     char inicio_agenda_text_[3][160]{};
     char agenda_state_text_[192]{};
     char agenda_meta_text_[160]{};
