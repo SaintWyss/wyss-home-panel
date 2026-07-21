@@ -56,6 +56,7 @@ class LvglPanelView final : public ports::ViewPort {
     static void on_text_focus(lv_event_t* event);
     static void on_manual(lv_event_t* event);
     static void on_conversation_back(lv_event_t* event);
+    static void on_conversation_open(lv_event_t* event);
     static lv_obj_t* label(lv_obj_t* parent, const char* text, const lv_font_t* font,
                            std::uint32_t color);
     static void style_button(lv_obj_t* object, std::uint32_t background);
@@ -119,6 +120,8 @@ class LvglPanelView final : public ports::ViewPort {
     std::array<lv_obj_t*, 5> media_queue_titles_{};
     std::array<lv_obj_t*, 4> inicio_todo_{};
     std::array<lv_obj_t*, 5> media_queue_artists_{};
+    lv_obj_t* light_icon_glass_{};
+    lv_obj_t* light_icon_base_{};
     std::array<lv_obj_t*, 3> device_buttons_{};
     std::array<lv_obj_t*, 3> device_labels_{};
     std::array<lv_obj_t*, 3> scene_buttons_{};
