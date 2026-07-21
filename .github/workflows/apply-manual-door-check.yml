@@ -5,6 +5,7 @@ on:
     branches: ["feat/manual-door-check"]
     paths:
       - "tools/apply_manual_door_check.py"
+      - "tools/fix_manual_door_script.py"
       - ".github/workflows/apply-manual-door-check.yml"
       - "firmware/**"
       - "tests/**"
@@ -12,6 +13,7 @@ on:
   pull_request:
     paths:
       - "tools/apply_manual_door_check.py"
+      - "tools/fix_manual_door_script.py"
       - ".github/workflows/apply-manual-door-check.yml"
       - "firmware/**"
       - "tests/**"
@@ -37,6 +39,7 @@ jobs:
           if grep -q "Check manual diario" firmware/src/adapters/lvgl_panel_view.cpp; then
             echo "La implementación ya está aplicada"
           else
+            python tools/fix_manual_door_script.py
             set +e
             python tools/apply_manual_door_check.py > /tmp/apply-door.log 2>&1
             status=$?
