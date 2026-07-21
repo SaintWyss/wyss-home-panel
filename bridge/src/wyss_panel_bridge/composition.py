@@ -40,7 +40,7 @@ from wyss_panel_bridge.adapters.sqlite_timers import (
     SqliteTimerStore,
 )
 from wyss_panel_bridge.adapters.sqlite_weather_cache import SqliteWeatherCache
-from wyss_panel_bridge.adapters.tuya import TuyaGateway
+from wyss_panel_bridge.adapters.tuya_legacy_panel import build_legacy_panel_tuya_gateway
 from wyss_panel_bridge.adapters.wyss import WyssGateway, WyssUnixGateway
 from wyss_panel_bridge.adapters.wyss_calendar import WyssCalendarGateway
 from wyss_panel_bridge.adapters.wyss_media import WyssMediaGateway
@@ -110,7 +110,7 @@ def build_light_gateway(settings: Settings) -> LightPort:
     if settings.provider == "home_assistant":
         return HomeAssistantGateway(str(config["url"]), str(config["token"]))
     if settings.provider == "tuya":
-        return TuyaGateway.from_config(config, settings.primary_entity)
+        return build_legacy_panel_tuya_gateway(config, settings.primary_entity)
     raise RuntimeError(f"Yo no conozco el proveedor {settings.provider}")
 
 
