@@ -47,6 +47,4 @@ async def test_resync_rechecks_a_light_that_was_offline_on_first_snapshot(
     assert recovered is not None
     assert unchanged is None
     assert lights.snapshot_calls == 3
-    assert service.cached_states() == (
-        DeviceState("light.living", "Living", True, True, 60, 2),
-    )
+    assert service.cached_states() == (DeviceState("light.living", "Living", True, True, 60, 2),)
