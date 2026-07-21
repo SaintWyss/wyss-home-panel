@@ -14,6 +14,14 @@ ventana de migración de v2.0.0.
   barra de matiz continua y dos predefinidos; reposo en fondo carbón tipo reloj de mesa de luz;
 - copy del panel reescrito en frases en lugar de etiquetas en mayúsculas.
 
+### Corregido
+
+- la conversación con Wyss ya se puede abrir desde el panel: hasta ahora la capa existía pero
+  sólo aparecía de forma reactiva, cuando el backend empujaba un plan o una ejecución;
+  se agrega una CTA coral al pie del rail (`tokens::conversation_button`);
+- el icono de Hogar pasa de rayo a foco dibujado (bulbo + casquillo), ya que la fuente
+  Montserrat de LVGL no incluye símbolo de bombita.
+
 ### Agregado
 
 - contratos v2 compartidos Python/C++, identidad por cliente, eventos SQLite y sincronización por
