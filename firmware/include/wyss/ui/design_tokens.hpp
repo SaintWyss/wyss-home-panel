@@ -31,36 +31,36 @@ inline constexpr std::uint8_t active_brightness = 100;
 inline constexpr std::uint8_t sleeping_brightness = 18;
 
 // Base calida.
-inline constexpr std::uint32_t canvas = 0xF4EFE6;
+inline constexpr std::uint32_t canvas = 0xF3F5F8;
 inline constexpr std::uint32_t surface = 0xFFFFFF;
 inline constexpr std::uint32_t surface_raised = 0xFFFFFF;
-inline constexpr std::uint32_t text = 0x2A211C;
-inline constexpr std::uint32_t muted = 0x6E6154;
-inline constexpr std::uint32_t border = 0xE8DFD2;
+inline constexpr std::uint32_t text = 0x10213B;
+inline constexpr std::uint32_t muted = 0x667085;
+inline constexpr std::uint32_t border = 0xE3E7ED;
 
 // Familias de color por funcion (fondo de tile + tinta AA sobre ese fondo).
-inline constexpr std::uint32_t coral = 0xC2502F;      // marca / CTA (relleno, texto blanco)
-inline constexpr std::uint32_t coral_bg = 0xF5D8CC;
-inline constexpr std::uint32_t coral_ink = 0xA33F22;
-inline constexpr std::uint32_t ambar_bg = 0xFFE9C4;   // luces / recordatorios
-inline constexpr std::uint32_t ambar_ink = 0x8A5509;
-inline constexpr std::uint32_t cielo_bg = 0xD8ECF6;   // clima
-inline constexpr std::uint32_t cielo_ink = 0x1F6E93;
-inline constexpr std::uint32_t selva_bg = 0xD9F1DE;   // media
-inline constexpr std::uint32_t selva_ink = 0x196B3D;
-inline constexpr std::uint32_t lila_bg = 0xE9E2F7;    // agenda
-inline constexpr std::uint32_t lila_ink = 0x6248AC;
+inline constexpr std::uint32_t coral = 0xC94F32;      // marca / CTA (relleno, texto blanco)
+inline constexpr std::uint32_t coral_bg = 0xFFF3EA;
+inline constexpr std::uint32_t coral_ink = 0x9D3D25;
+inline constexpr std::uint32_t ambar_bg = 0xFFF4CF;   // luces / recordatorios
+inline constexpr std::uint32_t ambar_ink = 0x875500;
+inline constexpr std::uint32_t cielo_bg = 0xE2EEFF;   // clima
+inline constexpr std::uint32_t cielo_ink = 0x2457A7;
+inline constexpr std::uint32_t selva_bg = 0xDDF3E5;   // media
+inline constexpr std::uint32_t selva_ink = 0x176A3B;
+inline constexpr std::uint32_t lila_bg = 0xEEE7FF;    // agenda
+inline constexpr std::uint32_t lila_ink = 0x5C3BB2;
 
 // Semanticos de estado.
-inline constexpr std::uint32_t green = 0x3E9B6C;
+inline constexpr std::uint32_t green = 0x12A95B;
 inline constexpr std::uint32_t amber = 0xC98A2B;
-inline constexpr std::uint32_t red = 0xB84034;
+inline constexpr std::uint32_t red = 0xB42332;
 
 // Modo durmiendo: reloj de mesa de luz (fondo carbon calido).
-inline constexpr std::uint32_t night = 0x221C18;
-inline constexpr std::uint32_t night_ink = 0xEAE2D6;
-inline constexpr std::uint32_t night_muted = 0x9A8E82;
-inline constexpr std::uint32_t night_chip = 0x2E2620;
+inline constexpr std::uint32_t night = 0x151922;
+inline constexpr std::uint32_t night_ink = 0xF6F7F9;
+inline constexpr std::uint32_t night_muted = 0xA6ADBA;
+inline constexpr std::uint32_t night_chip = 0x222938;
 
 // Alias de compatibilidad con el shell previo.
 inline constexpr std::uint32_t cyan = coral;
