@@ -1,1 +1,0 @@
-Criterios de aceptación: el toque alterna pendiente/cerrada; el estado persiste tras reinicio; una confirmación muestra hora local; una confirmación del día anterior no sigue activa; un fallo de NVS no inventa éxito visual.
