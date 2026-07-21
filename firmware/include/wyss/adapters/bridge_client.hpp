@@ -27,6 +27,7 @@ class BridgeClient final : public ports::CommandPort {
     bool send_intent(const domain::Intent& intent) override;
     bool confirm(std::string_view plan_id, bool accepted, domain::RiskLevel risk,
                  std::uint64_t revision) override;
+    void request_resync() override;
 
    private:
     static constexpr std::size_t kMaxMessageBytes = 4096;
@@ -46,6 +47,7 @@ class BridgeClient final : public ports::CommandPort {
     QueueHandle_t outbound_{nullptr};
     QueueHandle_t inbound_{nullptr};
     TaskHandle_t task_{nullptr};
+    std::atomic<bool> resync_requested_{false};
     std::atomic<domain::ConnectionState> state_{domain::ConnectionState::Offline};
     domain::ConnectionState rendered_state_{domain::ConnectionState::Offline};
     String auth_header_;

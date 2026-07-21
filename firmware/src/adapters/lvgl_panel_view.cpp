@@ -262,6 +262,16 @@ void LvglPanelView::begin(application::PanelService& service, std::string primar
     connection_ = label(manual_layer_, LV_SYMBOL_WIFI, &lv_font_montserrat_16, kRed);
     lv_obj_set_pos(connection_, 22, 446);
 
+    // Recargar: fuerza al bridge a re-detectar luces y Spotify (reconecta el socket).
+    lv_obj_t* resync = lv_btn_create(manual_layer_);
+    lv_obj_set_size(resync, 48, 34);
+    lv_obj_set_pos(resync, 8, 406);
+    style_button(resync, kSurface);
+    lv_obj_set_style_radius(resync, 12, 0);
+    lv_obj_add_event_cb(resync, on_resync, LV_EVENT_CLICKED, this);
+    lv_obj_t* resync_label = label(resync, LV_SYMBOL_REFRESH, &lv_font_montserrat_16, kMuted);
+    lv_obj_center(resync_label);
+
     constexpr const char* tab_names[] = {LV_SYMBOL_HOME, "", LV_SYMBOL_AUDIO,
                                          LV_SYMBOL_LIST, LV_SYMBOL_SETTINGS};
     for (unsigned index = 0; index < 5; ++index) {
@@ -1512,10 +1522,22 @@ void LvglPanelView::render_toast(std::string_view message, bool error) {
     lv_obj_set_style_text_color(toast_, color(error ? kRed : kText), 0);
     lv_obj_clear_flag(toast_, LV_OBJ_FLAG_HIDDEN);
     lv_obj_move_foreground(toast_);
+    // Auto-ocultar: un timer reusable en pausa que se reinicia con cada toast.
+    if (toast_timer_ == nullptr) {
+        toast_timer_ = lv_timer_create(on_toast_timeout, 4000, this);
+    }
+    lv_timer_reset(toast_timer_);
+    lv_timer_resume(toast_timer_);
     if (error && mode_ == ui::ShellMode::Sleeping) {
         lv_disp_trig_activity(nullptr);
         set_mode(ui::ShellMode::Manual);
     }
+}
+
+void LvglPanelView::on_toast_timeout(lv_timer_t* timer) {
+    auto* view = static_cast<LvglPanelView*>(timer->user_data);
+    lv_obj_add_flag(view->toast_, LV_OBJ_FLAG_HIDDEN);
+    lv_timer_pause(timer);
 }
 
 void LvglPanelView::on_power(lv_event_t*) {
@@ -1569,6 +1591,11 @@ void LvglPanelView::on_scene(lv_event_t* event) {
     const auto index = reinterpret_cast<std::uintptr_t>(lv_event_get_user_data(event));
     if (index >= g_view->scene_entities_.size() || g_view->scene_entities_[index].empty()) return;
     g_view->service_->fast_action(g_view->scene_entities_[index], "activate_scene");
+}
+
+void LvglPanelView::on_resync(lv_event_t* event) {
+    auto* view = static_cast<LvglPanelView*>(lv_event_get_user_data(event));
+    view->service_->resync();
 }
 
 void LvglPanelView::on_media_previous(lv_event_t* event) {

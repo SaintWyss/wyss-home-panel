@@ -147,6 +147,11 @@ void PanelService::quick_action(domain::HomeQuickAction action) {
     dispatch_quick_action();
 }
 
+void PanelService::resync() {
+    view_.render_toast("Recargando estado…", false);
+    commands_.request_resync();
+}
+
 void PanelService::submit_intent(std::string text) {
     if (text.empty()) {
         return;

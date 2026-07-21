@@ -169,6 +169,11 @@ void BridgeClient::run() {
             continue;
         }
         socket_.loop();
+        if (resync_requested_.exchange(false)) {
+            // Forzar reconexión: dispara un nuevo session.hello y el bridge re-detecta
+            // luces + Spotify vía ensure_snapshot.
+            socket_.disconnect();
+        }
         while (xQueueReceive(outbound_, &message, 0) == pdTRUE) {
             if (message != nullptr) {
                 if (socket_.isConnected()) {
@@ -328,6 +333,8 @@ bool BridgeClient::confirm(std::string_view plan_id, bool accepted, domain::Risk
     char json[384]{};
     return enqueue_json(json, serializeJson(document, json, sizeof(json)));
 }
+
+void BridgeClient::request_resync() { resync_requested_.store(true); }
 
 void BridgeClient::poll(application::PanelService& service) {
     const auto state = state_.load();
