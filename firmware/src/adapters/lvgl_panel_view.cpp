@@ -459,14 +459,16 @@ void LvglPanelView::begin(application::PanelService& service, std::string primar
     lv_obj_set_style_bg_color(brightness_, color(kSurface), LV_PART_KNOB);
     lv_obj_set_style_border_width(brightness_, 2, LV_PART_KNOB);
     lv_obj_set_style_border_color(brightness_, color(kAmbarInk), LV_PART_KNOB);
-    lv_obj_set_style_pad_all(brightness_, 6, LV_PART_KNOB);
+    lv_obj_set_style_pad_all(brightness_, -2, LV_PART_KNOB);
     lv_obj_add_event_cb(brightness_, on_brightness, LV_EVENT_VALUE_CHANGED, this);
     lv_obj_add_event_cb(brightness_, on_brightness_release, LV_EVENT_RELEASED, this);
     lv_obj_add_event_cb(brightness_, on_brightness_release, LV_EVENT_PRESS_LOST, this);
 
     // Color continuo: barra de matiz (6 segmentos con gradiente) + slider transparente encima.
     lv_obj_t* color_title = label(pages_[1], "Color", &lv_font_montserrat_12, kAmbarInk);
-    lv_obj_set_pos(color_title, 242, 208);
+    lv_obj_set_width(color_title, ui::tokens::hue_slider.width);
+    lv_obj_set_style_text_align(color_title, LV_TEXT_ALIGN_CENTER, 0);
+    lv_obj_set_pos(color_title, ui::tokens::hue_slider.x, 200);
     constexpr std::array<std::uint32_t, 7> hue_stops = {0xFF4D4D, 0xFFC24D, 0xEDE04A, 0x4DD97A,
                                                         0x4DC3FF, 0x7A6CFF, 0xFF4D4D};
     const auto hue_bounds = ui::tokens::hue_slider;
@@ -494,7 +496,7 @@ void LvglPanelView::begin(application::PanelService& service, std::string primar
     lv_obj_set_style_bg_color(hue_, color(kSurface), LV_PART_KNOB);
     lv_obj_set_style_border_width(hue_, 2, LV_PART_KNOB);
     lv_obj_set_style_border_color(hue_, color(kText), LV_PART_KNOB);
-    lv_obj_set_style_pad_all(hue_, 8, LV_PART_KNOB);
+    lv_obj_set_style_pad_all(hue_, -8, LV_PART_KNOB);
     lv_obj_add_event_cb(hue_, on_hue_release, LV_EVENT_RELEASED, this);
     lv_obj_add_event_cb(hue_, on_hue_release, LV_EVENT_PRESS_LOST, this);
 

@@ -80,9 +80,10 @@ inline constexpr Rect brightness_slider{346, 132, 358, 44};
 inline constexpr std::array<Rect, 3> light_selectors = {
     Rect{16, 12, 210, 118}, Rect{16, 142, 210, 118}, Rect{16, 272, 210, 118},
 };
-inline constexpr Rect hue_slider{242, 232, 296, 44};
+// Color: paleta centrada en la tarjeta (242..720, centro 481) y presets debajo.
+inline constexpr Rect hue_slider{289, 224, 384, 44};
 inline constexpr std::array<Rect, 2> color_presets = {
-    Rect{554, 232, 82, 44}, Rect{644, 232, 76, 44},
+    Rect{349, 290, 124, 44}, Rect{489, 290, 124, 44},
 };
 inline constexpr std::array<Rect, 3> scene_buttons = {
     Rect{16, 402, 226, 56}, Rect{254, 402, 226, 56}, Rect{492, 402, 228, 56},
