@@ -27,7 +27,9 @@ class RecoveringLights:
 
 
 @pytest.mark.asyncio
-async def test_resync_rechecks_a_light_that_was_offline_on_first_snapshot(tmp_path: Path) -> None:
+async def test_resync_rechecks_a_light_that_was_offline_on_first_snapshot(
+    tmp_path: Path,
+) -> None:
     lights = RecoveringLights()
     service = LightService(
         lights,
