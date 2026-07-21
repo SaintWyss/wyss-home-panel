@@ -37,7 +37,20 @@ jobs:
           if grep -q "Check manual diario" firmware/src/adapters/lvgl_panel_view.cpp; then
             echo "La implementación ya está aplicada"
           else
-            python tools/apply_manual_door_check.py
+            set +e
+            python tools/apply_manual_door_check.py > /tmp/apply-door.log 2>&1
+            status=$?
+            set -e
+            if [ "$status" -ne 0 ]; then
+              cp /tmp/apply-door.log docs/evidence/manual-door-check-error.txt
+              git config user.name "github-actions[bot]"
+              git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+              git add docs/evidence/manual-door-check-error.txt
+              git commit -m "chore(panel): capturar error del check de puerta"
+              git push origin HEAD:feat/manual-door-check
+              cat /tmp/apply-door.log
+              exit "$status"
+            fi
           fi
       - name: Instalar toolchain fijado
         run: |
