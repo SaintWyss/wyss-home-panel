@@ -10,4 +10,5 @@ new = '''            const std::string_view start = event.start;
 '''
 if old in text:
     text = text.replace(old, new, 1)
+text = text.replace("&lv_font_montserrat_18", "&lv_font_montserrat_20")
 path.write_text(text, encoding="utf-8")
