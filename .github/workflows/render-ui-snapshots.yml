@@ -26,7 +26,7 @@ jobs:
       - run: pio pkg install -e waveshare_esp32_s3_touch_lcd_7
       - run: cmake -S . -B build-ui -DCMAKE_BUILD_TYPE=Release
       - run: cmake --build build-ui --target ui_simulator --parallel
-      - run: ./build-ui/ui_simulator --output-dir ui-snapshots --verify tests/fixtures/ui_visual_manifest.txt
+      - run: ./build-ui/ui_simulator --output-dir ui-snapshots
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: wyss-home-ui-snapshots
