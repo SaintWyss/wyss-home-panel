@@ -21,7 +21,7 @@ jobs:
         with:
           python-version: "3.12"
       - run: python -m pip install --quiet pillow==11.3.0
-      - name: Crear vista previa paginable
+      - name: Crear miniatura real paginable
         run: |
           python - <<'PY'
           import base64
@@ -31,8 +31,6 @@ jobs:
           source = Path("rendered-ui")
           output = Path("rendered-ui-preview")
           output.mkdir(exist_ok=True)
-          for old in output.glob("chunk-*.txt"):
-              old.unlink()
 
           files = sorted(
               path for path in source.glob("*.png")
@@ -45,20 +43,20 @@ jobs:
           tiles = []
           for path in files:
               image = Image.open(path).convert("RGB")
-              thumb = image.resize((240, 144), Image.Resampling.LANCZOS)
-              tile = Image.new("RGB", (240, 164), "#111318")
-              ImageDraw.Draw(tile).text((5, 5), path.stem, fill="white", font=font)
-              tile.paste(thumb, (0, 20))
+              thumb = image.resize((150, 90), Image.Resampling.LANCZOS)
+              tile = Image.new("RGB", (150, 104), "#111318")
+              ImageDraw.Draw(tile).text((3, 2), path.stem, fill="white", font=font)
+              tile.paste(thumb, (0, 14))
               tiles.append(tile)
 
           columns = 2
           rows = (len(tiles) + columns - 1) // columns
-          sheet = Image.new("RGB", (480, rows * 164), "#090b10")
+          sheet = Image.new("RGB", (300, rows * 104), "#090b10")
           for index, tile in enumerate(tiles):
-              sheet.paste(tile, ((index % columns) * 240, (index // columns) * 164))
+              sheet.paste(tile, ((index % columns) * 150, (index // columns) * 104))
 
-          preview = output / "wyss-home-current-screens-small.jpg"
-          sheet.save(preview, quality=44, optimize=True, progressive=True)
+          preview = output / "wyss-home-current-screens-tiny.jpg"
+          sheet.save(preview, quality=18, optimize=True, progressive=True, subsampling=2)
           encoded = base64.b64encode(preview.read_bytes()).decode("ascii")
           line_size = 1000
           lines = [encoded[i:i + line_size] for i in range(0, len(encoded), line_size)]
@@ -79,6 +77,6 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add rendered-ui-preview
           if ! git diff --cached --quiet; then
-            git commit -m "chore: empaquetar vista previa real [skip ci]"
+            git commit -m "chore: reducir vista previa real [skip ci]"
             git push origin HEAD:${{ github.head_ref }}
           fi
