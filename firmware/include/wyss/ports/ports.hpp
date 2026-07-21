@@ -14,6 +14,19 @@ class Clock {
     [[nodiscard]] virtual std::uint64_t now_ms() const noexcept = 0;
 };
 
+class LocalTimePort {
+   public:
+    virtual ~LocalTimePort() = default;
+    [[nodiscard]] virtual domain::LocalDateTime now_local() const noexcept = 0;
+};
+
+class DoorCheckStorePort {
+   public:
+    virtual ~DoorCheckStorePort() = default;
+    [[nodiscard]] virtual domain::DoorCheckState load_door_check() = 0;
+    virtual bool save_door_check(const domain::DoorCheckState& state) = 0;
+};
+
 class CommandPort {
    public:
     virtual ~CommandPort() = default;
@@ -36,6 +49,7 @@ class ViewPort {
     virtual void render_agenda(const domain::AgendaState& state) = 0;
     virtual void render_reminders(const domain::ReminderState& state) = 0;
     virtual void render_timers(const domain::TimerState& state) = 0;
+    virtual void render_door_check(const domain::DoorCheckState& state) = 0;
     virtual void render_execution(const domain::ExecutionUpdate& update) = 0;
     virtual void render_plan(const domain::Plan& plan) = 0;
     virtual void render_toast(std::string_view message, bool error) = 0;

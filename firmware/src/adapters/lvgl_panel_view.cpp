@@ -424,29 +424,35 @@ void LvglPanelView::begin(application::PanelService& service, std::string primar
     weather_range_ = label(status_card, "", &lv_font_montserrat_12, kMuted);
     lv_obj_add_flag(weather_range_, LV_OBJ_FLAG_HIDDEN);
 
-    // Seguridad (chrome estatico): candado + estado + toggle armado.
+    // Check manual diario: recuerda si Santiago confirmo que cerro la puerta.
+    // No representa una alarma ni una cerradura conectada.
     lv_obj_t* security_card = tile(pages_[0], 16, 280, 250, 168, kSurface);
     lv_obj_set_style_radius(security_card, 18, 0);
-    lv_obj_t* lock_icon = lv_obj_create(security_card);
-    lv_obj_set_size(lock_icon, 48, 48);
-    lv_obj_set_pos(lock_icon, 0, 0);
-    flat(lock_icon);
-    lv_obj_set_style_radius(lock_icon, LV_RADIUS_CIRCLE, 0);
-    // Sin proyeccion de seguridad de Wyss: estado desconocido, no anunciar "armado".
-    lv_obj_set_style_bg_color(lock_icon, color(kBorder), 0);
-    lv_obj_clear_flag(lock_icon, LV_OBJ_FLAG_SCROLLABLE);
-    lv_obj_t* lock_glyph =
-        label(lock_icon, LV_SYMBOL_WARNING, &lv_font_montserrat_20, kMuted);
-    lv_obj_center(lock_glyph);
-    lv_obj_t* arm_switch = lv_switch_create(security_card);
-    lv_obj_set_size(arm_switch, 56, 30);
-    lv_obj_align(arm_switch, LV_ALIGN_TOP_RIGHT, 0, 8);
-    lv_obj_clear_flag(arm_switch, LV_OBJ_FLAG_CLICKABLE);
-    lv_obj_t* sec_state = label(security_card, "Sin configurar", &lv_font_montserrat_26, kMuted);
-    lv_obj_set_pos(sec_state, 0, 74);
-    lv_obj_t* sec_zone =
-        label(security_card, "Seguridad no proyectada", &lv_font_montserrat_14, kMuted);
-    lv_obj_set_pos(sec_zone, 0, 112);
+    lv_obj_add_flag(security_card, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_add_event_cb(security_card, on_door_check, LV_EVENT_CLICKED, this);
+    door_icon_ = lv_obj_create(security_card);
+    lv_obj_set_size(door_icon_, 48, 48);
+    lv_obj_set_pos(door_icon_, 0, 0);
+    flat(door_icon_);
+    lv_obj_set_style_radius(door_icon_, LV_RADIUS_CIRCLE, 0);
+    lv_obj_set_style_bg_color(door_icon_, color(kAmbarBg), 0);
+    lv_obj_clear_flag(door_icon_, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_clear_flag(door_icon_, LV_OBJ_FLAG_CLICKABLE);
+    door_glyph_ = label(door_icon_, LV_SYMBOL_WARNING, &lv_font_montserrat_20, kAmbarInk);
+    lv_obj_center(door_glyph_);
+    door_switch_ = lv_switch_create(security_card);
+    lv_obj_set_size(door_switch_, 56, 30);
+    lv_obj_align(door_switch_, LV_ALIGN_TOP_RIGHT, 0, 8);
+    lv_obj_set_style_bg_color(door_switch_, color(kBorder), LV_PART_MAIN);
+    lv_obj_set_style_bg_color(door_switch_, color(kGreen), LV_PART_INDICATOR);
+    lv_obj_set_style_bg_color(door_switch_, color(kSurface), LV_PART_KNOB);
+    lv_obj_clear_flag(door_switch_, LV_OBJ_FLAG_CLICKABLE);
+    door_state_ = label(security_card, "Cerraste la puerta?", &lv_font_montserrat_20, kText);
+    lv_obj_set_pos(door_state_, 0, 74);
+    lv_obj_set_width(door_state_, 218);
+    lv_label_set_long_mode(door_state_, LV_LABEL_LONG_DOT);
+    door_meta_ = label(security_card, "Toca para confirmar", &lv_font_montserrat_14, kAmbarInk);
+    lv_obj_set_pos(door_meta_, 0, 112);
 
     // Tareas de hoy: reusa inicio_todo_ con casillas.
     lv_obj_t* tasks_card = tile(pages_[0], 282, 280, 438, 168, kSurface);
@@ -1203,6 +1209,37 @@ void LvglPanelView::render_media(const domain::MediaState& state) {
     }
 }
 
+void LvglPanelView::render_door_check(const domain::DoorCheckState& state) {
+    if (door_switch_ == nullptr) return;
+
+    if (state.closed) {
+        lv_obj_add_state(door_switch_, LV_STATE_CHECKED);
+        lv_obj_set_style_bg_color(door_icon_, color(0xDCFCE7), 0);
+        lv_label_set_text(door_glyph_, LV_SYMBOL_OK);
+        lv_obj_set_style_text_color(door_glyph_, color(kGreen), 0);
+        lv_label_set_text(door_state_, "Cerrada");
+        lv_obj_set_style_text_color(door_state_, color(kGreen), 0);
+        if (state.confirmed_day != 0U) {
+            std::snprintf(door_meta_text_, sizeof(door_meta_text_), "Confirmado %02u:%02u",
+                          static_cast<unsigned>(state.confirmed_minute / 60U),
+                          static_cast<unsigned>(state.confirmed_minute % 60U));
+        } else {
+            std::snprintf(door_meta_text_, sizeof(door_meta_text_), "Confirmado - sincronizando hora");
+        }
+        lv_obj_set_style_text_color(door_meta_, color(kGreen), 0);
+    } else {
+        lv_obj_clear_state(door_switch_, LV_STATE_CHECKED);
+        lv_obj_set_style_bg_color(door_icon_, color(kAmbarBg), 0);
+        lv_label_set_text(door_glyph_, LV_SYMBOL_WARNING);
+        lv_obj_set_style_text_color(door_glyph_, color(kAmbarInk), 0);
+        lv_label_set_text(door_state_, "Cerraste la puerta?");
+        lv_obj_set_style_text_color(door_state_, color(kText), 0);
+        std::snprintf(door_meta_text_, sizeof(door_meta_text_), "Toca para confirmar");
+        lv_obj_set_style_text_color(door_meta_, color(kAmbarInk), 0);
+    }
+    lv_label_set_text_static(door_meta_, door_meta_text_);
+}
+
 void LvglPanelView::render_weather(const domain::WeatherState& state) {
     char age[24]{};
     format_age(age, sizeof(age), state.age_seconds);
@@ -1774,6 +1811,11 @@ void LvglPanelView::on_scene(lv_event_t* event) {
 void LvglPanelView::on_resync(lv_event_t* event) {
     auto* view = static_cast<LvglPanelView*>(lv_event_get_user_data(event));
     view->service_->resync();
+}
+
+void LvglPanelView::on_door_check(lv_event_t* event) {
+    auto* view = static_cast<LvglPanelView*>(lv_event_get_user_data(event));
+    if (view != nullptr && view->service_ != nullptr) view->service_->toggle_door_check();
 }
 
 void LvglPanelView::on_media_previous(lv_event_t* event) {

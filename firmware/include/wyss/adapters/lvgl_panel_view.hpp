@@ -31,6 +31,7 @@ class LvglPanelView final : public ports::ViewPort {
     void render_agenda(const domain::AgendaState& state) override;
     void render_reminders(const domain::ReminderState& state) override;
     void render_timers(const domain::TimerState& state) override;
+    void render_door_check(const domain::DoorCheckState& state) override;
     void render_execution(const domain::ExecutionUpdate& update) override;
     void render_plan(const domain::Plan& plan) override;
     void render_toast(std::string_view message, bool error) override;
@@ -44,6 +45,7 @@ class LvglPanelView final : public ports::ViewPort {
     static void on_hue_release(lv_event_t* event);
     static void on_scene(lv_event_t* event);
     static void on_resync(lv_event_t* event);
+    static void on_door_check(lv_event_t* event);
     static void on_media_previous(lv_event_t* event);
     static void on_media_play(lv_event_t* event);
     static void on_media_next(lv_event_t* event);
@@ -97,6 +99,11 @@ class LvglPanelView final : public ports::ViewPort {
     lv_obj_t* banner_{nullptr};
     lv_obj_t* banner_title_{nullptr};
     lv_obj_t* banner_sub_{nullptr};
+    lv_obj_t* door_icon_{nullptr};
+    lv_obj_t* door_glyph_{nullptr};
+    lv_obj_t* door_switch_{nullptr};
+    lv_obj_t* door_state_{nullptr};
+    lv_obj_t* door_meta_{nullptr};
     lv_obj_t* weather_current_{nullptr};
     lv_obj_t* weather_unit_{nullptr};
     lv_obj_t* weather_condition_{nullptr};
@@ -163,6 +170,7 @@ class LvglPanelView final : public ports::ViewPort {
     char execution_text_[96]{};
     char selected_text_[64]{};
     char home_text_[64]{};
+    char door_meta_text_[64]{};
     char weather_current_text_[128]{};
     char weather_condition_text_[64]{};
     char weather_location_text_[64]{};
