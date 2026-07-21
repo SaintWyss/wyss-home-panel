@@ -1,0 +1,85 @@
+name: Empaquetar vista previa de Wyss Home
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/package-ui-preview.yml"
+      - "rendered-ui/**"
+
+permissions:
+  contents: write
+
+jobs:
+  package:
+    name: Empaquetar vista previa
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          ref: ${{ github.head_ref }}
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install --quiet pillow==11.3.0
+      - name: Crear vista previa y fragmentos
+        run: |
+          python - <<'PY'
+          import base64
+          from pathlib import Path
+          from PIL import Image, ImageDraw, ImageFont
+
+          source = Path("rendered-ui")
+          output = Path("rendered-ui-preview")
+          output.mkdir(exist_ok=True)
+          for old in output.glob("chunk-*.txt"):
+              old.unlink()
+
+          files = sorted(
+              path for path in source.glob("*.png")
+              if path.name != "wyss-home-current-screens.png"
+          )
+          if not files:
+              raise SystemExit("faltan las capturas PNG renderizadas")
+
+          font = ImageFont.load_default()
+          tiles = []
+          for path in files:
+              image = Image.open(path).convert("RGB")
+              thumb = image.resize((300, 180), Image.Resampling.LANCZOS)
+              tile = Image.new("RGB", (300, 202), "#111318")
+              ImageDraw.Draw(tile).text((6, 6), path.stem, fill="white", font=font)
+              tile.paste(thumb, (0, 22))
+              tiles.append(tile)
+
+          columns = 2
+          rows = (len(tiles) + columns - 1) // columns
+          sheet = Image.new("RGB", (600, rows * 202), "#090b10")
+          for index, tile in enumerate(tiles):
+              sheet.paste(tile, ((index % columns) * 300, (index // columns) * 202))
+
+          preview = output / "wyss-home-current-screens-small.jpg"
+          sheet.save(preview, quality=58, optimize=True, progressive=True)
+          encoded = base64.b64encode(preview.read_bytes()).decode("ascii")
+          chunk_size = 6000
+          chunks = [encoded[i:i + chunk_size] for i in range(0, len(encoded), chunk_size)]
+          for index, chunk in enumerate(chunks):
+              (output / f"chunk-{index:03d}.txt").write_text(chunk, encoding="ascii")
+          (output / "manifest.txt").write_text(
+              "\n".join([
+                  f"filename={preview.name}",
+                  f"base64_length={len(encoded)}",
+                  f"chunks={len(chunks)}",
+                  *[f"chunk-{index:03d}.txt" for index in range(len(chunks))],
+              ]) + "\n",
+              encoding="utf-8",
+          )
+          PY
+      - name: Guardar paquete temporal
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add rendered-ui-preview
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: empaquetar vista previa real [skip ci]"
+            git push origin HEAD:${{ github.head_ref }}
+          fi
