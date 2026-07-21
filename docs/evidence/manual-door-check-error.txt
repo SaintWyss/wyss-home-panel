@@ -1,4 +1,0 @@
-Traceback (most recent call last):
-  File "/home/runner/work/wyss-home-panel/wyss-home-panel/tools/fix_manual_door_script.py", line 9, in <module>
-    raise RuntimeError(f"Literal incompleto esperado una vez; encontrado {count}")
-RuntimeError: Literal incompleto esperado una vez; encontrado 0
