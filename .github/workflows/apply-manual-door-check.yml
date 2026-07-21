@@ -9,6 +9,13 @@ on:
       - "firmware/**"
       - "tests/**"
       - "README.md"
+  pull_request:
+    paths:
+      - "tools/apply_manual_door_check.py"
+      - ".github/workflows/apply-manual-door-check.yml"
+      - "firmware/**"
+      - "tests/**"
+      - "README.md"
   workflow_dispatch:
 
 permissions:
