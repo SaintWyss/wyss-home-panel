@@ -94,6 +94,9 @@ class LvglPanelView final : public ports::ViewPort {
     lv_obj_t* selected_name_{nullptr};
     lv_obj_t* availability_{nullptr};
     lv_obj_t* home_summary_{nullptr};
+    lv_obj_t* banner_{nullptr};
+    lv_obj_t* banner_title_{nullptr};
+    lv_obj_t* banner_sub_{nullptr};
     lv_obj_t* weather_current_{nullptr};
     lv_obj_t* weather_unit_{nullptr};
     lv_obj_t* weather_condition_{nullptr};

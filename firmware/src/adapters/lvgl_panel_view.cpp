@@ -334,8 +334,10 @@ void LvglPanelView::begin(application::PanelService& service, std::string primar
     constexpr std::uint32_t kBannerTop = 0x2BB98A;
     constexpr std::uint32_t kBannerBottom = 0x159E86;
 
-    // Banner verde: estado del sistema + reloj (chrome estatico por ahora).
-    lv_obj_t* banner = tile(pages_[0], 16, 14, 704, 92, kBannerTop);
+    // Banner de estado: color/copy los maneja render_connection. El reloj es
+    // chrome estatico hasta que haya NTP.
+    banner_ = tile(pages_[0], 16, 14, 704, 92, kBannerTop);
+    lv_obj_t* banner = banner_;
     lv_obj_set_style_bg_grad_color(banner, color(kBannerBottom), 0);
     lv_obj_set_style_bg_grad_dir(banner, LV_GRAD_DIR_HOR, 0);
     lv_obj_set_style_radius(banner, 18, 0);
@@ -348,14 +350,12 @@ void LvglPanelView::begin(application::PanelService& service, std::string primar
     lv_obj_clear_flag(banner_icon, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_t* banner_glyph = label(banner_icon, LV_SYMBOL_DRIVE, &lv_font_montserrat_20, kSurface);
     lv_obj_center(banner_glyph);
-    lv_obj_t* banner_title =
-        label(banner, "Wyss Home: Sistema en linea", &lv_font_montserrat_20, kSurface);
-    lv_obj_set_pos(banner_title, 62, 6);
-    lv_obj_t* banner_sub = label(banner, "Todos los servicios operando con normalidad",
-                                 &lv_font_montserrat_14, 0xDDF3EC);
-    lv_obj_set_pos(banner_sub, 62, 34);
-    lv_obj_set_width(banner_sub, 460);
-    lv_label_set_long_mode(banner_sub, LV_LABEL_LONG_DOT);
+    banner_title_ = label(banner, "Wyss Home: Conectando", &lv_font_montserrat_20, kSurface);
+    lv_obj_set_pos(banner_title_, 62, 6);
+    banner_sub_ = label(banner, "Sincronizando con Home Edge", &lv_font_montserrat_14, 0xDDF3EC);
+    lv_obj_set_pos(banner_sub_, 62, 34);
+    lv_obj_set_width(banner_sub_, 460);
+    lv_label_set_long_mode(banner_sub_, LV_LABEL_LONG_DOT);
     // home_summary_ lo alimenta render_devices; oculto en este layout.
     home_summary_ = label(banner, "", &lv_font_montserrat_12, kSurface);
     lv_obj_add_flag(home_summary_, LV_OBJ_FLAG_HIDDEN);
@@ -428,21 +428,20 @@ void LvglPanelView::begin(application::PanelService& service, std::string primar
     lv_obj_set_pos(lock_icon, 0, 0);
     flat(lock_icon);
     lv_obj_set_style_radius(lock_icon, LV_RADIUS_CIRCLE, 0);
-    lv_obj_set_style_bg_color(lock_icon, color(0xD9F1DE), 0);
+    // Sin proyeccion de seguridad de Wyss: estado desconocido, no anunciar "armado".
+    lv_obj_set_style_bg_color(lock_icon, color(kBorder), 0);
     lv_obj_clear_flag(lock_icon, LV_OBJ_FLAG_SCROLLABLE);
-    lv_obj_t* lock_glyph = label(lock_icon, LV_SYMBOL_OK, &lv_font_montserrat_20, kGreen);
+    lv_obj_t* lock_glyph =
+        label(lock_icon, LV_SYMBOL_WARNING, &lv_font_montserrat_20, kMuted);
     lv_obj_center(lock_glyph);
     lv_obj_t* arm_switch = lv_switch_create(security_card);
     lv_obj_set_size(arm_switch, 56, 30);
     lv_obj_align(arm_switch, LV_ALIGN_TOP_RIGHT, 0, 8);
-    lv_obj_add_state(arm_switch, LV_STATE_CHECKED);
-    lv_obj_set_style_bg_color(arm_switch, color(kGreen),
-                              static_cast<lv_style_selector_t>(LV_PART_INDICATOR) |
-                                  static_cast<lv_style_selector_t>(LV_STATE_CHECKED));
     lv_obj_clear_flag(arm_switch, LV_OBJ_FLAG_CLICKABLE);
-    lv_obj_t* sec_state = label(security_card, "Armado", &lv_font_montserrat_26, kGreen);
+    lv_obj_t* sec_state = label(security_card, "Sin configurar", &lv_font_montserrat_26, kMuted);
     lv_obj_set_pos(sec_state, 0, 74);
-    lv_obj_t* sec_zone = label(security_card, "Puerta principal", &lv_font_montserrat_14, kMuted);
+    lv_obj_t* sec_zone =
+        label(security_card, "Seguridad no proyectada", &lv_font_montserrat_14, kMuted);
     lv_obj_set_pos(sec_zone, 0, 112);
 
     // Tareas de hoy: reusa inicio_todo_ con casillas.
@@ -1012,6 +1011,34 @@ void LvglPanelView::render_connection(domain::ConnectionState state) {
     std::snprintf(execution_text_, sizeof(execution_text_), "Home Edge: %s", text);
     lv_label_set_text(system_connection_, execution_text_);
     lv_obj_set_style_text_color(system_connection_, color(text_color), 0);
+
+    // Banner de Inicio: refleja el estado real de conexion (no anunciar "en linea"
+    // cuando Home Edge esta offline o degradado).
+    if (banner_ != nullptr) {
+        std::uint32_t top = 0x2BB98A, bottom = 0x159E86;
+        const char* title = "Wyss Home: Sistema en linea";
+        const char* subtitle = "Todos los servicios operando con normalidad";
+        if (state == domain::ConnectionState::Discovering) {
+            top = 0xC9962B;
+            bottom = 0xAD7C1C;
+            title = "Wyss Home: Conectando";
+            subtitle = "Sincronizando con Home Edge";
+        } else if (state == domain::ConnectionState::Degraded) {
+            top = 0xC9962B;
+            bottom = 0xAD7C1C;
+            title = "Wyss Home: Conexion degradada";
+            subtitle = "Algunos servicios responden con demora";
+        } else if (state != domain::ConnectionState::Online) {
+            top = 0x6E6E74;
+            bottom = 0x53535A;
+            title = "Wyss Home: Sin conexion";
+            subtitle = "Reintentando con Home Edge";
+        }
+        lv_obj_set_style_bg_color(banner_, color(top), 0);
+        lv_obj_set_style_bg_grad_color(banner_, color(bottom), 0);
+        lv_label_set_text(banner_title_, title);
+        lv_label_set_text(banner_sub_, subtitle);
+    }
 }
 
 void LvglPanelView::render_devices(std::span<const domain::DeviceState> devices) {
