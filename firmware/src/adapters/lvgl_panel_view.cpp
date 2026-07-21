@@ -264,15 +264,15 @@ void LvglPanelView::begin(application::PanelService& service, std::string primar
 
     // Recargar: fuerza al bridge a re-detectar luces y Spotify (reconecta el socket).
     lv_obj_t* resync = lv_btn_create(manual_layer_);
-    lv_obj_set_size(resync, 48, 40);
-    lv_obj_set_pos(resync, 8, 390);
+    lv_obj_set_size(resync, 48, 34);
+    lv_obj_set_pos(resync, 8, 406);
     style_button(resync, kSurface);
     lv_obj_set_style_radius(resync, 12, 0);
     lv_obj_add_event_cb(resync, on_resync, LV_EVENT_CLICKED, this);
     lv_obj_t* resync_label = label(resync, LV_SYMBOL_REFRESH, &lv_font_montserrat_16, kMuted);
     lv_obj_center(resync_label);
 
-    constexpr const char* tab_names[] = {LV_SYMBOL_HOME, LV_SYMBOL_CHARGE, LV_SYMBOL_AUDIO,
+    constexpr const char* tab_names[] = {LV_SYMBOL_HOME, "", LV_SYMBOL_AUDIO,
                                          LV_SYMBOL_LIST, LV_SYMBOL_SETTINGS};
     for (unsigned index = 0; index < 5; ++index) {
         const auto bounds = ui::tokens::navigation[index];
@@ -286,6 +286,35 @@ void LvglPanelView::begin(application::PanelService& service, std::string primar
         lv_obj_t* tab_label = label(tabs_[index], tab_names[index], &lv_font_montserrat_20, kMuted);
         lv_obj_center(tab_label);
     }
+    // Hogar: Montserrat no tiene bombita, asi que la dibujamos (bulbo + casquillo).
+    // El label vacio sigue siendo el hijo 0 para no romper el recoloreo de show_page.
+    light_icon_glass_ = lv_obj_create(tabs_[1]);
+    lv_obj_set_size(light_icon_glass_, 19, 19);
+    lv_obj_align(light_icon_glass_, LV_ALIGN_CENTER, 0, -5);
+    flat(light_icon_glass_);
+    lv_obj_set_style_radius(light_icon_glass_, LV_RADIUS_CIRCLE, 0);
+    lv_obj_set_style_bg_color(light_icon_glass_, color(kMuted), 0);
+    lv_obj_clear_flag(light_icon_glass_, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_clear_flag(light_icon_glass_, LV_OBJ_FLAG_CLICKABLE);
+    light_icon_base_ = lv_obj_create(tabs_[1]);
+    lv_obj_set_size(light_icon_base_, 9, 7);
+    lv_obj_align(light_icon_base_, LV_ALIGN_CENTER, 0, 9);
+    flat(light_icon_base_);
+    lv_obj_set_style_radius(light_icon_base_, 2, 0);
+    lv_obj_set_style_bg_color(light_icon_base_, color(kMuted), 0);
+    lv_obj_clear_flag(light_icon_base_, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_clear_flag(light_icon_base_, LV_OBJ_FLAG_CLICKABLE);
+
+    // Hablar con Wyss: CTA coral, unica entrada manual a la conversacion.
+    lv_obj_t* talk = lv_btn_create(manual_layer_);
+    lv_obj_set_size(talk, ui::tokens::conversation_button.width,
+                    ui::tokens::conversation_button.height);
+    lv_obj_set_pos(talk, ui::tokens::conversation_button.x, ui::tokens::conversation_button.y);
+    style_button(talk, kCoral);
+    lv_obj_set_style_radius(talk, LV_RADIUS_CIRCLE, 0);
+    lv_obj_add_event_cb(talk, on_conversation_open, LV_EVENT_CLICKED, this);
+    lv_obj_t* talk_label = label(talk, LV_SYMBOL_EDIT, &lv_font_montserrat_20, kSurface);
+    lv_obj_center(talk_label);
 
     for (auto*& page : pages_) {
         page = lv_obj_create(manual_layer_);
@@ -876,6 +905,12 @@ void LvglPanelView::show_page(ui::ManualPage page) {
             lv_obj_set_style_bg_color(tabs_[index], color(kSurface), 0);
             lv_obj_set_style_text_color(lv_obj_get_child(tabs_[index], 0), color(kMuted), 0);
         }
+    }
+    // El foco dibujado no es texto: se recolorea por fondo.
+    if (light_icon_glass_ != nullptr) {
+        const auto ink = active_index == 1 ? kCoralInk : kMuted;
+        lv_obj_set_style_bg_color(light_icon_glass_, color(ink), 0);
+        lv_obj_set_style_bg_color(light_icon_base_, color(ink), 0);
     }
     set_mode(ui::ShellMode::Manual);
 }
@@ -1640,6 +1675,13 @@ void LvglPanelView::on_manual(lv_event_t*) {
     if (g_view != nullptr) {
         lv_disp_trig_activity(nullptr);
         g_view->set_mode(ui::ShellMode::Manual);
+    }
+}
+
+void LvglPanelView::on_conversation_open(lv_event_t*) {
+    if (g_view != nullptr) {
+        lv_disp_trig_activity(nullptr);
+        g_view->set_mode(ui::ShellMode::Conversation);
     }
 }
 

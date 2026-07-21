@@ -75,6 +75,12 @@ void targets_are_large_and_inside_the_display() {
         require(target.x + target.width <= sidebar_width);
         require(target.y + target.height <= screen_height);
     }
+    // Hablar con Wyss: cabe en el rail, no pisa la ultima pestana ni el estado de conexion.
+    require(conversation_button.width >= min_touch_target);
+    require(conversation_button.height >= min_touch_target);
+    require(conversation_button.x + conversation_button.width <= sidebar_width);
+    require(conversation_button.y >= navigation.back().y + navigation.back().height);
+    require(conversation_button.y + conversation_button.height <= 440);
     // Las paginas viven a la derecha del rail: sus rects deben caber en 736 px.
     constexpr std::int16_t page_width = screen_width - sidebar_width;
     for (const auto& target : quick_actions) {
@@ -112,8 +118,7 @@ void refresh_and_brightness_budgets_are_explicit() {
 }
 }  // namespace
 
-int main() {
-    palette_meets_wcag_aa();
+int main() {    palette_meets_wcag_aa();
     targets_are_large_and_inside_the_display();
     refresh_and_brightness_budgets_are_explicit();
     return 0;

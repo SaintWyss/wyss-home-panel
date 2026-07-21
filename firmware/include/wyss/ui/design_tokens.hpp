@@ -72,6 +72,8 @@ inline constexpr std::array<Rect, 5> navigation = {
     Rect{8, 64, 48, 48},  Rect{8, 120, 48, 48}, Rect{8, 176, 48, 48},
     Rect{8, 232, 48, 48}, Rect{8, 288, 48, 48},
 };
+// Hablar con Wyss: CTA coral al pie del rail, separada de las 5 pestañas.
+inline constexpr Rect conversation_button{8, 356, 48, 48};
 // Reposo: despertar tocando el chip inferior.
 inline constexpr Rect manual_button{300, 410, 200, 52};
 // Hogar (coordenadas relativas a la pagina de 736 px).
