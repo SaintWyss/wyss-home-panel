@@ -62,6 +62,44 @@ void PanelService::receive_timers(domain::TimerState state) {
     view_.render_timers(state);
 }
 
+void PanelService::configure_door_check(ports::LocalTimePort& local_time,
+                                        ports::DoorCheckStorePort& store) {
+    local_time_ = &local_time;
+    door_check_store_ = &store;
+    door_check_ = store.load_door_check();
+    next_door_check_refresh_ms_ = 0;
+    refresh_door_check();
+}
+
+void PanelService::toggle_door_check() {
+    if (local_time_ == nullptr || door_check_store_ == nullptr) {
+        view_.render_toast("El check de puerta no esta disponible", true);
+        return;
+    }
+
+    const auto before = door_check_;
+    const auto now = local_time_->now_local();
+    door_check_.closed = !door_check_.closed;
+    if (door_check_.closed) {
+        door_check_.confirmed_day = now.valid ? now.day_key : 0U;
+        door_check_.confirmed_minute = now.valid ? now.minute_of_day : 0U;
+    } else {
+        door_check_.confirmed_day = 0U;
+        door_check_.confirmed_minute = 0U;
+    }
+
+    if (!door_check_store_->save_door_check(door_check_)) {
+        door_check_ = before;
+        view_.render_toast("No pude guardar el check de la puerta", true);
+        view_.render_door_check(door_check_);
+        return;
+    }
+    view_.render_door_check(door_check_);
+    view_.render_toast(door_check_.closed ? "Puerta marcada como cerrada"
+                                         : "Check de puerta pendiente",
+                       false);
+}
+
 void PanelService::media_action(std::string action, std::optional<std::uint8_t> value,
                                 std::string device_id) {
     const bool plain = action == "play" || action == "pause" || action == "previous" ||
@@ -208,6 +246,11 @@ void PanelService::receive_execution(domain::ExecutionUpdate update) {
 void PanelService::tick() {
     rollback_expired();
     dispatch_quick_action();
+    if (local_time_ != nullptr && door_check_store_ != nullptr &&
+        clock_.now_ms() >= next_door_check_refresh_ms_) {
+        refresh_door_check();
+        next_door_check_refresh_ms_ = clock_.now_ms() + 1'000U;
+    }
 }
 
 const std::vector<domain::DeviceState>& PanelService::devices() const noexcept { return devices_; }
@@ -274,6 +317,36 @@ void PanelService::rollback_expired() {
     if (changed) {
         view_.render_devices(devices_);
     }
+}
+
+void PanelService::refresh_door_check() {
+    if (local_time_ == nullptr || door_check_store_ == nullptr) return;
+
+    const auto now = local_time_->now_local();
+    if (!now.valid || !door_check_.closed) {
+        view_.render_door_check(door_check_);
+        return;
+    }
+
+    const auto before = door_check_;
+    if (door_check_.confirmed_day == 0U) {
+        // El usuario confirmo antes de que NTP estuviera listo: adoptar el dia real sin perderlo.
+        door_check_.confirmed_day = now.day_key;
+        door_check_.confirmed_minute = now.minute_of_day;
+    } else if (door_check_.confirmed_day != now.day_key) {
+        // El check es deliberadamente diario; nunca arrastrar una confirmacion de ayer.
+        door_check_ = {};
+    }
+
+    if (door_check_.closed != before.closed ||
+        door_check_.confirmed_day != before.confirmed_day ||
+        door_check_.confirmed_minute != before.confirmed_minute) {
+        if (!door_check_store_->save_door_check(door_check_)) {
+            door_check_ = before;
+            view_.render_toast("No pude actualizar el check diario", true);
+        }
+    }
+    view_.render_door_check(door_check_);
 }
 
 void PanelService::rollback(std::string_view entity_id, std::string_view message) {

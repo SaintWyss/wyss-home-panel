@@ -4,12 +4,15 @@
 #include <esp_display_panel.hpp>
 #include <cstdint>
 #include <memory>
+#include <time.h>
 
 #include "lvgl_v8_port.h"
 #include "wyss/adapters/arduino_clock.hpp"
+#include "wyss/adapters/arduino_local_time.hpp"
 #include "wyss/adapters/bridge_client.hpp"
 #include "wyss/adapters/lvgl_panel_view.hpp"
 #include "wyss/adapters/nvs_config_store.hpp"
+#include "wyss/adapters/nvs_door_check_store.hpp"
 #include "wyss/application/panel_service.hpp"
 #include "wyss/ui/design_tokens.hpp"
 
@@ -19,6 +22,8 @@ using esp_panel::drivers::BusRGB;
 namespace {
 Board* board = nullptr;
 wyss::adapters::ArduinoClock clock_port;
+wyss::adapters::ArduinoLocalTime local_time_port;
+wyss::adapters::NvsDoorCheckStore door_check_store;
 wyss::adapters::NvsConfigStore config;
 wyss::adapters::LvglPanelView view;
 std::unique_ptr<wyss::adapters::BridgeClient> bridge;
@@ -76,6 +81,7 @@ void setup() {
 
     lvgl_port_lock(-1);
     view.begin(*service, configured ? std::string(config.primary_entity()) : "light.unconfigured");
+    service->configure_door_check(local_time_port, door_check_store);
     if (!configured) {
         view.render_toast("Conectame por USB y ejecutá tools/provision.py", true);
     }
@@ -83,6 +89,8 @@ void setup() {
 
     if (configured) {
         start_network();
+        // Argentina no usa horario de verano: ART3 mantiene el check diario en hora local.
+        configTzTime("ART3", "pool.ntp.org", "time.google.com");
     }
 }
 

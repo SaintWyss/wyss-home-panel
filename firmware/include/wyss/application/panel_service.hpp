@@ -23,6 +23,9 @@ class PanelService final {
     void receive_agenda(domain::AgendaState state);
     void receive_reminders(domain::ReminderState state);
     void receive_timers(domain::TimerState state);
+    void configure_door_check(ports::LocalTimePort& local_time,
+                              ports::DoorCheckStorePort& store);
+    void toggle_door_check();
     void media_action(std::string action, std::optional<std::uint8_t> value = std::nullopt,
                       std::string device_id = {});
     void fast_action(std::string entity_id, std::string action,
@@ -56,6 +59,7 @@ class PanelService final {
     void dispatch_quick_action();
     void rollback(std::string_view entity_id, std::string_view message);
     void rollback_expired();
+    void refresh_door_check();
 
     ports::Clock& clock_;
     ports::CommandPort& commands_;
@@ -66,6 +70,10 @@ class PanelService final {
     std::deque<QueuedQuickAction> queued_quick_actions_;
     std::uint64_t next_quick_action_at_ms_{0};
     std::optional<domain::Plan> pending_plan_;
+    ports::LocalTimePort* local_time_{nullptr};
+    ports::DoorCheckStorePort* door_check_store_{nullptr};
+    domain::DoorCheckState door_check_;
+    std::uint64_t next_door_check_refresh_ms_{0};
     domain::MediaState media_;
     std::uint32_t sequence_{0};
 };

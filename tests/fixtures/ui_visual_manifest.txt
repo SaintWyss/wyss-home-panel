@@ -1,6 +1,6 @@
-inicio_offline ed74af3a62a876bc
-inicio_clima_cache 74388521e0fc3a08
-inicio_online a453ca930d993355
+inicio_offline b6372bb3841c7dbd
+inicio_clima_cache 15afab812b276c1d
+inicio_online a9fffc20b018a770
 hogar 88e4a16c19e59800
 hogar_indisponible 36adf1f4e225b2f6
 media 8a3e7a1795bcbd94

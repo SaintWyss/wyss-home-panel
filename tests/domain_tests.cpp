@@ -12,6 +12,26 @@ class Clock final : public wyss::ports::Clock {
     std::uint64_t now{100};
 };
 
+class LocalTime final : public wyss::ports::LocalTimePort {
+   public:
+    [[nodiscard]] wyss::domain::LocalDateTime now_local() const noexcept override { return now; }
+    wyss::domain::LocalDateTime now{};
+};
+
+class DoorStore final : public wyss::ports::DoorCheckStorePort {
+   public:
+    [[nodiscard]] wyss::domain::DoorCheckState load_door_check() override { return state; }
+    bool save_door_check(const wyss::domain::DoorCheckState& value) override {
+        ++writes;
+        if (!succeeds) return false;
+        state = value;
+        return true;
+    }
+    wyss::domain::DoorCheckState state{};
+    bool succeeds{true};
+    unsigned writes{0};
+};
+
 class Commands final : public wyss::ports::CommandPort {
    public:
     bool send_fast(const wyss::domain::FastCommand& command) override {
@@ -55,6 +75,7 @@ class View final : public wyss::ports::ViewPort {
         reminders = value;
     }
     void render_timers(const wyss::domain::TimerState& value) override { timers = value; }
+    void render_door_check(const wyss::domain::DoorCheckState& value) override { door = value; }
     void render_execution(const wyss::domain::ExecutionUpdate& value) override {
         execution = value.state;
     }
@@ -71,6 +92,7 @@ class View final : public wyss::ports::ViewPort {
     wyss::domain::AgendaState agenda;
     wyss::domain::ReminderState reminders;
     wyss::domain::TimerState timers;
+    wyss::domain::DoorCheckState door;
     std::string toast;
     bool toast_error{false};
     unsigned device_renders{0};
@@ -317,6 +339,64 @@ void reminder_projection_is_forwarded_without_local_scheduler_authority() {
     assert(view.reminders.items.front().recurrence == "FREQ=DAILY");
 }
 
+void manual_door_check_persists_and_resets_on_the_next_day() {
+    Clock clock;
+    Commands commands;
+    View view;
+    LocalTime local_time;
+    DoorStore store;
+    local_time.now = {true, 20260721U, static_cast<std::uint16_t>(17U * 60U + 42U)};
+    wyss::application::PanelService service(clock, commands, view);
+    service.configure_door_check(local_time, store);
+    assert(!view.door.closed);
+
+    service.toggle_door_check();
+    assert(view.door.closed);
+    assert(view.door.confirmed_day == 20260721U);
+    assert(view.door.confirmed_minute == 17U * 60U + 42U);
+    assert(store.state.closed);
+
+    local_time.now = {true, 20260722U, 1U};
+    clock.now += 1'000U;
+    service.tick();
+    assert(!view.door.closed);
+    assert(!store.state.closed);
+}
+
+void door_check_confirmed_before_ntp_is_adopted_when_time_arrives() {
+    Clock clock;
+    Commands commands;
+    View view;
+    LocalTime local_time;
+    DoorStore store;
+    store.state = {true, 0U, 0U};
+    wyss::application::PanelService service(clock, commands, view);
+    service.configure_door_check(local_time, store);
+    assert(view.door.closed);
+
+    local_time.now = {true, 20260721U, 600U};
+    clock.now += 1'000U;
+    service.tick();
+    assert(view.door.closed);
+    assert(store.state.confirmed_day == 20260721U);
+    assert(store.state.confirmed_minute == 600U);
+}
+
+void failed_door_persistence_keeps_the_previous_state() {
+    Clock clock;
+    Commands commands;
+    View view;
+    LocalTime local_time;
+    DoorStore store;
+    local_time.now = {true, 20260721U, 600U};
+    store.succeeds = false;
+    wyss::application::PanelService service(clock, commands, view);
+    service.configure_door_check(local_time, store);
+    service.toggle_door_check();
+    assert(!view.door.closed);
+    assert(view.toast_error);
+}
+
 void timer_projection_is_forwarded_without_local_deadline_authority() {
     Clock clock;
     Commands commands;
@@ -349,5 +429,8 @@ int main() {
     calendar_projection_is_forwarded_without_oauth_or_local_authority();
     reminder_projection_is_forwarded_without_local_scheduler_authority();
     timer_projection_is_forwarded_without_local_deadline_authority();
+    manual_door_check_persists_and_resets_on_the_next_day();
+    door_check_confirmed_before_ntp_is_adopted_when_time_arrives();
+    failed_door_persistence_keeps_the_previous_state();
     return 0;
 }

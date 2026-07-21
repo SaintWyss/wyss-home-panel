@@ -12,6 +12,18 @@ namespace wyss::domain {
 enum class RiskLevel : std::uint8_t { A = 0, B = 1, C = 2, D = 3 };
 enum class ConnectionState : std::uint8_t { Offline, Discovering, Pairing, Online, Degraded };
 enum class HomeQuickAction : std::uint8_t { NightMode = 0, AllOff = 1, Leaving = 2 };
+
+struct LocalDateTime {
+    bool valid{false};
+    std::uint32_t day_key{0};
+    std::uint16_t minute_of_day{0};
+};
+
+struct DoorCheckState {
+    bool closed{false};
+    std::uint32_t confirmed_day{0};
+    std::uint16_t confirmed_minute{0};
+};
 enum class ExecutionState : std::uint8_t {
     Idle,
     Optimistic,

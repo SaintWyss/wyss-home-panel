@@ -69,6 +69,13 @@ python tools/provision.py \
 Yo detallo el proceso, el diagnóstico y la recuperación en [operación](docs/operations.md).
 Yo documento el modelo exacto, su pinout validado y los límites eléctricos en [hardware](docs/hardware.md).
 
+## Check manual de puerta
+
+La tarjeta de Inicio **no controla una alarma ni una cerradura**. Es un check diario local para
+recordar si la puerta principal quedó cerrada. El ESP32 persiste el estado en un namespace NVS
+separado, muestra la hora local de confirmación y lo reinicia al cambiar el día una vez que NTP
+está sincronizado. Tocar nuevamente la tarjeta vuelve el estado a pendiente.
+
 ## Calidad
 
 Yo valido el baseline automatizado completo con un único comando reproducible. El runner fija
