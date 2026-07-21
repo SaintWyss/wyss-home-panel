@@ -1,4 +1,4 @@
-filename=wyss-home-current-screens-tiny.jpg
-base64_length=13780
-lines=14
+filename=wyss-home-current-screens-tiny.webp
+base64_length=11136
+lines=12
 line_size=1000
