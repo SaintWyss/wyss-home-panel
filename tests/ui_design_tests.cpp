@@ -34,16 +34,34 @@ void palette_meets_wcag_aa() {
     require(contrast(text, canvas) >= 4.5);
     require(contrast(muted, canvas) >= 4.5);
     require(contrast(text, surface) >= 4.5);
-    require(contrast(cyan, canvas) >= 4.5);
-    require(contrast(canvas, cyan) >= 4.5);
+    // Coral puro es color de relleno (texto blanco encima); para texto sobre canvas va coral_ink.
+    require(contrast(coral_ink, canvas) >= 4.5);
     require(contrast(red, canvas) >= 4.5);
+    // Cada familia de widget: tinta AA sobre su propio fondo de tile.
+    require(contrast(coral_ink, coral_bg) >= 4.5);
+    require(contrast(ambar_ink, ambar_bg) >= 4.5);
+    require(contrast(cielo_ink, cielo_bg) >= 4.5);
+    require(contrast(selva_ink, selva_bg) >= 4.5);
+    require(contrast(lila_ink, lila_bg) >= 4.5);
+    require(contrast(text, ambar_bg) >= 4.5);
+    require(contrast(text, cielo_bg) >= 4.5);
+    require(contrast(text, selva_bg) >= 4.5);
+    require(contrast(text, lila_bg) >= 4.5);
+    // Rellenos con texto blanco (chips activos, transporte de media).
+    require(contrast(surface, coral) >= 4.5);
+    require(contrast(surface, ambar_ink) >= 4.5);
+    require(contrast(surface, selva_ink) >= 4.5);
+    // Modo durmiendo oscuro.
+    require(contrast(night_ink, night) >= 4.5);
+    require(contrast(night_muted, night) >= 4.5);
 }
 
 void targets_are_large_and_inside_the_display() {
     using namespace wyss::ui::tokens;
     require(media_button_height >= min_touch_target);
     require(media_slider_height >= min_touch_target);
-    constexpr std::array fixed_targets = {manual_button, power_button, brightness_slider};
+    constexpr std::array fixed_targets = {manual_button, power_button, brightness_slider,
+                                          hue_slider};
     for (const auto& target : fixed_targets) {
         require(target.width >= min_touch_target);
         require(target.height >= min_touch_target);
@@ -57,22 +75,30 @@ void targets_are_large_and_inside_the_display() {
         require(target.x + target.width <= sidebar_width);
         require(target.y + target.height <= screen_height);
     }
+    // Las paginas viven a la derecha del rail: sus rects deben caber en 736 px.
+    constexpr std::int16_t page_width = screen_width - sidebar_width;
     for (const auto& target : quick_actions) {
         require(target.width >= min_touch_target);
         require(target.height >= min_touch_target);
-        require(target.x + target.width <= screen_width);
+        require(target.x + target.width <= page_width);
+        require(target.y + target.height <= screen_height);
+    }
+    for (const auto& target : scene_buttons) {
+        require(target.width >= min_touch_target);
+        require(target.height >= min_touch_target);
+        require(target.x + target.width <= page_width);
         require(target.y + target.height <= screen_height);
     }
     for (const auto& target : light_selectors) {
         require(target.width >= min_touch_target);
         require(target.height >= min_touch_target);
-        require(target.x + target.width <= screen_width);
+        require(target.x + target.width <= screen_width - sidebar_width);
         require(target.y + target.height <= screen_height);
     }
     for (const auto& target : color_presets) {
         require(target.width >= min_touch_target);
         require(target.height >= min_touch_target);
-        require(target.x + target.width <= screen_width);
+        require(target.x + target.width <= screen_width - sidebar_width);
         require(target.y + target.height <= screen_height);
     }
 }

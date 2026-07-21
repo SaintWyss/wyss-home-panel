@@ -21,15 +21,31 @@ constexpr auto kAmber = ui::tokens::amber;
 constexpr auto kRed = ui::tokens::red;
 constexpr auto kBorder = ui::tokens::border;
 constexpr auto kSoft = ui::tokens::soft;
+constexpr auto kCoral = ui::tokens::coral;
+constexpr auto kCoralBg = ui::tokens::coral_bg;
+constexpr auto kCoralInk = ui::tokens::coral_ink;
+constexpr auto kAmbarBg = ui::tokens::ambar_bg;
+constexpr auto kAmbarInk = ui::tokens::ambar_ink;
+constexpr auto kCieloBg = ui::tokens::cielo_bg;
+constexpr auto kCieloInk = ui::tokens::cielo_ink;
+constexpr auto kSelvaBg = ui::tokens::selva_bg;
+constexpr auto kSelvaInk = ui::tokens::selva_ink;
+constexpr auto kLilaBg = ui::tokens::lila_bg;
+constexpr auto kLilaInk = ui::tokens::lila_ink;
+constexpr auto kNight = ui::tokens::night;
+constexpr auto kNightInk = ui::tokens::night_ink;
+constexpr auto kNightMuted = ui::tokens::night_muted;
+constexpr auto kNightChip = ui::tokens::night_chip;
 
-// Geometria de la tarjeta de clima (contenido util de 250x200 dentro del panel).
-constexpr int kWeatherContentWidth = 250;
-constexpr int kWeatherChipWidth = 78;
-constexpr int kWeatherColumnPitch = 35;
+// Geometria del tile de clima (contenido util de 220x320 dentro del tile cielo).
+constexpr int kWeatherContentWidth = 220;
+constexpr int kWeatherColumnPitch = 31;
 constexpr int kWeatherBarWidth = 14;
 constexpr int kWeatherBarInset = (kWeatherColumnPitch - kWeatherBarWidth) / 2;
-constexpr int kWeatherChartTop = 146;
-constexpr int kWeatherChartHeight = 34;
+constexpr int kWeatherChartTop = 152;
+constexpr int kWeatherChartHeight = 116;
+constexpr int kWeatherMaxRow = kWeatherChartTop - 26;
+constexpr int kWeatherDayRow = kWeatherChartTop + kWeatherChartHeight + 8;
 
 LvglPanelView* g_view = nullptr;
 
@@ -37,8 +53,7 @@ lv_color_t color(std::uint32_t value) { return lv_color_hex(value); }
 
 void flat(lv_obj_t* object) {
     lv_obj_set_style_shadow_width(object, 0, 0);
-    lv_obj_set_style_border_width(object, 1, 0);
-    lv_obj_set_style_border_color(object, color(kBorder), 0);
+    lv_obj_set_style_border_width(object, 0, 0);
     lv_obj_set_style_radius(object, ui::tokens::radius, 0);
 }
 
@@ -70,13 +85,27 @@ lv_obj_t* panel(lv_obj_t* parent, int x, int y, int width, int height) {
     lv_obj_set_pos(object, x, y);
     flat(object);
     lv_obj_set_style_bg_color(object, color(kSurface), 0);
-    lv_obj_set_style_pad_all(object, 20, 0);
-    lv_obj_set_style_radius(object, 18, 0);
-    lv_obj_set_style_shadow_width(object, 22, 0);
-    lv_obj_set_style_shadow_ofs_y(object, 6, 0);
-    lv_obj_set_style_shadow_color(object, color(0xD8C9B6), 0);
-    lv_obj_set_style_shadow_opa(object, LV_OPA_40, 0);
+    lv_obj_set_style_pad_all(object, 16, 0);
     lv_obj_clear_flag(object, LV_OBJ_FLAG_SCROLLABLE);
+    return object;
+}
+
+// Tile de widget con familia de color propia.
+lv_obj_t* tile(lv_obj_t* parent, int x, int y, int width, int height, std::uint32_t background) {
+    lv_obj_t* object = panel(parent, x, y, width, height);
+    lv_obj_set_style_bg_color(object, color(background), 0);
+    return object;
+}
+
+// Pildora redondeada (accion rapida, escena, chip de preset).
+lv_obj_t* pill(lv_obj_t* parent, const ui::Rect& bounds, std::uint32_t background) {
+    lv_obj_t* object = lv_btn_create(parent);
+    lv_obj_set_size(object, bounds.width, bounds.height);
+    lv_obj_set_pos(object, bounds.x, bounds.y);
+    lv_obj_set_style_shadow_width(object, 0, 0);
+    lv_obj_set_style_border_width(object, 0, 0);
+    lv_obj_set_style_bg_color(object, color(background), 0);
+    lv_obj_set_style_radius(object, bounds.height / 2, 0);
     return object;
 }
 
@@ -188,10 +217,10 @@ lv_obj_t* LvglPanelView::label(lv_obj_t* parent, const char* text, const lv_font
 void LvglPanelView::style_button(lv_obj_t* object, std::uint32_t background) {
     flat(object);
     lv_obj_set_style_bg_color(object, color(background), 0);
-    lv_obj_set_style_bg_color(object, color(kBlue), LV_STATE_PRESSED);
+    lv_obj_set_style_bg_color(object, color(kCoralInk), LV_STATE_PRESSED);
     lv_obj_set_style_border_width(object, 0, 0);
     lv_obj_set_style_border_width(object, 2, LV_STATE_FOCUSED);
-    lv_obj_set_style_border_color(object, color(kCyan), LV_STATE_FOCUSED);
+    lv_obj_set_style_border_color(object, color(kCoral), LV_STATE_FOCUSED);
 }
 
 void LvglPanelView::begin(application::PanelService& service, std::string primary_entity) {
@@ -213,33 +242,39 @@ void LvglPanelView::begin(application::PanelService& service, std::string primar
     lv_obj_set_size(sidebar, ui::tokens::sidebar_width, ui::tokens::screen_height);
     lv_obj_set_pos(sidebar, 0, 0);
     flat(sidebar);
+    lv_obj_set_style_radius(sidebar, 0, 0);
     lv_obj_set_style_bg_color(sidebar, color(kSurface), 0);
     lv_obj_set_style_border_width(sidebar, 1, 0);
     lv_obj_set_style_border_side(sidebar, LV_BORDER_SIDE_RIGHT, 0);
     lv_obj_set_style_border_color(sidebar, color(kBorder), 0);
     lv_obj_clear_flag(sidebar, LV_OBJ_FLAG_SCROLLABLE);
-    lv_obj_t* brand = label(manual_layer_, "Wyss", &lv_font_montserrat_26, kText);
-    lv_obj_set_pos(brand, 20, 22);
-    lv_obj_t* subtitle = label(manual_layer_, "Home", &lv_font_montserrat_26, kCyan);
-    lv_obj_set_pos(subtitle, 85, 22);
-    connection_ = label(manual_layer_, "SIN CONEXION", &lv_font_montserrat_12, kRed);
-    lv_obj_set_pos(connection_, 20, 448);
+    // Marca: circulo coral con la W.
+    lv_obj_t* brand = lv_obj_create(manual_layer_);
+    lv_obj_set_size(brand, 38, 38);
+    lv_obj_set_pos(brand, 13, 12);
+    flat(brand);
+    lv_obj_set_style_radius(brand, LV_RADIUS_CIRCLE, 0);
+    lv_obj_set_style_bg_color(brand, color(kCoral), 0);
+    lv_obj_clear_flag(brand, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_t* brand_label = label(brand, "W", &lv_font_montserrat_16, kSurface);
+    lv_obj_center(brand_label);
+    // Conexion como punto de estado al pie del rail (el texto completo vive en Sistema).
+    connection_ = label(manual_layer_, LV_SYMBOL_WIFI, &lv_font_montserrat_16, kRed);
+    lv_obj_set_pos(connection_, 22, 446);
 
-    constexpr const char* tab_names[] = {
-        LV_SYMBOL_HOME "  Inicio",     LV_SYMBOL_CHARGE "  Hogar",
-        LV_SYMBOL_AUDIO "  Media",     LV_SYMBOL_LIST "  Agenda",
-        LV_SYMBOL_SETTINGS "  Sistema"};
+    constexpr const char* tab_names[] = {LV_SYMBOL_HOME, LV_SYMBOL_CHARGE, LV_SYMBOL_AUDIO,
+                                         LV_SYMBOL_LIST, LV_SYMBOL_SETTINGS};
     for (unsigned index = 0; index < 5; ++index) {
         const auto bounds = ui::tokens::navigation[index];
         tabs_[index] = lv_btn_create(manual_layer_);
         lv_obj_set_size(tabs_[index], bounds.width, bounds.height);
         lv_obj_set_pos(tabs_[index], bounds.x, bounds.y);
         style_button(tabs_[index], kSurface);
-        lv_obj_set_style_radius(tabs_[index], 14, 0);
+        lv_obj_set_style_radius(tabs_[index], 16, 0);
         lv_obj_add_event_cb(tabs_[index], on_tab, LV_EVENT_CLICKED,
                             reinterpret_cast<void*>(static_cast<std::uintptr_t>(index)));
-        lv_obj_t* tab_label = label(tabs_[index], tab_names[index], &lv_font_montserrat_14, kMuted);
-        lv_obj_align(tab_label, LV_ALIGN_LEFT_MID, 6, 0);
+        lv_obj_t* tab_label = label(tabs_[index], tab_names[index], &lv_font_montserrat_20, kMuted);
+        lv_obj_center(tab_label);
     }
 
     for (auto*& page : pages_) {
@@ -254,306 +289,321 @@ void LvglPanelView::begin(application::PanelService& service, std::string primar
         lv_obj_add_flag(page, LV_OBJ_FLAG_HIDDEN);
     }
 
-    // Presencia minima: tira compacta arriba (pedido del owner).
-    lv_obj_t* core_card = panel(pages_[0], 16, 12, 596, 64);
-    lv_obj_set_style_pad_ver(core_card, 12, 0);
-    lv_obj_t* core = lv_obj_create(core_card);
-    lv_obj_set_size(core, 38, 38);
-    lv_obj_set_pos(core, 0, 0);
-    lv_obj_set_style_radius(core, LV_RADIUS_CIRCLE, 0);
-    lv_obj_set_style_bg_color(core, color(kSurfaceRaised), 0);
-    lv_obj_set_style_border_width(core, 3, 0);
-    lv_obj_set_style_border_color(core, color(kCyan), 0);
-    lv_obj_clear_flag(core, LV_OBJ_FLAG_SCROLLABLE);
-    lv_obj_t* core_label = label(core_card, "WYSS LISTO", &lv_font_montserrat_16, kText);
-    lv_obj_set_pos(core_label, 54, 9);
-    home_summary_ = label(core_card, "Hogar esperando estado", &lv_font_montserrat_12, kMuted);
-    lv_obj_set_width(home_summary_, 320);
-    lv_obj_set_pos(home_summary_, 236, 12);
-    lv_obj_set_style_text_align(home_summary_, LV_TEXT_ALIGN_RIGHT, 0);
+    // Tira superior sin tarjeta: el resumen del hogar vive directo sobre el canvas.
+    home_summary_ = label(pages_[0], "Hogar esperando estado", &lv_font_montserrat_16, kText);
+    lv_obj_set_width(home_summary_, 560);
+    lv_obj_set_pos(home_summary_, 16, 22);
     lv_label_set_long_mode(home_summary_, LV_LABEL_LONG_DOT);
 
-    // Pendientes: recordatorios proyectados como lista de tareas.
-    lv_obj_t* todo_card = panel(pages_[0], 16, 88, 290, 240);
-    label(todo_card, "PENDIENTES", &lv_font_montserrat_12, kCyan);
-    for (unsigned index = 0; index < inicio_todo_.size(); ++index) {
-        inicio_todo_[index] = label(
-            todo_card, index == 0 ? "Sin sincronizar" : "",
-            &lv_font_montserrat_14, index == 0 ? kMuted : kText);
-        lv_obj_set_pos(inicio_todo_[index], 0, 34 + static_cast<int>(index) * 40);
-        lv_obj_set_width(inicio_todo_[index], 250);
-        lv_label_set_long_mode(inicio_todo_[index], LV_LABEL_LONG_DOT);
-    }
-
-    lv_obj_t* status_card = panel(pages_[0], 322, 88, 290, 240);
-    label(status_card, "CLIMA", &lv_font_montserrat_12, kCyan);
-    weather_location_ = label(status_card, "Resistencia", &lv_font_montserrat_12, kMuted);
-    lv_obj_set_width(weather_location_, 150);
-    lv_obj_set_pos(weather_location_, 100, 0);
-    lv_obj_set_style_text_align(weather_location_, LV_TEXT_ALIGN_RIGHT, 0);
-    // Lectura principal: numero grande con unidad al costado (estilo estacion meteorologica).
+    // Clima: tile cielo relajado (temperatura, condicion, lluvia y la semana con maximas).
+    lv_obj_t* status_card = tile(pages_[0], 16, 58, 252, 352, kCieloBg);
     weather_current_ = label(status_card, "--", &lv_font_montserrat_36, kText);
-    lv_obj_set_pos(weather_current_, 0, 18);
-    weather_unit_ = label(status_card, "\xC2\xB0" "C", &lv_font_montserrat_16, kMuted);
-    lv_obj_align_to(weather_unit_, weather_current_, LV_ALIGN_OUT_RIGHT_TOP, 4, 10);
-    weather_condition_ = label(status_card, "Sin sincronizar", &lv_font_montserrat_16, kText);
-    lv_obj_set_width(weather_condition_, 122);
-    lv_obj_set_height(weather_condition_, 44);
-    lv_obj_set_pos(weather_condition_, 128, 20);
+    lv_obj_set_pos(weather_current_, 0, 4);
+    weather_unit_ = label(status_card, "\xC2\xB0" "C", &lv_font_montserrat_16, kCieloInk);
+    lv_obj_align_to(weather_unit_, weather_current_, LV_ALIGN_OUT_RIGHT_TOP, 4, 6);
+    weather_condition_ = label(status_card, "Sin sincronizar", &lv_font_montserrat_14, kCieloInk);
+    lv_obj_set_width(weather_condition_, 130);
+    lv_obj_set_pos(weather_condition_, 0, 56);
     lv_label_set_long_mode(weather_condition_, LV_LABEL_LONG_DOT);
-    lv_obj_set_style_text_align(weather_condition_, LV_TEXT_ALIGN_RIGHT, 0);
+    // La ubicacion queda para el modo durmiendo; el owner sabe donde vive.
+    weather_location_ = label(status_card, "", &lv_font_montserrat_12, kMuted);
+    lv_obj_add_flag(weather_location_, LV_OBJ_FLAG_HIDDEN);
 
-    lv_obj_t* weather_rule = lv_obj_create(status_card);
-    lv_obj_set_size(weather_rule, kWeatherContentWidth, 1);
-    lv_obj_set_pos(weather_rule, 0, 72);
-    flat(weather_rule);
-    lv_obj_set_style_border_width(weather_rule, 0, 0);
-    lv_obj_set_style_pad_all(weather_rule, 0, 0);
-    lv_obj_set_style_bg_color(weather_rule, color(kBorder), 0);
+    lv_obj_t* rain_chip = lv_obj_create(status_card);
+    lv_obj_set_size(rain_chip, 84, 56);
+    lv_obj_set_pos(rain_chip, 136, 0);
+    flat(rain_chip);
+    lv_obj_set_style_radius(rain_chip, 14, 0);
+    lv_obj_set_style_bg_color(rain_chip, color(kSurface), 0);
+    lv_obj_set_style_pad_all(rain_chip, 0, 0);
+    lv_obj_clear_flag(rain_chip, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_t* rain_value = label(rain_chip, "--", &lv_font_montserrat_16, kText);
+    lv_obj_align(rain_value, LV_ALIGN_TOP_MID, 0, 8);
+    lv_obj_t* rain_title = label(rain_chip, "Lluvia", &lv_font_montserrat_12, kMuted);
+    lv_obj_align(rain_title, LV_ALIGN_TOP_MID, 0, 32);
+    weather_chip_values_[1] = rain_value;
+    // Viento y antiguedad salen del tile; los buffers siguen vivos para el modo durmiendo.
+    weather_chip_values_[0] = label(status_card, "", &lv_font_montserrat_12, kMuted);
+    lv_obj_add_flag(weather_chip_values_[0], LV_OBJ_FLAG_HIDDEN);
+    weather_meta_ = label(status_card, "", &lv_font_montserrat_12, kMuted);
+    lv_obj_add_flag(weather_meta_, LV_OBJ_FLAG_HIDDEN);
+    weather_range_ = label(status_card, "", &lv_font_montserrat_12, kMuted);
+    lv_obj_add_flag(weather_range_, LV_OBJ_FLAG_HIDDEN);
 
-    constexpr const char* chip_titles[] = {"VIENTO", "LLUVIA", "HACE"};
-    for (unsigned index = 0; index < 3; ++index) {
-        lv_obj_t* chip = lv_obj_create(status_card);
-        lv_obj_set_size(chip, kWeatherChipWidth, 40);
-        lv_obj_set_pos(chip, static_cast<int>(index) * (kWeatherChipWidth + 8), 82);
-        flat(chip);
-        lv_obj_set_style_bg_color(chip, color(kSurfaceRaised), 0);
-        lv_obj_set_style_radius(chip, 8, 0);
-        lv_obj_set_style_pad_all(chip, 0, 0);
-        lv_obj_t* chip_title = label(chip, chip_titles[index], &lv_font_montserrat_12, kMuted);
-        lv_obj_align(chip_title, LV_ALIGN_TOP_MID, 0, 4);
-        lv_obj_t* chip_value = label(chip, "--", &lv_font_montserrat_14, kText);
-        lv_obj_align(chip_value, LV_ALIGN_TOP_MID, 0, 19);
-        if (index < weather_chip_values_.size()) {
-            weather_chip_values_[index] = chip_value;
-        } else {
-            weather_meta_ = chip_value;
-        }
-    }
-
-    lv_obj_t* week_title = label(status_card, "7 DIAS", &lv_font_montserrat_12, kMuted);
-    lv_obj_set_pos(week_title, 0, 128);
-    weather_range_ = label(status_card, "min -- / max --", &lv_font_montserrat_12, kMuted);
-    lv_obj_set_width(weather_range_, 160);
-    lv_obj_set_pos(weather_range_, 90, 128);
-    lv_obj_set_style_text_align(weather_range_, LV_TEXT_ALIGN_RIGHT, 0);
     // Riel unico detras del grafico: una sola superficie en vez de siete (ahorra memoria LVGL).
     lv_obj_t* weather_rail = lv_obj_create(status_card);
     lv_obj_set_size(weather_rail, kWeatherContentWidth, kWeatherChartHeight + 8);
     lv_obj_set_pos(weather_rail, 0, kWeatherChartTop - 4);
     flat(weather_rail);
-    lv_obj_set_style_border_width(weather_rail, 0, 0);
     lv_obj_set_style_pad_all(weather_rail, 0, 0);
-    lv_obj_set_style_bg_color(weather_rail, color(kSoft), 0);
-    lv_obj_set_style_radius(weather_rail, 8, 0);
+    lv_obj_set_style_bg_color(weather_rail, color(kSurface), 0);
+    lv_obj_set_style_radius(weather_rail, 10, 0);
+    lv_obj_clear_flag(weather_rail, LV_OBJ_FLAG_SCROLLABLE);
 
-    // Pronostico como rango vertical por dia: la barra cubre de minima a maxima.
+    // Pronostico: maxima del dia arriba, barra de rango, dia abajo.
     for (unsigned index = 0; index < weather_days_.size(); ++index) {
         const int column = static_cast<int>(index) * kWeatherColumnPitch;
+        weather_maxes_[index] = label(status_card, "", &lv_font_montserrat_12, kText);
+        lv_obj_set_pos(weather_maxes_[index], column, kWeatherMaxRow);
+        lv_obj_set_width(weather_maxes_[index], kWeatherColumnPitch);
+        lv_obj_set_style_text_align(weather_maxes_[index], LV_TEXT_ALIGN_CENTER, 0);
         weather_bars_[index] = lv_obj_create(status_card);
         lv_obj_set_size(weather_bars_[index], kWeatherBarWidth, 0);
         lv_obj_set_pos(weather_bars_[index], column + kWeatherBarInset, kWeatherChartTop);
         flat(weather_bars_[index]);
-        lv_obj_set_style_border_width(weather_bars_[index], 0, 0);
         lv_obj_set_style_pad_all(weather_bars_[index], 0, 0);
-        lv_obj_set_style_bg_color(weather_bars_[index], color(kCyan), 0);
+        lv_obj_set_style_bg_color(weather_bars_[index], color(kCieloInk), 0);
         lv_obj_set_style_radius(weather_bars_[index], kWeatherBarWidth / 2, 0);
-        weather_days_[index] = label(status_card, "--", &lv_font_montserrat_12, kMuted);
-        lv_obj_set_pos(weather_days_[index], column, kWeatherChartTop + kWeatherChartHeight + 6);
+        lv_obj_clear_flag(weather_bars_[index], LV_OBJ_FLAG_SCROLLABLE);
+        weather_days_[index] = label(status_card, "--", &lv_font_montserrat_12, kCieloInk);
+        lv_obj_set_pos(weather_days_[index], column, kWeatherDayRow);
         lv_obj_set_width(weather_days_[index], kWeatherColumnPitch);
         lv_obj_set_style_text_align(weather_days_[index], LV_TEXT_ALIGN_CENTER, 0);
     }
 
-    lv_obj_t* home_quick_title =
-        label(pages_[0], "ACCIONES RAPIDAS", &lv_font_montserrat_12, kMuted);
-    lv_obj_set_pos(home_quick_title, 16, 402);
+    // Pendientes: tile ambar.
+    lv_obj_t* todo_card = tile(pages_[0], 284, 58, 214, 352, kAmbarBg);
+    label(todo_card, "PENDIENTES", &lv_font_montserrat_12, kAmbarInk);
+    for (unsigned index = 0; index < inicio_todo_.size(); ++index) {
+        inicio_todo_[index] = label(
+            todo_card, index == 0 ? "Sin sincronizar" : "",
+            &lv_font_montserrat_14, index == 0 ? kMuted : kText);
+        lv_obj_set_pos(inicio_todo_[index], 0, 36 + static_cast<int>(index) * 48);
+        lv_obj_set_width(inicio_todo_[index], 182);
+        lv_label_set_long_mode(inicio_todo_[index], LV_LABEL_LONG_DOT);
+    }
+
+    // Proximo en agenda: tile lila.
+    lv_obj_t* inicio_agenda_card = tile(pages_[0], 514, 58, 206, 352, kLilaBg);
+    label(inicio_agenda_card, "PROXIMO EN AGENDA", &lv_font_montserrat_12, kLilaInk);
+    for (unsigned index = 0; index < inicio_agenda_.size(); ++index) {
+        inicio_agenda_[index] = label(
+            inicio_agenda_card, index == 0 ? "Sin sincronizar" : "",
+            &lv_font_montserrat_14, index == 0 ? kMuted : kText);
+        lv_obj_set_pos(inicio_agenda_[index], 0, 36 + static_cast<int>(index) * 52);
+        lv_obj_set_width(inicio_agenda_[index], 174);
+        lv_label_set_long_mode(inicio_agenda_[index], LV_LABEL_LONG_WRAP);
+        lv_obj_set_height(inicio_agenda_[index], 44);
+    }
+
     constexpr const char* quick_labels[] = {"Modo noche", "Apagar todo", "Estoy saliendo"};
+    constexpr std::uint32_t quick_bg[] = {kLilaBg, kCoralBg, kCieloBg};
+    constexpr std::uint32_t quick_ink[] = {kLilaInk, kCoralInk, kCieloInk};
     for (unsigned index = 0; index < 3; ++index) {
-        const auto bounds = ui::tokens::quick_actions[index];
-        lv_obj_t* button = lv_btn_create(pages_[0]);
-        lv_obj_set_size(button, bounds.width, bounds.height);
-        lv_obj_set_pos(button, bounds.x, bounds.y);
-        style_button(button, kSurface);
+        lv_obj_t* button = pill(pages_[0], ui::tokens::quick_actions[index], quick_bg[index]);
+        lv_obj_set_style_bg_color(button, color(quick_ink[index]), LV_STATE_PRESSED);
         lv_obj_add_event_cb(button, on_quick_action, LV_EVENT_CLICKED,
                             reinterpret_cast<void*>(static_cast<std::uintptr_t>(index)));
-        lv_obj_t* button_label = label(button, quick_labels[index], &lv_font_montserrat_14, kText);
+        lv_obj_t* button_label =
+            label(button, quick_labels[index], &lv_font_montserrat_14, quick_ink[index]);
         lv_obj_center(button_label);
     }
 
-    lv_obj_t* card = panel(pages_[1], 16, 12, 596, 272);
-
-    label(card, "LUCES AUTORIZADAS", &lv_font_montserrat_12, kCyan);
+    // Tarjetas de luz a la izquierda: cada una es un widget tocable.
     for (unsigned index = 0; index < device_buttons_.size(); ++index) {
-        device_buttons_[index] = lv_btn_create(card);
-        lv_obj_set_size(device_buttons_[index], 190, 54);
-        lv_obj_set_pos(device_buttons_[index], 0, 34 + static_cast<int>(index) * 62);
-        style_button(device_buttons_[index], kSurfaceRaised);
+        const auto bounds = ui::tokens::light_selectors[index];
+        device_buttons_[index] = lv_btn_create(pages_[1]);
+        lv_obj_set_size(device_buttons_[index], bounds.width, bounds.height);
+        lv_obj_set_pos(device_buttons_[index], bounds.x, bounds.y);
+        style_button(device_buttons_[index], kSurface);
+        lv_obj_set_style_radius(device_buttons_[index], 20, 0);
         lv_obj_add_event_cb(device_buttons_[index], on_device, LV_EVENT_CLICKED,
                             reinterpret_cast<void*>(static_cast<std::uintptr_t>(index)));
         device_labels_[index] =
-            label(device_buttons_[index], "SIN LUZ", &lv_font_montserrat_12, kMuted);
-        lv_obj_set_width(device_labels_[index], 160);
+            label(device_buttons_[index], "Sin luz", &lv_font_montserrat_14, kMuted);
+        lv_obj_set_width(device_labels_[index], 178);
         lv_obj_set_style_text_align(device_labels_[index], LV_TEXT_ALIGN_LEFT, 0);
-        lv_obj_center(device_labels_[index]);
+        lv_obj_align(device_labels_[index], LV_ALIGN_LEFT_MID, 8, 0);
         lv_obj_add_state(device_buttons_[index], LV_STATE_DISABLED);
     }
 
-    selected_name_ = label(card, "NINGUNA LUZ", &lv_font_montserrat_12, kCyan);
-    lv_obj_set_pos(selected_name_, 206, 0);
-    availability_ = label(card, "NO DISPONIBLE", &lv_font_montserrat_12, kRed);
-    lv_obj_set_pos(availability_, 430, 0);
-    state_label_ = label(card, "Esperando estado...", &lv_font_montserrat_20, kText);
-    lv_obj_set_pos(state_label_, 206, 32);
+    // Control de la luz seleccionada: tile ambar con poder circular, brillo y color.
+    lv_obj_t* card = tile(pages_[1], 242, 12, 478, 378, kAmbarBg);
+    (void)card;
+    selected_name_ = label(pages_[1], "Ninguna luz", &lv_font_montserrat_20, kText);
+    lv_obj_set_pos(selected_name_, 264, 30);
+    lv_obj_set_width(selected_name_, 300);
+    lv_label_set_long_mode(selected_name_, LV_LABEL_LONG_DOT);
+    availability_ = label(pages_[1], "No disponible", &lv_font_montserrat_12, kRed);
+    lv_obj_set_pos(availability_, 588, 36);
+    lv_obj_set_width(availability_, 116);
+    lv_obj_set_style_text_align(availability_, LV_TEXT_ALIGN_RIGHT, 0);
+    state_label_ = label(pages_[1], "Esperando estado...", &lv_font_montserrat_12, kAmbarInk);
+    lv_obj_set_pos(state_label_, 264, 62);
 
-    power_ = lv_btn_create(card);
-    lv_obj_set_size(power_, 132, 58);
-    lv_obj_set_pos(power_, 206, 72);
-    style_button(power_, kSurfaceRaised);
+    power_ = lv_btn_create(pages_[1]);
+    lv_obj_set_size(power_, ui::tokens::power_button.width, ui::tokens::power_button.height);
+    lv_obj_set_pos(power_, ui::tokens::power_button.x, ui::tokens::power_button.y);
+    style_button(power_, kSurface);
+    lv_obj_set_style_radius(power_, LV_RADIUS_CIRCLE, 0);
     lv_obj_add_event_cb(power_, on_power, LV_EVENT_CLICKED, this);
-    power_label_ = label(power_, "ENCENDER", &lv_font_montserrat_14, kText);
+    power_label_ = label(power_, LV_SYMBOL_POWER, &lv_font_montserrat_26, kAmbarInk);
     lv_obj_center(power_label_);
 
-    lv_obj_t* brightness_title = label(card, "BRILLO", &lv_font_montserrat_12, kMuted);
-    lv_obj_set_pos(brightness_title, 352, 72);
-    brightness_label_ = label(card, "0 %", &lv_font_montserrat_20, kText);
-    lv_obj_set_pos(brightness_label_, 478, 64);
-    brightness_ = lv_slider_create(card);
-    lv_obj_set_size(brightness_, 190, ui::tokens::brightness_slider.height);
-    lv_obj_set_pos(brightness_, 352, 103);
+    lv_obj_t* brightness_title = label(pages_[1], "Brillo", &lv_font_montserrat_12, kAmbarInk);
+    lv_obj_set_pos(brightness_title, 346, 108);
+    brightness_label_ = label(pages_[1], "0 %", &lv_font_montserrat_20, kText);
+    lv_obj_set_width(brightness_label_, 90);
+    lv_obj_set_pos(brightness_label_, 614, 100);
+    lv_obj_set_style_text_align(brightness_label_, LV_TEXT_ALIGN_RIGHT, 0);
+    brightness_ = lv_slider_create(pages_[1]);
+    lv_obj_set_size(brightness_, ui::tokens::brightness_slider.width,
+                    ui::tokens::brightness_slider.height);
+    lv_obj_set_pos(brightness_, ui::tokens::brightness_slider.x, ui::tokens::brightness_slider.y);
     lv_slider_set_range(brightness_, 0, 100);
-    lv_obj_set_style_bg_color(brightness_, color(kBorder), LV_PART_MAIN);
-    lv_obj_set_style_bg_color(brightness_, color(kCyan), LV_PART_INDICATOR);
-    lv_obj_set_style_bg_color(brightness_, color(kCyan), LV_PART_KNOB);
-    lv_obj_set_style_pad_all(brightness_, 8, LV_PART_KNOB);
+    lv_obj_set_style_radius(brightness_, ui::tokens::brightness_slider.height / 2, LV_PART_MAIN);
+    lv_obj_set_style_radius(brightness_, ui::tokens::brightness_slider.height / 2,
+                            LV_PART_INDICATOR);
+    lv_obj_set_style_bg_color(brightness_, color(kSurface), LV_PART_MAIN);
+    lv_obj_set_style_bg_color(brightness_, color(kAmbarInk), LV_PART_INDICATOR);
+    lv_obj_set_style_bg_color(brightness_, color(kSurface), LV_PART_KNOB);
+    lv_obj_set_style_border_width(brightness_, 2, LV_PART_KNOB);
+    lv_obj_set_style_border_color(brightness_, color(kAmbarInk), LV_PART_KNOB);
+    lv_obj_set_style_pad_all(brightness_, 6, LV_PART_KNOB);
     lv_obj_add_event_cb(brightness_, on_brightness, LV_EVENT_VALUE_CHANGED, this);
     lv_obj_add_event_cb(brightness_, on_brightness_release, LV_EVENT_RELEASED, this);
     lv_obj_add_event_cb(brightness_, on_brightness_release, LV_EVENT_PRESS_LOST, this);
 
-    lv_obj_t* color_title = label(card, "COLOR DIRECTO", &lv_font_montserrat_12, kMuted);
-    lv_obj_set_pos(color_title, 206, 166);
-    constexpr std::array<std::uint32_t, 4> color_values = {
-        0xF8F3E8, 0xFFB45C, 0x3366CC, 0xD83A3A};
-    constexpr const char* color_labels[] = {"FRIA", "CAL", "AZUL", "ROJO"};
+    // Color continuo: barra de matiz (6 segmentos con gradiente) + slider transparente encima.
+    lv_obj_t* color_title = label(pages_[1], "Color", &lv_font_montserrat_12, kAmbarInk);
+    lv_obj_set_pos(color_title, 242, 208);
+    constexpr std::array<std::uint32_t, 7> hue_stops = {0xFF4D4D, 0xFFC24D, 0xEDE04A, 0x4DD97A,
+                                                        0x4DC3FF, 0x7A6CFF, 0xFF4D4D};
+    const auto hue_bounds = ui::tokens::hue_slider;
+    const int segment_width = hue_bounds.width / 6;
+    for (unsigned index = 0; index < 6; ++index) {
+        lv_obj_t* segment = lv_obj_create(pages_[1]);
+        lv_obj_set_size(segment, segment_width, 30);
+        lv_obj_set_pos(segment, hue_bounds.x + static_cast<int>(index) * segment_width,
+                       hue_bounds.y + 7);
+        flat(segment);
+        lv_obj_set_style_pad_all(segment, 0, 0);
+        lv_obj_set_style_radius(segment, index == 0 || index == 5 ? 15 : 0, 0);
+        lv_obj_set_style_bg_color(segment, color(hue_stops[index]), 0);
+        lv_obj_set_style_bg_grad_color(segment, color(hue_stops[index + 1]), 0);
+        lv_obj_set_style_bg_grad_dir(segment, LV_GRAD_DIR_HOR, 0);
+        lv_obj_clear_flag(segment, LV_OBJ_FLAG_SCROLLABLE);
+        lv_obj_clear_flag(segment, LV_OBJ_FLAG_CLICKABLE);
+    }
+    hue_ = lv_slider_create(pages_[1]);
+    lv_obj_set_size(hue_, hue_bounds.width, hue_bounds.height);
+    lv_obj_set_pos(hue_, hue_bounds.x, hue_bounds.y);
+    lv_slider_set_range(hue_, 0, 359);
+    lv_obj_set_style_bg_opa(hue_, LV_OPA_TRANSP, LV_PART_MAIN);
+    lv_obj_set_style_bg_opa(hue_, LV_OPA_TRANSP, LV_PART_INDICATOR);
+    lv_obj_set_style_bg_color(hue_, color(kSurface), LV_PART_KNOB);
+    lv_obj_set_style_border_width(hue_, 2, LV_PART_KNOB);
+    lv_obj_set_style_border_color(hue_, color(kText), LV_PART_KNOB);
+    lv_obj_set_style_pad_all(hue_, 8, LV_PART_KNOB);
+    lv_obj_add_event_cb(hue_, on_hue_release, LV_EVENT_RELEASED, this);
+    lv_obj_add_event_cb(hue_, on_hue_release, LV_EVENT_PRESS_LOST, this);
+
+    // Presets: solo calido y frio (pedido del owner).
+    constexpr std::array<std::uint32_t, 2> color_values = {0xFFB45C, 0xCFE4F2};
+    constexpr const char* color_labels[] = {"Calido", "Frio"};
     for (unsigned index = 0; index < color_values.size(); ++index) {
-        lv_obj_t* preset = lv_btn_create(card);
+        lv_obj_t* preset = pill(pages_[1], ui::tokens::color_presets[index], kSurface);
         color_buttons_[index] = preset;
-        lv_obj_set_size(preset, 66, 46);
-        lv_obj_set_pos(preset, 206 + static_cast<int>(index) * 72, 188);
-        style_button(preset, color_values[index]);
-        lv_obj_set_style_border_width(preset, 1, 0);
-        lv_obj_set_style_border_color(preset, color(kBorder), 0);
         lv_obj_add_event_cb(preset, on_color, LV_EVENT_CLICKED,
                             reinterpret_cast<void*>(static_cast<std::uintptr_t>(color_values[index])));
         lv_obj_t* preset_label =
             label(preset, color_labels[index], &lv_font_montserrat_12,
-                  index < 2 ? kCanvas : kText);
+                  index == 0 ? kAmbarInk : kCieloInk);
         lv_obj_center(preset_label);
     }
 
-    lv_obj_t* quick_title = label(pages_[1], "ESCENAS DEL HOGAR", &lv_font_montserrat_12, kMuted);
-    lv_obj_set_pos(quick_title, 16, 402);
     for (unsigned index = 0; index < scene_buttons_.size(); ++index) {
-        const auto bounds = ui::tokens::quick_actions[index];
-        scene_buttons_[index] = lv_btn_create(pages_[1]);
-        lv_obj_set_size(scene_buttons_[index], bounds.width, bounds.height);
-        lv_obj_set_pos(scene_buttons_[index], bounds.x, bounds.y);
-        style_button(scene_buttons_[index], kSurface);
+        scene_buttons_[index] = pill(pages_[1], ui::tokens::scene_buttons[index], kSurface);
         lv_obj_add_event_cb(scene_buttons_[index], on_scene, LV_EVENT_CLICKED,
                             reinterpret_cast<void*>(static_cast<std::uintptr_t>(index)));
         scene_labels_[index] =
-            label(scene_buttons_[index], "SIN ESCENA", &lv_font_montserrat_14, kMuted);
+            label(scene_buttons_[index], "Sin escena", &lv_font_montserrat_14, kMuted);
         lv_obj_center(scene_labels_[index]);
         lv_obj_add_state(scene_buttons_[index], LV_STATE_DISABLED);
     }
 
-    lv_obj_t* media = panel(pages_[2], 16, 12, 388, 432);
+    lv_obj_t* media = tile(pages_[2], 16, 12, 452, 432, kSelvaBg);
     lv_obj_t* spotify_logo = lv_img_create(media);
     lv_img_set_src(spotify_logo, &wyss_spotify_logo);
     lv_obj_set_pos(spotify_logo, 0, 0);
-    lv_obj_t* media_eyebrow = label(media, "SPOTIFY", &lv_font_montserrat_14, kCyan);
+    lv_obj_t* media_eyebrow = label(media, "SPOTIFY", &lv_font_montserrat_14, kSelvaInk);
     lv_obj_set_pos(media_eyebrow, 40, 0);
-    lv_obj_t* media_eyebrow2 = label(media, "REPRODUCCION", &lv_font_montserrat_12, kMuted);
-    lv_obj_set_pos(media_eyebrow2, 40, 18);
-    media_device_ = label(media, "-", &lv_font_montserrat_12, kMuted);
-    lv_obj_set_width(media_device_, 150);
-    lv_obj_set_pos(media_device_, 198, 0);
+    media_device_ = label(media, "-", &lv_font_montserrat_12, kSelvaInk);
+    lv_obj_set_width(media_device_, 200);
+    lv_obj_set_pos(media_device_, 220, 2);
     lv_obj_set_style_text_align(media_device_, LV_TEXT_ALIGN_RIGHT, 0);
     lv_label_set_long_mode(media_device_, LV_LABEL_LONG_DOT);
 
-    media_title_ = label(media, "Spotify no vinculado", &lv_font_montserrat_36, kText);
-    lv_obj_set_pos(media_title_, 0, 60);
-    lv_obj_set_width(media_title_, 348);
+    media_title_ = label(media, "Spotify no vinculado", &lv_font_montserrat_26, kText);
+    lv_obj_set_pos(media_title_, 0, 64);
+    lv_obj_set_width(media_title_, 420);
     lv_obj_set_style_text_align(media_title_, LV_TEXT_ALIGN_CENTER, 0);
     lv_label_set_long_mode(media_title_, LV_LABEL_LONG_DOT);
-    media_artist_ = label(media, "Vinculalo desde Wyss", &lv_font_montserrat_16, kMuted);
-    lv_obj_set_pos(media_artist_, 0, 114);
-    lv_obj_set_width(media_artist_, 348);
+    media_artist_ = label(media, "Vinculalo desde Wyss", &lv_font_montserrat_14, kSelvaInk);
+    lv_obj_set_pos(media_artist_, 0, 104);
+    lv_obj_set_width(media_artist_, 420);
     lv_obj_set_style_text_align(media_artist_, LV_TEXT_ALIGN_CENTER, 0);
     lv_label_set_long_mode(media_artist_, LV_LABEL_LONG_DOT);
 
-    // Transporte centrado: anterior / play coral relleno / siguiente (mockup crema).
+    // Transporte centrado: anterior / play selva relleno / siguiente.
     constexpr const char* media_symbols[] = {LV_SYMBOL_PREV, LV_SYMBOL_PLAY, LV_SYMBOL_NEXT};
     constexpr int media_sizes[] = {64, 92, 64};
-    constexpr int media_xs[] = {28, 128, 256};
-    constexpr int media_ys[] = {168, 154, 168};
+    constexpr int media_xs[] = {64, 164, 292};
+    constexpr int media_ys[] = {160, 146, 160};
     for (unsigned index = 0; index < 3; ++index) {
         media_buttons_[index] = lv_btn_create(media);
         lv_obj_set_size(media_buttons_[index], media_sizes[index], media_sizes[index]);
         lv_obj_set_pos(media_buttons_[index], media_xs[index], media_ys[index]);
-        style_button(media_buttons_[index], index == 1 ? kCyan : kSurfaceRaised);
+        style_button(media_buttons_[index], index == 1 ? kSelvaInk : kSurface);
         lv_obj_set_style_radius(media_buttons_[index], LV_RADIUS_CIRCLE, 0);
-        if (index != 1) {
-            lv_obj_set_style_border_width(media_buttons_[index], 1, 0);
-            lv_obj_set_style_border_color(media_buttons_[index], color(kBorder), 0);
-        }
         lv_obj_t* button_label = label(
             media_buttons_[index], media_symbols[index],
             index == 1 ? &lv_font_montserrat_30 : &lv_font_montserrat_20,
-            index == 1 ? kSurfaceRaised : kText);
+            index == 1 ? kSurface : kText);
         lv_obj_center(button_label);
         lv_obj_add_state(media_buttons_[index], LV_STATE_DISABLED);
     }
     media_play_label_ = lv_obj_get_child(media_buttons_[1], 0);
 
     media_buttons_[3] = lv_btn_create(media);
-    lv_obj_set_size(media_buttons_[3], 130, 42);
-    lv_obj_set_pos(media_buttons_[3], 109, 262);
-    style_button(media_buttons_[3], kSurfaceRaised);
-    lv_obj_set_style_radius(media_buttons_[3], 21, 0);
-    lv_obj_set_style_border_width(media_buttons_[3], 1, 0);
-    lv_obj_set_style_border_color(media_buttons_[3], color(kCyan), 0);
+    lv_obj_set_size(media_buttons_[3], 130, 44);
+    lv_obj_set_pos(media_buttons_[3], 145, 254);
+    style_button(media_buttons_[3], kSurface);
+    lv_obj_set_style_radius(media_buttons_[3], 22, 0);
     media_favorite_label_ =
-        label(media_buttons_[3], "FAVORITO", &lv_font_montserrat_12, kCyan);
+        label(media_buttons_[3], "Favorito", &lv_font_montserrat_12, kSelvaInk);
     lv_obj_center(media_favorite_label_);
     lv_obj_add_state(media_buttons_[3], LV_STATE_DISABLED);
 
     media_time_now_ = label(media, "0:00", &lv_font_montserrat_12, kMuted);
-    lv_obj_set_pos(media_time_now_, 0, 316);
+    lv_obj_set_pos(media_time_now_, 0, 320);
     media_progress_ = lv_bar_create(media);
-    lv_obj_set_size(media_progress_, 252, 6);
-    lv_obj_set_pos(media_progress_, 44, 321);
+    lv_obj_set_size(media_progress_, 300, 8);
+    lv_obj_set_pos(media_progress_, 48, 324);
     lv_bar_set_range(media_progress_, 0, 1000);
-    lv_obj_set_style_bg_color(media_progress_, color(kBorder), LV_PART_MAIN);
-    lv_obj_set_style_bg_color(media_progress_, color(kCyan), LV_PART_INDICATOR);
+    lv_obj_set_style_radius(media_progress_, 4, LV_PART_MAIN);
+    lv_obj_set_style_radius(media_progress_, 4, LV_PART_INDICATOR);
+    lv_obj_set_style_bg_color(media_progress_, color(kSurface), LV_PART_MAIN);
+    lv_obj_set_style_bg_color(media_progress_, color(kSelvaInk), LV_PART_INDICATOR);
     media_progress_label_ = label(media, "0:00", &lv_font_montserrat_12, kMuted);
-    lv_obj_set_width(media_progress_label_, 48);
-    lv_obj_set_pos(media_progress_label_, 300, 316);
+    lv_obj_set_width(media_progress_label_, 60);
+    lv_obj_set_pos(media_progress_label_, 356, 320);
     lv_obj_set_style_text_align(media_progress_label_, LV_TEXT_ALIGN_RIGHT, 0);
 
-    lv_obj_t* queue_card = panel(pages_[2], 420, 12, 192, 432);
-    label(queue_card, "A CONTINUACION", &lv_font_montserrat_12, kCyan);
+    lv_obj_t* queue_card = panel(pages_[2], 484, 12, 236, 432);
+    label(queue_card, "A CONTINUACION", &lv_font_montserrat_12, kSelvaInk);
     media_queue_empty_ = label(queue_card, "Sin cola", &lv_font_montserrat_14, kMuted);
     lv_obj_set_pos(media_queue_empty_, 0, 34);
     for (unsigned index = 0; index < media_queue_titles_.size(); ++index) {
         media_queue_titles_[index] =
             label(queue_card, "", &lv_font_montserrat_14, kText);
         lv_obj_set_pos(media_queue_titles_[index], 0, 34 + static_cast<int>(index) * 70);
-        lv_obj_set_width(media_queue_titles_[index], 152);
+        lv_obj_set_width(media_queue_titles_[index], 204);
         lv_label_set_long_mode(media_queue_titles_[index], LV_LABEL_LONG_DOT);
         media_queue_artists_[index] =
             label(queue_card, "", &lv_font_montserrat_12, kMuted);
         lv_obj_set_pos(media_queue_artists_[index], 0, 56 + static_cast<int>(index) * 70);
-        lv_obj_set_width(media_queue_artists_[index], 152);
+        lv_obj_set_width(media_queue_artists_[index], 204);
         lv_label_set_long_mode(media_queue_artists_[index], LV_LABEL_LONG_DOT);
     }
 
@@ -564,8 +614,8 @@ void LvglPanelView::begin(application::PanelService& service, std::string primar
 
     // Fila de volumen: existe solo cuando el dispositivo lo soporta (se muestra en render).
     media_volume_row_ = lv_obj_create(media);
-    lv_obj_set_size(media_volume_row_, 348, 48);
-    lv_obj_set_pos(media_volume_row_, 0, 342);
+    lv_obj_set_size(media_volume_row_, 420, 48);
+    lv_obj_set_pos(media_volume_row_, 0, 348);
     lv_obj_set_style_bg_opa(media_volume_row_, LV_OPA_TRANSP, 0);
     lv_obj_set_style_border_width(media_volume_row_, 0, 0);
     lv_obj_set_style_pad_all(media_volume_row_, 0, 0);
@@ -574,71 +624,95 @@ void LvglPanelView::begin(application::PanelService& service, std::string primar
         label(media_volume_row_, LV_SYMBOL_VOLUME_MAX, &lv_font_montserrat_16, kMuted);
     lv_obj_set_pos(volume_title, 0, 12);
     media_volume_ = lv_slider_create(media_volume_row_);
-    lv_obj_set_size(media_volume_, 200, 40);
+    lv_obj_set_size(media_volume_, 260, 40);
     lv_obj_set_pos(media_volume_, 36, 4);
     lv_slider_set_range(media_volume_, 0, 100);
-    lv_obj_set_style_bg_color(media_volume_, color(kBorder), LV_PART_MAIN);
-    lv_obj_set_style_bg_color(media_volume_, color(kCyan), LV_PART_INDICATOR);
-    lv_obj_set_style_bg_color(media_volume_, color(kCyan), LV_PART_KNOB);
-    lv_obj_set_style_pad_all(media_volume_, 8, LV_PART_KNOB);
+    lv_obj_set_style_radius(media_volume_, 20, LV_PART_MAIN);
+    lv_obj_set_style_radius(media_volume_, 20, LV_PART_INDICATOR);
+    lv_obj_set_style_bg_color(media_volume_, color(kSurface), LV_PART_MAIN);
+    lv_obj_set_style_bg_color(media_volume_, color(kSelvaInk), LV_PART_INDICATOR);
+    lv_obj_set_style_bg_color(media_volume_, color(kSurface), LV_PART_KNOB);
+    lv_obj_set_style_border_width(media_volume_, 2, LV_PART_KNOB);
+    lv_obj_set_style_border_color(media_volume_, color(kSelvaInk), LV_PART_KNOB);
+    lv_obj_set_style_pad_all(media_volume_, 6, LV_PART_KNOB);
     lv_obj_add_event_cb(media_volume_, on_media_volume, LV_EVENT_VALUE_CHANGED, this);
     lv_obj_add_event_cb(media_volume_, on_media_volume_release, LV_EVENT_RELEASED, this);
     lv_obj_add_event_cb(media_volume_, on_media_volume_release, LV_EVENT_PRESS_LOST, this);
     media_volume_label_ = label(media_volume_row_, "-- %", &lv_font_montserrat_20, kText);
-    lv_obj_set_width(media_volume_label_, 90);
-    lv_obj_set_pos(media_volume_label_, 252, 8);
+    lv_obj_set_width(media_volume_label_, 100);
+    lv_obj_set_pos(media_volume_label_, 316, 8);
     lv_obj_set_style_text_align(media_volume_label_, LV_TEXT_ALIGN_RIGHT, 0);
     lv_obj_add_flag(media_volume_row_, LV_OBJ_FLAG_HIDDEN);
 
-    lv_obj_t* agenda = panel(pages_[3], 16, 12, 596, 432);
-    label(agenda, "AGENDA", &lv_font_montserrat_12, kCyan);
+    lv_obj_t* agenda = tile(pages_[3], 16, 12, 452, 444, kLilaBg);
+    label(agenda, "AGENDA", &lv_font_montserrat_12, kLilaInk);
     agenda_state_ = label(agenda, "Sin eventos proyectados", &lv_font_montserrat_20, kText);
-    lv_obj_set_pos(agenda_state_, 0, 30);
-    lv_obj_set_width(agenda_state_, 556);
+    lv_obj_set_pos(agenda_state_, 0, 28);
+    lv_obj_set_width(agenda_state_, 420);
     lv_label_set_long_mode(agenda_state_, LV_LABEL_LONG_DOT);
-    agenda_meta_ = label(agenda, "Esperando Calendar", &lv_font_montserrat_12, kMuted);
-    lv_obj_set_pos(agenda_meta_, 0, 66);
+    agenda_meta_ = label(agenda, "Esperando Calendar", &lv_font_montserrat_12, kLilaInk);
+    lv_obj_set_pos(agenda_meta_, 0, 62);
     for (unsigned index = 0; index < agenda_events_.size(); ++index) {
-        agenda_events_[index] = label(agenda, "--", &lv_font_montserrat_14, kMuted);
-        lv_obj_set_pos(agenda_events_[index], 0, 104 + static_cast<int>(index) * 43);
-        lv_obj_set_width(agenda_events_[index], 556);
+        agenda_events_[index] = label(agenda, "--", &lv_font_montserrat_14, kText);
+        lv_obj_set_pos(agenda_events_[index], 0, 100 + static_cast<int>(index) * 46);
+        lv_obj_set_width(agenda_events_[index], 420);
         lv_label_set_long_mode(agenda_events_[index], LV_LABEL_LONG_DOT);
     }
-    reminder_state_ = label(agenda, "RECORDATORIOS  Sin sincronizar", &lv_font_montserrat_12,
-                            kAmber);
-    lv_obj_set_pos(reminder_state_, 0, 304);
-    lv_obj_set_width(reminder_state_, 556);
-    lv_label_set_long_mode(reminder_state_, LV_LABEL_LONG_DOT);
-    timer_state_ = label(agenda, "TIMERS  Sin sincronizar", &lv_font_montserrat_12, kAmber);
-    lv_obj_set_pos(timer_state_, 0, 340);
-    lv_obj_set_width(timer_state_, 556);
-    lv_label_set_long_mode(timer_state_, LV_LABEL_LONG_DOT);
 
-    lv_obj_t* system = panel(pages_[4], 16, 12, 596, 432);
-    label(system, "SISTEMA", &lv_font_montserrat_12, kCyan);
-    system_connection_ = label(system, "Home Edge: sin conexion", &lv_font_montserrat_20, kRed);
-    lv_obj_set_pos(system_connection_, 0, 42);
+    lv_obj_t* reminder_card = tile(pages_[3], 484, 12, 236, 210, kAmbarBg);
+    label(reminder_card, "RECORDATORIOS", &lv_font_montserrat_12, kAmbarInk);
+    reminder_state_ = label(reminder_card, "Sin sincronizar", &lv_font_montserrat_14, kText);
+    lv_obj_set_pos(reminder_state_, 0, 32);
+    lv_obj_set_width(reminder_state_, 204);
+    lv_label_set_long_mode(reminder_state_, LV_LABEL_LONG_WRAP);
+
+    lv_obj_t* timer_card = tile(pages_[3], 484, 234, 236, 222, kCoralBg);
+    label(timer_card, "TIMERS", &lv_font_montserrat_12, kCoralInk);
+    timer_state_ = label(timer_card, "Sin sincronizar", &lv_font_montserrat_14, kText);
+    lv_obj_set_pos(timer_state_, 0, 32);
+    lv_obj_set_width(timer_state_, 204);
+    lv_label_set_long_mode(timer_state_, LV_LABEL_LONG_WRAP);
+
+    lv_obj_t* system_status = panel(pages_[4], 16, 12, 704, 92);
+    lv_obj_t* system_dot = lv_obj_create(system_status);
+    lv_obj_set_size(system_dot, 44, 44);
+    lv_obj_set_pos(system_dot, 0, 8);
+    flat(system_dot);
+    lv_obj_set_style_radius(system_dot, LV_RADIUS_CIRCLE, 0);
+    lv_obj_set_style_bg_color(system_dot, color(kRed), 0);
+    lv_obj_clear_flag(system_dot, LV_OBJ_FLAG_SCROLLABLE);
+    system_connection_ = label(system_status, "Home Edge: sin conexion", &lv_font_montserrat_20,
+                               kRed);
+    lv_obj_set_pos(system_connection_, 60, 18);
+    lv_obj_set_width(system_connection_, 600);
+    lv_label_set_long_mode(system_connection_, LV_LABEL_LONG_DOT);
+
+    lv_obj_t* protocol_card = panel(pages_[4], 16, 116, 346, 340);
+    label(protocol_card, "PROTOCOLO", &lv_font_montserrat_12, kCieloInk);
     lv_obj_t* protocol =
-        label(system, "PROTOCOLO\nv1 estable - v2 opt-in", &lv_font_montserrat_14, kMuted);
-    lv_obj_set_pos(protocol, 0, 100);
+        label(protocol_card, "v1 estable - v2 opt-in", &lv_font_montserrat_14, kText);
+    lv_obj_set_pos(protocol, 0, 32);
+    lv_obj_t* diagnostic_card = panel(pages_[4], 370, 116, 350, 340);
+    label(diagnostic_card, "DIAGNOSTICO", &lv_font_montserrat_12, kCoralInk);
     lv_obj_t* diagnostic =
-        label(system, "DIAGNOSTICO\nSin datos de latencia todavia", &lv_font_montserrat_14, kMuted);
-    lv_obj_set_pos(diagnostic, 0, 180);
+        label(diagnostic_card, "Sin datos de latencia todavia", &lv_font_montserrat_14, kText);
+    lv_obj_set_pos(diagnostic, 0, 32);
 
     conversation_layer_ = lv_obj_create(screen);
     prepare_layer(conversation_layer_);
     lv_obj_set_style_bg_color(conversation_layer_, color(kCanvas), 0);
     lv_obj_set_style_bg_opa(conversation_layer_, LV_OPA_COVER, 0);
     lv_obj_t* back = lv_btn_create(conversation_layer_);
-    lv_obj_set_size(back, 108, 48);
-    lv_obj_set_pos(back, 18, 8);
+    lv_obj_set_size(back, 48, 48);
+    lv_obj_set_pos(back, 16, 12);
     style_button(back, kSurface);
+    lv_obj_set_style_radius(back, LV_RADIUS_CIRCLE, 0);
     lv_obj_add_event_cb(back, on_conversation_back, LV_EVENT_CLICKED, this);
-    lv_obj_t* back_label = label(back, "VOLVER", &lv_font_montserrat_12, kText);
+    lv_obj_t* back_label = label(back, LV_SYMBOL_LEFT, &lv_font_montserrat_16, kText);
     lv_obj_center(back_label);
     lv_obj_t* conversation_title =
-        label(conversation_layer_, "CONVERSACION CON WYSS", &lv_font_montserrat_12, kCyan);
-    lv_obj_set_pos(conversation_title, 150, 25);
+        label(conversation_layer_, "Conversacion con Wyss", &lv_font_montserrat_12, kCoralInk);
+    lv_obj_set_pos(conversation_title, 80, 30);
     conversation_state_ =
         label(conversation_layer_, "Que queres que haga?", &lv_font_montserrat_20, kText);
     lv_obj_set_pos(conversation_state_, 36, 82);
@@ -655,13 +729,15 @@ void LvglPanelView::begin(application::PanelService& service, std::string primar
     lv_obj_set_style_text_color(composer_, color(kText), 0);
     lv_obj_set_style_text_font(composer_, &lv_font_montserrat_14, 0);
     flat(composer_);
+    lv_obj_set_style_radius(composer_, 32, 0);
     lv_obj_add_event_cb(composer_, on_text_focus, LV_EVENT_FOCUSED, this);
     lv_obj_t* submit = lv_btn_create(conversation_layer_);
     lv_obj_set_size(submit, 100, 68);
     lv_obj_set_pos(submit, 664, 154);
-    style_button(submit, kBlue);
+    style_button(submit, kCoral);
+    lv_obj_set_style_radius(submit, 34, 0);
     lv_obj_add_event_cb(submit, on_submit, LV_EVENT_CLICKED, this);
-    lv_obj_t* submit_label = label(submit, "ENVIAR", &lv_font_montserrat_14, kText);
+    lv_obj_t* submit_label = label(submit, LV_SYMBOL_RIGHT, &lv_font_montserrat_20, kSurface);
     lv_obj_center(submit_label);
     execution_ =
         label(conversation_layer_, "Listo para orquestar.", &lv_font_montserrat_14, kMuted);
@@ -678,36 +754,43 @@ void LvglPanelView::begin(application::PanelService& service, std::string primar
 
     sleeping_layer_ = lv_obj_create(screen);
     prepare_layer(sleeping_layer_);
-    lv_obj_set_style_bg_color(sleeping_layer_, color(kCanvas), 0);
+    lv_obj_set_style_bg_color(sleeping_layer_, color(kNight), 0);
     lv_obj_set_style_bg_opa(sleeping_layer_, LV_OPA_COVER, 0);
-    lv_obj_t* sleeping_title = label(sleeping_layer_, "WYSS HOME", &lv_font_montserrat_14, kMuted);
-    lv_obj_set_pos(sleeping_title, 24, 24);
-    sleeping_connection_ = label(sleeping_layer_, "SIN CONEXION", &lv_font_montserrat_12, kRed);
-    lv_obj_align(sleeping_connection_, LV_ALIGN_TOP_RIGHT, -24, 26);
+    lv_obj_t* sleeping_title = label(sleeping_layer_, "Wyss", &lv_font_montserrat_14, kNightMuted);
+    lv_obj_set_pos(sleeping_title, 24, 22);
+    sleeping_connection_ = label(sleeping_layer_, LV_SYMBOL_WIFI, &lv_font_montserrat_14, kRed);
+    lv_obj_align(sleeping_connection_, LV_ALIGN_TOP_RIGHT, -24, 24);
+    // Nucleo durmiente: anillo coral tenue sobre carbon, estilo velador.
     lv_obj_t* sleeping_core = lv_obj_create(sleeping_layer_);
-    lv_obj_set_size(sleeping_core, 204, 204);
-    lv_obj_set_pos(sleeping_core, 298, 92);
+    lv_obj_set_size(sleeping_core, 168, 168);
+    lv_obj_set_pos(sleeping_core, 316, 92);
     lv_obj_set_style_radius(sleeping_core, LV_RADIUS_CIRCLE, 0);
-    lv_obj_set_style_bg_color(sleeping_core, color(kSurface), 0);
+    lv_obj_set_style_bg_color(sleeping_core, color(kNightChip), 0);
     lv_obj_set_style_border_width(sleeping_core, 3, 0);
-    lv_obj_set_style_border_color(sleeping_core, color(kCyan), 0);
+    lv_obj_set_style_border_color(sleeping_core, color(kCoral), 0);
+    lv_obj_set_style_shadow_width(sleeping_core, 0, 0);
     lv_obj_clear_flag(sleeping_core, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_t* sleeping_label =
-        label(sleeping_core, "WYSS\nDURMIENDO", &lv_font_montserrat_20, kText);
+        label(sleeping_core, "Wyss\ndurmiendo", &lv_font_montserrat_20, kNightInk);
     lv_obj_set_style_text_align(sleeping_label, LV_TEXT_ALIGN_CENTER, 0);
     lv_obj_center(sleeping_label);
     sleeping_weather_ = label(
         sleeping_layer_, "Clima sin sincronizar   -   Agenda sin sincronizar   -   Sin timers",
-        &lv_font_montserrat_14, kMuted);
+        &lv_font_montserrat_14, kNightMuted);
     lv_obj_set_width(sleeping_weather_, 740);
     lv_obj_set_style_text_align(sleeping_weather_, LV_TEXT_ALIGN_CENTER, 0);
-    lv_obj_align(sleeping_weather_, LV_ALIGN_BOTTOM_MID, 0, -112);
+    lv_obj_align(sleeping_weather_, LV_ALIGN_BOTTOM_MID, 0, -104);
     lv_obj_t* manual = lv_btn_create(sleeping_layer_);
     lv_obj_set_size(manual, ui::tokens::manual_button.width, ui::tokens::manual_button.height);
     lv_obj_set_pos(manual, ui::tokens::manual_button.x, ui::tokens::manual_button.y);
-    style_button(manual, kSurfaceRaised);
+    lv_obj_set_style_shadow_width(manual, 0, 0);
+    lv_obj_set_style_border_width(manual, 0, 0);
+    lv_obj_set_style_bg_color(manual, color(kNightChip), 0);
+    lv_obj_set_style_bg_color(manual, color(kCoral), LV_STATE_PRESSED);
+    lv_obj_set_style_radius(manual, ui::tokens::manual_button.height / 2, 0);
     lv_obj_add_event_cb(manual, on_manual, LV_EVENT_CLICKED, this);
-    lv_obj_t* manual_label = label(manual, "MODO MANUAL", &lv_font_montserrat_14, kText);
+    lv_obj_t* manual_label = label(manual, "Toca para despertar", &lv_font_montserrat_14,
+                                   kNightInk);
     lv_obj_center(manual_label);
 
     modal_ = lv_obj_create(screen);
@@ -717,20 +800,22 @@ void LvglPanelView::begin(application::PanelService& service, std::string primar
     lv_obj_set_style_pad_all(modal_, 24, 0);
     flat(modal_);
     lv_obj_add_flag(modal_, LV_OBJ_FLAG_HIDDEN);
-    modal_title_ = label(modal_, "PLAN DE WYSS", &lv_font_montserrat_20, kText);
+    modal_title_ = label(modal_, "Plan de Wyss", &lv_font_montserrat_20, kText);
     modal_body_ = label(modal_, "", &lv_font_montserrat_14, kMuted);
     lv_obj_set_width(modal_body_, 510);
     lv_label_set_long_mode(modal_body_, LV_LABEL_LONG_WRAP);
     lv_obj_set_pos(modal_body_, 0, 52);
-    constexpr const char* answers[] = {"CANCELAR", "CONFIRMAR"};
+    constexpr const char* answers[] = {"Cancelar", "Confirmar"};
     for (unsigned index = 0; index < 2; ++index) {
         lv_obj_t* answer = lv_btn_create(modal_);
         lv_obj_set_size(answer, 180, 58);
         lv_obj_set_pos(answer, 80 + static_cast<int>(index) * 210, 236);
-        style_button(answer, index == 0 ? kSurface : kBlue);
+        style_button(answer, index == 0 ? kCanvas : kCoral);
+        lv_obj_set_style_radius(answer, 29, 0);
         lv_obj_add_event_cb(answer, on_plan_answer, LV_EVENT_CLICKED,
                             reinterpret_cast<void*>(static_cast<std::uintptr_t>(index)));
-        lv_obj_t* answer_label = label(answer, answers[index], &lv_font_montserrat_14, kText);
+        lv_obj_t* answer_label = label(answer, answers[index], &lv_font_montserrat_14,
+                                       index == 0 ? kText : kSurface);
         lv_obj_center(answer_label);
     }
 
@@ -772,8 +857,8 @@ void LvglPanelView::show_page(ui::ManualPage page) {
     for (unsigned index = 0; index < 5; ++index) {
         if (index == active_index) {
             lv_obj_clear_flag(pages_[index], LV_OBJ_FLAG_HIDDEN);
-            lv_obj_set_style_bg_color(tabs_[index], color(kSoft), 0);
-            lv_obj_set_style_text_color(lv_obj_get_child(tabs_[index], 0), color(kCyan), 0);
+            lv_obj_set_style_bg_color(tabs_[index], color(kCoralBg), 0);
+            lv_obj_set_style_text_color(lv_obj_get_child(tabs_[index], 0), color(kCoralInk), 0);
         } else {
             lv_obj_add_flag(pages_[index], LV_OBJ_FLAG_HIDDEN);
             lv_obj_set_style_bg_color(tabs_[index], color(kSurface), 0);
@@ -794,20 +879,20 @@ bool LvglPanelView::select_entity(std::string_view entity_id) {
 }
 
 void LvglPanelView::render_connection(domain::ConnectionState state) {
-    const char* text = "SIN CONEXION";
+    const char* text = "sin conexion";
     std::uint32_t text_color = kRed;
     if (state == domain::ConnectionState::Online) {
-        text = "WYSS EN LINEA";
+        text = "Wyss en linea";
         text_color = kGreen;
     } else if (state == domain::ConnectionState::Discovering) {
-        text = "CONECTANDO...";
-        text_color = kCyan;
+        text = "conectando...";
+        text_color = kAmber;
     } else if (state == domain::ConnectionState::Degraded) {
-        text = "CONEXION DEGRADADA";
+        text = "conexion degradada";
+        text_color = kAmber;
     }
-    lv_label_set_text(connection_, text);
+    // Rail y durmiendo muestran solo el punto de estado; el texto completo vive en Sistema.
     lv_obj_set_style_text_color(connection_, color(text_color), 0);
-    lv_label_set_text(sleeping_connection_, text);
     lv_obj_set_style_text_color(sleeping_connection_, color(text_color), 0);
     std::snprintf(execution_text_, sizeof(execution_text_), "Home Edge: %s", text);
     lv_label_set_text(system_connection_, execution_text_);
@@ -866,11 +951,11 @@ void LvglPanelView::render_media(const domain::MediaState& state) {
     lv_label_set_text_static(media_progress_label_, media_progress_text_);
 
     lv_label_set_text(media_play_label_, state.playing ? LV_SYMBOL_PAUSE : LV_SYMBOL_PLAY);
-    lv_label_set_text(media_favorite_label_, state.favorite ? "GUARDADO" : "FAVORITO");
+    lv_label_set_text(media_favorite_label_, state.favorite ? "Guardado" : "Favorito");
     lv_obj_set_style_bg_color(media_buttons_[3],
-                              color(state.favorite ? kCyan : kSurfaceRaised), 0);
+                              color(state.favorite ? kSelvaInk : kSurface), 0);
     lv_obj_set_style_text_color(media_favorite_label_,
-                                color(state.favorite ? kSurfaceRaised : kCyan), 0);
+                                color(state.favorite ? kSurface : kSelvaInk), 0);
 
     for (unsigned index = 0; index < media_queue_titles_.size(); ++index) {
         if (index < state.queue.size()) {
@@ -966,14 +1051,16 @@ void LvglPanelView::render_weather(const domain::WeatherState& state) {
     lv_obj_set_style_text_color(weather_current_, color(state_color), 0);
     lv_obj_align_to(weather_unit_, weather_current_, LV_ALIGN_OUT_RIGHT_TOP, 4, 10);
     lv_label_set_text_static(weather_condition_, weather_condition_text_);
-    lv_obj_set_style_text_color(weather_condition_, color(state.available ? kText : kRed), 0);
+    lv_obj_set_style_text_color(weather_condition_, color(state.available ? kCieloInk : kRed), 0);
     lv_label_set_text_static(weather_location_, weather_location_text_);
     lv_label_set_text_static(weather_chip_values_[0], weather_chip_text_[0]);
     lv_label_set_text_static(weather_chip_values_[1], weather_chip_text_[1]);
     lv_label_set_text_static(weather_meta_, weather_meta_text_);
     lv_obj_set_style_text_color(weather_meta_, color(state.stale ? kAmber : kText), 0);
     refresh_sleeping_summary();
-    lv_obj_set_style_text_color(sleeping_weather_, color(state_color), 0);
+    lv_obj_set_style_text_color(
+        sleeping_weather_,
+        color(!state.available ? kRed : (state.stale ? kAmber : kNightMuted)), 0);
 
     // Escala compartida por la semana: la barra de cada dia cubre su minima y maxima.
     const std::size_t forecast_days =
@@ -991,6 +1078,18 @@ void LvglPanelView::render_weather(const domain::WeatherState& state) {
                       static_cast<double>(week_min), static_cast<double>(week_max));
     } else {
         std::snprintf(weather_range_text_, sizeof(weather_range_text_), "min -- / max --");
+    }
+    // Maxima del dia sobre cada barra (pedido del owner: la semana habla en temperaturas).
+    for (unsigned index = 0; index < weather_maxes_.size(); ++index) {
+        if (index < forecast_days) {
+            std::snprintf(weather_max_text_[index], sizeof(weather_max_text_[index]), "%.0f",
+                          static_cast<double>(state.days[index].temperature_max));
+        } else {
+            weather_max_text_[index][0] = '\0';
+        }
+        lv_label_set_text_static(weather_maxes_[index], weather_max_text_[index]);
+        lv_obj_set_style_text_color(weather_maxes_[index],
+                                    color(state.stale ? kAmber : kText), 0);
     }
     lv_label_set_text_static(weather_range_, weather_range_text_);
     const float span = std::max(1.0F, week_max - week_min);
@@ -1016,8 +1115,9 @@ void LvglPanelView::render_weather(const domain::WeatherState& state) {
                            kWeatherChartTop + std::max(0, top));
             const bool rainy =
                 day.precipitation_probability && *day.precipitation_probability >= 50U;
-            lv_obj_set_style_bg_color(weather_bars_[index],
-                                      color(state.stale ? kAmber : (rainy ? kBlue : kCyan)), 0);
+            lv_obj_set_style_bg_color(
+                weather_bars_[index],
+                color(state.stale ? kAmber : (rainy ? kText : kCieloInk)), 0);
             lv_obj_clear_flag(weather_bars_[index], LV_OBJ_FLAG_HIDDEN);
         } else {
             std::snprintf(weather_day_text_[index], sizeof(weather_day_text_[index]), "--");
@@ -1025,7 +1125,7 @@ void LvglPanelView::render_weather(const domain::WeatherState& state) {
         }
         lv_label_set_text_static(weather_days_[index], weather_day_text_[index]);
         lv_obj_set_style_text_color(weather_days_[index],
-                                    color(state.stale ? kAmber : kMuted), 0);
+                                    color(state.stale ? kAmber : kCieloInk), 0);
     }
 }
 
@@ -1049,7 +1149,7 @@ void LvglPanelView::render_agenda(const domain::AgendaState& state) {
                       "sin eventos proximos");
     } else {
         const auto title = ascii_safe(state.events.front().title);
-        std::snprintf(agenda_state_text_, sizeof(agenda_state_text_), "PROXIMO  %s",
+        std::snprintf(agenda_state_text_, sizeof(agenda_state_text_), "Proximo: %s",
                       title.c_str());
         std::snprintf(agenda_meta_text_, sizeof(agenda_meta_text_), "%s hace %s - %s",
                       state.stale ? "CACHE" : "Actualizado", age,
@@ -1091,26 +1191,50 @@ void LvglPanelView::render_agenda(const domain::AgendaState& state) {
         lv_obj_set_style_text_color(agenda_events_[index],
                                     color(state.stale ? kAmber : kMuted), 0);
     }
+    // Tile "Proximo en agenda" del Inicio: hora + titulo por evento.
+    for (unsigned index = 0; index < inicio_agenda_.size(); ++index) {
+        if (state.available && index < state.events.size()) {
+            const auto& event = state.events[index];
+            const auto title = ascii_safe(event.title);
+            const std::string_view start = event.start;
+            const std::string_view time =
+                event.all_day ? std::string_view{"Todo el dia"}
+                              : (start.size() >= 16U ? start.substr(11U, 5U)
+                                                     : std::string_view{"--:--"});
+            std::snprintf(inicio_agenda_text_[index], sizeof(inicio_agenda_text_[index]),
+                          "%.*s  %s", static_cast<int>(time.size()), time.data(), title.c_str());
+            lv_label_set_text_static(inicio_agenda_[index], inicio_agenda_text_[index]);
+            lv_obj_set_style_text_color(inicio_agenda_[index], color(kText), 0);
+        } else if (index == 0) {
+            lv_label_set_text(inicio_agenda_[0],
+                              state.available ? "Sin eventos proximos" : "Sin sincronizar");
+            lv_obj_set_style_text_color(inicio_agenda_[0], color(kMuted), 0);
+        } else {
+            lv_label_set_text(inicio_agenda_[index], "");
+        }
+    }
     refresh_sleeping_summary();
-    lv_obj_set_style_text_color(sleeping_weather_, color(state_color), 0);
+    lv_obj_set_style_text_color(
+        sleeping_weather_,
+        color(!state.available ? kRed : (state.stale ? kAmber : kNightMuted)), 0);
 }
 
 void LvglPanelView::render_reminders(const domain::ReminderState& state) {
-    const std::uint32_t state_color = !state.available ? kRed : (state.stale ? kAmber : kMuted);
+    const std::uint32_t state_color = !state.available ? kRed : (state.stale ? kAmbarInk : kText);
     if (!state.available) {
         std::snprintf(reminder_state_text_, sizeof(reminder_state_text_),
-                      "RECORDATORIOS  No disponibles");
+                      "No disponibles");
         std::snprintf(sleeping_reminder_part_, sizeof(sleeping_reminder_part_),
                       "recordatorios no disponibles");
     } else if (state.items.empty()) {
         std::snprintf(reminder_state_text_, sizeof(reminder_state_text_),
-                      "RECORDATORIOS  Sin pendientes");
+                      "Sin pendientes");
         std::snprintf(sleeping_reminder_part_, sizeof(sleeping_reminder_part_),
                       "sin recordatorios pendientes");
     } else {
         const auto text = ascii_safe(state.items.front().text);
         std::snprintf(reminder_state_text_, sizeof(reminder_state_text_),
-                      "RECORDATORIOS  %u pendientes - proximo: %s",
+                      "%u pendientes\n\nProximo:\n%s",
                       static_cast<unsigned>(state.items.size()), text.c_str());
         std::snprintf(sleeping_reminder_part_, sizeof(sleeping_reminder_part_),
                       "%u recordatorios - %s", static_cast<unsigned>(state.items.size()),
@@ -1141,19 +1265,19 @@ void LvglPanelView::render_reminders(const domain::ReminderState& state) {
 }
 
 void LvglPanelView::render_timers(const domain::TimerState& state) {
-    const std::uint32_t state_color = !state.available ? kRed : (state.stale ? kAmber : kMuted);
+    const std::uint32_t state_color = !state.available ? kRed : (state.stale ? kCoralInk : kText);
     if (!state.available) {
-        std::snprintf(timer_state_text_, sizeof(timer_state_text_), "TIMERS  No disponibles");
+        std::snprintf(timer_state_text_, sizeof(timer_state_text_), "No disponibles");
         std::snprintf(sleeping_timer_part_, sizeof(sleeping_timer_part_),
                       "timers no disponibles");
     } else if (state.items.empty()) {
-        std::snprintf(timer_state_text_, sizeof(timer_state_text_), "TIMERS  Sin timers activos");
+        std::snprintf(timer_state_text_, sizeof(timer_state_text_), "Sin timers activos");
         std::snprintf(sleeping_timer_part_, sizeof(sleeping_timer_part_), "sin timers activos");
     } else {
         const auto label = ascii_safe(state.items.front().label);
         const auto remaining = state.items.front().remaining_seconds;
         std::snprintf(timer_state_text_, sizeof(timer_state_text_),
-                      "TIMERS  %u activos - %s %02u:%02u",
+                      "%u activos\n\n%s\n%02u:%02u",
                       static_cast<unsigned>(state.items.size()), label.c_str(),
                       static_cast<unsigned>(remaining / 60U),
                       static_cast<unsigned>(remaining % 60U));
@@ -1179,9 +1303,10 @@ void LvglPanelView::refresh_home_controls() {
     unsigned on_count = 0;
     for (auto& entity : device_entities_) entity.clear();
     for (unsigned index = 0; index < device_buttons_.size(); ++index) {
-        lv_label_set_text(device_labels_[index], "SIN LUZ");
+        lv_label_set_text(device_labels_[index], "Sin luz");
         lv_obj_add_state(device_buttons_[index], LV_STATE_DISABLED);
-        lv_obj_set_style_border_width(device_buttons_[index], 0, 0);
+        lv_obj_set_style_bg_color(device_buttons_[index], color(kSurface), 0);
+        lv_obj_set_style_text_color(device_labels_[index], color(kMuted), 0);
     }
     for (const auto& device : devices_) {
         if (!device.entity_id.starts_with("light.")) continue;
@@ -1192,8 +1317,9 @@ void LvglPanelView::refresh_home_controls() {
         if (slot >= device_buttons_.size()) continue;
         device_entities_[slot] = device.entity_id;
         const auto name = ascii_safe(device.friendly_name);
-        std::snprintf(device_text_[slot], sizeof(device_text_[slot]), "%s  [%s]", name.c_str(),
-                      device.available ? (device.on ? "ON" : "OFF") : "NO DISP");
+        std::snprintf(device_text_[slot], sizeof(device_text_[slot]), "%s\n%s", name.c_str(),
+                      device.available ? (device.on ? "Encendida" : "Apagada")
+                                       : "No disponible");
         lv_label_set_text_static(device_labels_[slot], device_text_[slot]);
         lv_obj_clear_state(device_buttons_[slot], LV_STATE_DISABLED);
     }
@@ -1213,16 +1339,17 @@ void LvglPanelView::refresh_home_controls() {
         selected_entity_ = current_.entity_id;
     }
 
+    // La tarjeta seleccionada se pinta con la familia ambar, como el control.
     for (unsigned index = 0; index < device_entities_.size(); ++index) {
         if (device_entities_[index] == selected_entity_) {
-            lv_obj_set_style_border_width(device_buttons_[index], 2, 0);
-            lv_obj_set_style_border_color(device_buttons_[index], color(kCyan), 0);
+            lv_obj_set_style_bg_color(device_buttons_[index], color(kAmbarBg), 0);
+            lv_obj_set_style_text_color(device_labels_[index], color(kText), 0);
         }
     }
 
     for (auto& entity : scene_entities_) entity.clear();
     for (unsigned index = 0; index < scene_buttons_.size(); ++index) {
-        lv_label_set_text(scene_labels_[index], "SIN ESCENA");
+        lv_label_set_text(scene_labels_[index], "Sin escena");
         lv_obj_add_state(scene_buttons_[index], LV_STATE_DISABLED);
     }
     unsigned scene_count = 0;
@@ -1233,21 +1360,23 @@ void LvglPanelView::refresh_home_controls() {
         scene_entities_[scene_count] = device.entity_id;
         const auto name = ascii_safe(device.friendly_name);
         std::snprintf(scene_text_[scene_count], sizeof(scene_text_[scene_count]), "%s%s",
-                      name.c_str(), device.available ? "" : " [NO DISP]");
+                      name.c_str(), device.available ? "" : " (no disp.)");
         lv_label_set_text_static(scene_labels_[scene_count], scene_text_[scene_count]);
         if (device.available) lv_obj_clear_state(scene_buttons_[scene_count], LV_STATE_DISABLED);
         ++scene_count;
     }
 
-    std::snprintf(home_text_, sizeof(home_text_), "Hogar - %u/%u disponibles - %u encendidas",
-                  available_count, light_count, on_count);
+    std::snprintf(home_text_, sizeof(home_text_),
+                  "Hogar: %u de %u luces encendidas - %u disponibles", on_count, light_count,
+                  available_count);
     lv_label_set_text_static(home_summary_, home_text_);
     if (!has_device_) {
-        lv_label_set_text(selected_name_, "NINGUNA LUZ");
-        lv_label_set_text(availability_, "NO DISPONIBLE");
+        lv_label_set_text(selected_name_, "Ninguna luz");
+        lv_label_set_text(availability_, "No disponible");
         lv_label_set_text(state_label_, "Sin luces proyectadas");
         lv_obj_add_state(power_, LV_STATE_DISABLED);
         lv_obj_add_state(brightness_, LV_STATE_DISABLED);
+        lv_obj_add_state(hue_, LV_STATE_DISABLED);
         for (auto* button : color_buttons_) lv_obj_add_state(button, LV_STATE_DISABLED);
         return;
     }
@@ -1255,19 +1384,20 @@ void LvglPanelView::refresh_home_controls() {
     const auto selected_name = ascii_safe(current_.friendly_name);
     std::snprintf(selected_text_, sizeof(selected_text_), "%s", selected_name.c_str());
     lv_label_set_text_static(selected_name_, selected_text_);
-    lv_label_set_text(availability_, current_.available ? "DISPONIBLE" : "NO DISPONIBLE");
+    lv_label_set_text(availability_, current_.available ? "Disponible" : "No disponible");
     lv_obj_set_style_text_color(availability_, color(current_.available ? kGreen : kRed), 0);
     lv_label_set_text(state_label_, current_.on ? "Encendida" : "Apagada");
-    lv_label_set_text(power_label_, current_.on ? "APAGAR" : "ENCENDER");
-    lv_obj_set_style_bg_color(power_, color(current_.on ? kCyan : kSurfaceRaised), 0);
-    lv_obj_set_style_text_color(power_label_, color(current_.on ? kCanvas : kText), 0);
+    lv_obj_set_style_bg_color(power_, color(current_.on ? kAmbarInk : kSurface), 0);
+    lv_obj_set_style_text_color(power_label_, color(current_.on ? kSurface : kAmbarInk), 0);
     if (current_.available) {
         lv_obj_clear_state(power_, LV_STATE_DISABLED);
         lv_obj_clear_state(brightness_, LV_STATE_DISABLED);
+        lv_obj_clear_state(hue_, LV_STATE_DISABLED);
         for (auto* button : color_buttons_) lv_obj_clear_state(button, LV_STATE_DISABLED);
     } else {
         lv_obj_add_state(power_, LV_STATE_DISABLED);
         lv_obj_add_state(brightness_, LV_STATE_DISABLED);
+        lv_obj_add_state(hue_, LV_STATE_DISABLED);
         for (auto* button : color_buttons_) lv_obj_add_state(button, LV_STATE_DISABLED);
     }
     if (!slider_active_ && lv_slider_get_value(brightness_) != current_.brightness) {
@@ -1295,19 +1425,19 @@ void LvglPanelView::render_execution(const domain::ExecutionUpdate& update) {
     }
     lv_label_set_text(execution_, message.c_str());
     lv_obj_set_style_text_color(
-        execution_, color(update.state == domain::ExecutionState::Failed ? kRed : kCyan), 0);
-    const char* state = "WYSS ESTA LISTO";
+        execution_, color(update.state == domain::ExecutionState::Failed ? kRed : kCoralInk), 0);
+    const char* state = "Wyss esta listo";
     if (update.state == domain::ExecutionState::Planning) {
-        state = "WYSS ESTA PENSANDO";
+        state = "Wyss esta pensando";
     } else if (update.state == domain::ExecutionState::AwaitingConfirmation) {
-        state = "WYSS ESPERA TU CONFIRMACION";
+        state = "Wyss espera tu confirmacion";
     } else if (update.state == domain::ExecutionState::Executing ||
                update.state == domain::ExecutionState::Optimistic) {
-        state = "WYSS ESTA EJECUTANDO";
+        state = "Wyss esta ejecutando";
     } else if (update.state == domain::ExecutionState::Verified) {
-        state = "ACCION VERIFICADA";
+        state = "Accion verificada";
     } else if (update.state == domain::ExecutionState::Failed) {
-        state = "LA ACCION FALLO";
+        state = "La accion fallo";
     }
     lv_label_set_text(conversation_state_, state);
     lv_obj_set_style_text_color(
@@ -1325,7 +1455,7 @@ void LvglPanelView::render_execution(const domain::ExecutionUpdate& update) {
 void LvglPanelView::render_plan(const domain::Plan& plan) {
     static char plan_text[620];
     std::size_t offset = static_cast<std::size_t>(std::snprintf(
-        plan_text, sizeof(plan_text), "%s\n\nRIESGO %c\n", ascii_safe(plan.summary).c_str(),
+        plan_text, sizeof(plan_text), "%s\n\nRiesgo %c\n", ascii_safe(plan.summary).c_str(),
         static_cast<char>('A' + static_cast<unsigned>(plan.risk))));
     for (const auto& step : plan.steps) {
         if (offset >= sizeof(plan_text)) break;
@@ -1377,6 +1507,17 @@ void LvglPanelView::on_device(lv_event_t* event) {
     const auto index = reinterpret_cast<std::uintptr_t>(lv_event_get_user_data(event));
     if (index >= g_view->device_entities_.size() || g_view->device_entities_[index].empty()) return;
     g_view->select_entity(g_view->device_entities_[index]);
+}
+
+void LvglPanelView::on_hue_release(lv_event_t* event) {
+    auto* view = static_cast<LvglPanelView*>(lv_event_get_user_data(event));
+    if (view == nullptr || !view->has_device_ || !view->current_.available) return;
+    const auto hue = static_cast<std::uint16_t>(lv_slider_get_value(view->hue_));
+    const lv_color32_t rgb{.full = lv_color_to32(lv_color_hsv_to_rgb(hue, 100, 100))};
+    const std::uint32_t value = (static_cast<std::uint32_t>(rgb.ch.red) << 16) |
+                                (static_cast<std::uint32_t>(rgb.ch.green) << 8) |
+                                static_cast<std::uint32_t>(rgb.ch.blue);
+    view->service_->fast_action(view->selected_entity_, "set_color", std::nullopt, value);
 }
 
 void LvglPanelView::on_color(lv_event_t* event) {

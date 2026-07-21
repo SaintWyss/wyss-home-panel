@@ -5,6 +5,15 @@ ventana de migración de v2.0.0.
 
 ## [2.0.0] — pendiente de promoción
 
+### Cambiado
+
+- rediseño visual "widgets" del panel: rail de iconos de 64 px, tarjetas de radio 22 sin sombra y
+  familias cromáticas por función (ámbar luces/recordatorios, cielo clima, selva media, lila agenda,
+  coral marca) con contraste AA verificado por test;
+- inicio reorganizado en tira de resumen más tiles de clima, pendientes y próximo evento; hogar con
+  barra de matiz continua y dos predefinidos; reposo en fondo carbón tipo reloj de mesa de luz;
+- copy del panel reescrito en frases en lugar de etiquetas en mayúsculas.
+
 ### Agregado
 
 - contratos v2 compartidos Python/C++, identidad por cliente, eventos SQLite y sincronización por

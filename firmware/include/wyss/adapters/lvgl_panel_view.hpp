@@ -41,6 +41,7 @@ class LvglPanelView final : public ports::ViewPort {
     static void on_brightness_release(lv_event_t* event);
     static void on_device(lv_event_t* event);
     static void on_color(lv_event_t* event);
+    static void on_hue_release(lv_event_t* event);
     static void on_scene(lv_event_t* event);
     static void on_media_previous(lv_event_t* event);
     static void on_media_play(lv_event_t* event);
@@ -122,12 +123,15 @@ class LvglPanelView final : public ports::ViewPort {
     std::array<lv_obj_t*, 3> device_labels_{};
     std::array<lv_obj_t*, 3> scene_buttons_{};
     std::array<lv_obj_t*, 3> scene_labels_{};
-    std::array<lv_obj_t*, 4> color_buttons_{};
+    std::array<lv_obj_t*, 2> color_buttons_{};
+    lv_obj_t* hue_{nullptr};
     std::array<lv_obj_t*, 4> media_buttons_{};
     std::array<lv_obj_t*, 7> weather_days_{};
+    std::array<lv_obj_t*, 7> weather_maxes_{};
     std::array<lv_obj_t*, 7> weather_bars_{};
     std::array<lv_obj_t*, 2> weather_chip_values_{};
     std::array<lv_obj_t*, 4> agenda_events_{};
+    std::array<lv_obj_t*, 3> inicio_agenda_{};
     std::array<std::string, 3> device_entities_{};
     std::array<std::string, 3> scene_entities_{};
     lv_obj_t* conversation_state_{nullptr};
@@ -160,6 +164,8 @@ class LvglPanelView final : public ports::ViewPort {
     char sleeping_timer_part_[128]{"Timers sin sincronizar"};
     char sleeping_summary_text_[536]{};
     char weather_day_text_[7][48]{};
+    char weather_max_text_[7][12]{};
+    char inicio_agenda_text_[3][160]{};
     char agenda_state_text_[192]{};
     char agenda_meta_text_[160]{};
     char agenda_event_text_[4][224]{};
