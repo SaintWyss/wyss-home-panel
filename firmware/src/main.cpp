@@ -89,8 +89,11 @@ void setup() {
 
     if (configured) {
         start_network();
-        // Argentina no usa horario de verano: ART3 mantiene el check diario en hora local.
-        configTzTime("ART3", "pool.ntp.org", "time.google.com");
+        // Sin SNTP público: este panel es LAN-only y no alcanza pool.ntp.org.
+        // La actividad de red del reintento continuo de SNTP starva el refresh del
+        // LCD RGB (sin PSRAM) y hace rolling/tearing en todas las pantallas. El
+        // check de puerta degrada de forma segura sin hora (no auto-resetea a diario).
+        // TODO: derivar la hora local del bridge/Home Edge en vez de NTP público.
     }
 }
 
