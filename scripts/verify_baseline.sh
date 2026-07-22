@@ -70,8 +70,8 @@ export PATH="$TOOL_BIN:$PATH"
 cd "$ROOT"
 run_dependency uv sync --project bridge --locked --extra dev --python "$PYTHON_VERSION"
 
-run_code uv run --project bridge --locked --extra dev --python "$PYTHON_VERSION" ruff check bridge tools/check_docs.py tools/doctor.py tools/check_baseline_evidence.py tools/check_ci_protection.py tools/check_architecture.py
-run_code uv run --project bridge --locked --extra dev --python "$PYTHON_VERSION" ruff format --check bridge tools/check_docs.py tools/doctor.py tools/check_baseline_evidence.py tools/check_ci_protection.py tools/check_architecture.py
+run_code uv run --project bridge --locked --extra dev --python "$PYTHON_VERSION" ruff check bridge tools
+run_code uv run --project bridge --locked --extra dev --python "$PYTHON_VERSION" ruff format --check bridge tools
 run_code uv run --project bridge --locked --extra dev --python "$PYTHON_VERSION" mypy bridge/src
 run_code uv run --project bridge --locked --extra dev --python "$PYTHON_VERSION" python tools/check_architecture.py --format json
 run_code uv run --project bridge --locked --extra dev --python "$PYTHON_VERSION" pytest bridge/tests --quiet

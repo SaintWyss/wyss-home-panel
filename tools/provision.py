@@ -20,13 +20,19 @@ def active_ssid() -> str:
         text=True,
     )
     return next(
-        (line.split(":", 1)[1] for line in result.stdout.splitlines() if line.startswith("yes:")),
+        (
+            line.split(":", 1)[1]
+            for line in result.stdout.splitlines()
+            if line.startswith("yes:")
+        ),
         "",
     )
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Yo aprovisiono el panel sin publicar secretos")
+    parser = argparse.ArgumentParser(
+        description="Yo aprovisiono el panel sin publicar secretos"
+    )
     parser.add_argument("--port", required=True)
     parser.add_argument("--bridge-url", required=True)
     parser.add_argument("--panel-id", required=True)
@@ -67,4 +73,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

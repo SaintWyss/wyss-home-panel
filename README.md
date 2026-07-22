@@ -99,7 +99,7 @@ python tools/doctor.py
 cmake -S . -B build && cmake --build build && ctest --test-dir build
 python -m pip install uv==0.11.18
 uv sync --project bridge --locked --extra dev
-uv run --project bridge --locked --extra dev ruff check bridge tools/check_docs.py tools/doctor.py
+uv run --project bridge --locked --extra dev ruff check bridge tools
 uv run --project bridge --locked --extra dev mypy bridge/src
 uv run --project bridge --locked --extra dev pytest bridge/tests
 python tools/check_docs.py
