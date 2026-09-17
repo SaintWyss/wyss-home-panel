@@ -67,5 +67,6 @@
   "features": {},
   "mode": "yolo",
   "granularity": "fine",
-  "runtime": "codex"
+  "runtime": "codex",
+  "claude_md_path": "./AGENTS.md"
 }
