@@ -1,4 +1,9 @@
-# Wyss Home Panel
+<h1 align="center">wyss-home-panel</h1>
+
+<p align="center"><strong>Panel táctil para interactuar con el hogar mediante Wyss.</strong><br/>ESP32 · LVGL · automatización</p>
+
+> Proyecto en desarrollo. El alcance y la validación de cada funcionalidad se detallan a continuación.
+
 
 Yo convierto una Waveshare ESP32-S3-Touch-LCD-7 Rev. 1.2 (800×480, N16R8) en la superficie física de Wyss para el hogar. Yo respondo al tacto antes de esperar la red, mantengo las credenciales sensibles en la netbook y exijo confirmación cuando la política de Wyss lo decide.
 
