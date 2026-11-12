@@ -58,7 +58,7 @@ Yo aprovisiono el panel una sola vez:
 
 ```bash
 python tools/provision.py \
-  --port /dev/serial/by-id/usb-1a86_USB_Single_Serial_5C37247963-if00 \
+  --port /dev/ttyACM0 \
   --bridge-url wss://192.168.1.20:8443/v1/panel \
   --panel-id wyss-panel-living \
   --primary-entity light.living \
