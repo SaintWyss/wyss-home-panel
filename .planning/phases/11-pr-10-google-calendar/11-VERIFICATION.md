@@ -48,7 +48,7 @@ requirements: [CAL-01, CAL-02]
   visible ni autenticación Calendar.
 - Se restauró la app original de 5 MiB y el readback coincidió byte a byte con SHA-256
   `d7bbc1d350c3c24dcb5ccab0a75c3ae274b351463726cc0c13f2262b3a5f4be0`.
-- El firmware original volvió a mostrar interfaz, Wi-Fi `192.168.100.30` y Tuya local operativo.
+- El firmware original volvió a mostrar interfaz, conexión Wi-Fi y Tuya local operativo.
 
 ## Pending evidence
 
